@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.compdfkit.flutter.compdfkit_flutter">
+    <application>
+        <activity android:name=".pdf.CPDFDocumentActivity"
+            android:exported="false"
+            android:theme="@style/CPDFDocumentActivityStyle"/>
+    </application>
+</manifest>

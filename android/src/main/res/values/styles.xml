@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="CPDFDocumentActivityStyle" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/tools_color_primary</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:colorAccent">@color/tools_color_accent</item>
+        <item name="android:colorPrimary">@color/tools_color_accent</item>
+    </style>
+</resources>

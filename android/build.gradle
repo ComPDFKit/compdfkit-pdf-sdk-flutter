@@ -1,0 +1,67 @@
+group 'com.compdfkit.flutter.compdfkit_flutter'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 33
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    dependencies {
+        compileOnly fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+        implementation 'com.google.android.material:material:1.8.0'
+        implementation 'androidx.appcompat:appcompat:1.6.1'
+        implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+        api 'com.compdf:compdfkit:1.11.0'
+        api 'com.compdf:compdfkit-ui:1.11.0'
+        api 'com.compdf:compdfkit-tools:1.11.0'
+        testImplementation 'junit:junit:4.13.2'
+        testImplementation 'org.mockito:mockito-core:5.0.0'
+        api 'com.github.bumptech.glide:glide:4.15.1'
+        annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+        api 'androidx.documentfile:documentfile:1.0.1'
+    }
+
+    testOptions {
+        unitTests.all {
+            testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
+            }
+        }
+    }
+}
