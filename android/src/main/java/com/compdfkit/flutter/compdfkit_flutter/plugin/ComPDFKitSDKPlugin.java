@@ -15,9 +15,9 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 
 import com.compdfkit.core.document.CPDFSdk;
-import com.compdfkit.flutter.compdfkit_flutter.pdf.CPDFConfiguration;
-import com.compdfkit.flutter.compdfkit_flutter.pdf.CPDFConfigurationUtils;
-import com.compdfkit.flutter.compdfkit_flutter.pdf.CPDFDocumentActivity;
+import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
+import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
+import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
 import com.compdfkit.tools.common.utils.CToastUtil;
 
 import org.json.JSONObject;
@@ -59,7 +59,8 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
                 Map<String, Object> arguments = (Map<String, Object>) call.arguments;
                 String filePath = (String) arguments.get("document");
                 String password = (String) arguments.get("password");
-                CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson((String) arguments.get("configuration"));
+                String configurationJson = (String) arguments.get("configuration");
+                CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
                 Intent intent = new Intent(context, CPDFDocumentActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PATH, filePath);

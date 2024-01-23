@@ -1,3 +1,17 @@
+## 1.12.0
+* Added the features support for ComPDFKit PDF SDK for iOS V1.12.0.
+* Added the features support for ComPDFKit PDF SDK for Android V1.12.0.
+* Added support for finding and replacing text in content editor mode, allowing to set ignore case, whole words only, and replace all.
+* Added UI configuration functionality.
+* Added support for setting text properties when adding text in content editor mode.
+* Added Flatten functionality.
+
+
+## 1.11.1-dev.1
+* Added mode list configuration options.
+* Added `CPreviewMode.viewer` mode to view note annotation content
+
+
 ## 1.11.0
 * Added the features support for ComPDFKit PDF SDK for Android V1.11.0.
 * Added the features support for ComPDFKit PDF SDK for iOS V1.11.0.

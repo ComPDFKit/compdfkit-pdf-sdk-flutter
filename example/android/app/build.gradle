@@ -38,7 +38,7 @@ android {
                     Properties props = new Properties()
                     props.load(propsFile.newDataInputStream())
 
-                    storeFile file(props['keystore'])
+                    storeFile file(props['storeFile'])
                     storePassword props['keystore.password']
                     keyAlias props['keyAlias']
                     keyPassword props['keyAlias.password']
@@ -55,12 +55,16 @@ android {
         applicationId "com.compdfkit.flutter.example"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode flutterVersionCode.toInteger()
+        versionCode 3
         versionName flutterVersionName
     }
 
     buildTypes {
         release {
+            debuggable false
+            minifyEnabled true
+            zipAlignEnabled true
+            shrinkResources true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

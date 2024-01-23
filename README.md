@@ -4,7 +4,7 @@
 
 [ComPDFKit PDF SDK](https://www.compdf.com) is a robust PDF library, which offers comprehensive functions for quickly viewing, annotating, editing, and signing PDFs. It is feature-rich and battle-tested, making PDF files process and manipulation easier and faster.
 
-[ComPDFKit for Flutter](https://www.compdf.com/flutter) allows you to quickly add PDF functions to any Flutter application, elevating your Android and iOS apps to ensure seamless and efficient development.  It is available at [pub.dev](https://pub.dev/packages/compdfkit_flutter) and GitHub.
+[ComPDFKit for Flutter](https://www.compdf.com/flutter) allows you to quickly add PDF functions to any Flutter application, elevating your Android and iOS apps to ensure seamless and efficient development.  It is available at [pub.dev](https://pub.dev/packages/compdfkit_flutter) and [GitHub.](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter)
 
 
 
@@ -19,6 +19,8 @@
 * [ComPDFKit API](https://api.compdf.com/api/pricing) allows you to get 1000 files processing monthly now! Just [sign up](https://api.compdf.com/signup) for a free trial and enjoy comprehensive PDF functions.
 
 
+
+
 ## Key Features
 
 - [**Viewer**](https://www.compdf.com/pdf-sdk/viewer) component offers Standard page display modes, Navigation, Text search & selection, Zoom in and out & Fit-page, Text reflow, and more.
@@ -29,7 +31,7 @@
 
 - [**Document Editor**](https://www.compdf.com/pdf-sdk/document-editor) component offers Split, Extract, Merge, Delete, Insert, Crop, Move, Rotate, Replace, and Exchange pages, etc.
 
-- [**Content Editor**](https://www.compdf.com/pdf-sdk/edit-pdf) component offers Copy, Resize, Change Colors, Text Alignment, etc.
+- [**Content Editor**](https://www.compdf.com/pdf-sdk/edit-pdf) component offers Copy, Resize, Change Colors, Text Alignment, Find and Replace, etc.
 
 - [**Security**](https://www.compdf.com/pdf-sdk/security) component offers Encrypt and Decrypt PDFs, Watermark, etc.
 
@@ -57,10 +59,11 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* A minSdkVersion of `19` or higher.
+* A minSdkVersion of `21` or higher.
 * A `compileSdkVersion` of `30` or higher.
 * A `targetSdkVersion` of `30` or higher.
 * Android ABI(s): x86, x86_64, armeabi-v7a, arm64-v8a.
+
 
 **iOS**
 
@@ -132,7 +135,7 @@ open android/app/build.gradle
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^1.11.0
++  compdfkit_flutter: ^1.12.0
 ```
 
 7. From the terminal app, run the following command to get all the packages:
@@ -287,7 +290,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^1.11.0
++  compdfkit_flutter: ^1.12.0
 ```
 
 4. From the terminal app, run the following command to get all the packages:
@@ -313,8 +316,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/1.11.0.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/1.11.0.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/1.12.0.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/1.12.0.podspec'
 
  end
 ```
@@ -442,7 +445,7 @@ class _MyAppState extends State<MyApp> {
 
 11. To protect user privacy, before accessing the sensitive privacy data, you need to find the "***Info\***" configuration in your iOS 10.0 or higher iOS project and configure the relevant privacy terms as shown in the following picture.
 
-![](screenshots/1-8.png)
+![](./screenshots/1-8.png)
 
 ```objective-c
 <key>NSCameraUsageDescription</key>
@@ -469,6 +472,52 @@ flutter emulators --launch apple_ios_simulator
 ```bash
 flutter run
 ```
+
+
+
+## UI Customization
+
+In version **1.12.0**, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View, you can define this object to meet your product requirements. We will continue to enrich configuration options in the future to further enhance the flexibility of the product. Here are some examples of commonly used configuration options:
+
+1. Set the initial display mode and the list of available modes. The following code shows enabling only the viewer mode and annotations mode:
+
+```dart
+var configuration = CPDFConfiguration(modeConfig: const ModeConfig(
+  initialViewMode: CPreviewMode.viewer,
+  availableViewModes: [
+    CPreviewMode.viewer,
+    CPreviewMode.annotations
+  ]
+));
+ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
+```
+
+2. Set the list of enabled annotation types and default annotation attribute values. For example, enable only highlight annotations and set the color and transparency for highlight annotations:
+
+```dart
+var configuration = CPDFConfiguration(
+  annotationsConfig: const CPDFAnnotationsConfig(
+    availableTypes: [CPDFAnnotationType.highlight],
+    initAttribute: CPDFAnnotationAttribute(
+      highlight: CPDFAnnotAttr.highlight(color: Colors.blue, alpha: 255))));
+
+ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
+```
+
+3. Set the display mode and page flipping direction:
+
+```dart
+var configuration = CPDFConfiguration(
+  readerViewConfig: const ReaderViewConfig(
+    displayMode: CPDFDisplayMode.doublePage,
+    verticalMode: false
+  )
+);
+
+ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
+```
+
+> Note: For more information, please refer to the options defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class
 
 
 
@@ -503,7 +552,10 @@ ComPDFKit.openDocument(tempDocumentPath, password: '', configuration:  CPDFConfi
 
 ComPDFKit PDF SDK supports flexible licensing options, please contact [our sales team](mailto:support@compdf.com) to know more. Each license is only valid for one application ID in development mode. However, any documents, sample code, or source code distribution from the released package of ComPDFKit PDF SDK to any third party is prohibited.
 
+
+
 ## Note
+
 We are glad to announce that you can register a ComPDFKit API account for a [free trial](https://api.compdf.com/api/pricing) to process 1000 documents per month for free.
 
 Thanks,
