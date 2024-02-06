@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
  * <p>
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -33,6 +33,8 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
 
     public static final String INIT_SDK = "init_sdk";
 
+    public static final String INIT_SDK_KEYS = "init_sdk_keys";
+
     public static final String SDK_VERSION_CODE = "sdk_version_code";
 
     public static final String SDK_BUILD_TAG = "sdk_build_tag";
@@ -47,7 +49,12 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
             case INIT_SDK:
                 Map<String, Object> map = (Map<String, Object>) call.arguments;
                 String key = (String) map.get("key");
-                CPDFSdk.init(context, key);
+                CPDFSdk.init(context, key, true);
+                break;
+            case INIT_SDK_KEYS:
+                Map<String, Object> map1 = (Map<String, Object>) call.arguments;
+                String androidLicenseKey = (String) map1.get("androidOnlineLicense");
+                CPDFSdk.init(context, androidLicenseKey, false);
                 break;
             case SDK_VERSION_CODE:
                 result.success(CPDFSdk.getSDKVersion());

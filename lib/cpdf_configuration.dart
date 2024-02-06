@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'cpdf_options.dart';
 
-///  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
 ///
 ///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 ///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -29,7 +29,6 @@ import 'cpdf_options.dart';
 ///
 /// ```
 class CPDFConfiguration {
-
   ModeConfig modeConfig;
 
   ToolbarConfig toolbarConfig;
@@ -149,6 +148,9 @@ class ReaderViewConfig {
 
   final double pageScale;
 
+  /// only android platform
+  final bool pageSameWidth;
+
   const ReaderViewConfig(
       {this.linkHighlight = true,
       this.formFieldHighlight = true,
@@ -160,7 +162,8 @@ class ReaderViewConfig {
       this.enableSliderBar = true,
       this.enablePageIndicator = true,
       this.pageSpacing = 10,
-      this.pageScale = 1.0});
+      this.pageScale = 1.0,
+      this.pageSameWidth = true});
 
   Map<String, dynamic> toJson() => {
         'linkHighlight': linkHighlight,
@@ -173,7 +176,8 @@ class ReaderViewConfig {
         'enableSliderBar': enableSliderBar,
         'enablePageIndicator': enablePageIndicator,
         'pageSpacing': pageSpacing,
-        'pageScale': pageScale
+        'pageScale': pageScale,
+        'pageSameWidth': pageSameWidth
       };
 }
 
@@ -494,7 +498,6 @@ class CPDFBorderStyle {
 }
 
 class CPDFContentEditorConfig {
-
   final List<CPDFContentEditorType> availableTypes;
 
   final List<CPDFConfigTool> availableTools;
@@ -522,7 +525,6 @@ class CPDFContentEditorAttribute {
 }
 
 class CPDFContentEditorAttr {
-
   final Color fontColor;
 
   final int fontColorAlpha;
@@ -558,7 +560,6 @@ class CPDFContentEditorAttr {
 }
 
 class CPDFFormsConfig {
-
   final List<CPDFFormType> availableTypes;
 
   final List<CPDFFormConfigTool> availableTools;
@@ -578,7 +579,6 @@ class CPDFFormsConfig {
 }
 
 class CPDFFormAttribute {
-
   final CPDFFormAttr textField;
 
   final CPDFFormAttr checkBox;

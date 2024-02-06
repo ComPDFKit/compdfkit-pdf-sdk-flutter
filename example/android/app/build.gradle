@@ -55,16 +55,12 @@ android {
         applicationId "com.compdfkit.flutter.example"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 3
+        versionCode 4
         versionName flutterVersionName
     }
 
     buildTypes {
         release {
-            debuggable false
-            minifyEnabled true
-            zipAlignEnabled true
-            shrinkResources true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

@@ -1,4 +1,4 @@
-///  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
 ///
 ///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 ///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -7,6 +7,7 @@
 
 enum CPreviewMode { viewer, annotations, contentEditor, forms, signatures }
 
+/// The [ToolbarAction.back] button will only be displayed on the leftmost side of the top toolbar on the Android platform
 enum ToolbarAction { back, thumbnail, search, bota, menu }
 
 enum ToolbarMenuAction {
@@ -61,7 +62,7 @@ enum CPDFAnnotationType {
 
 enum CPDFConfigTool { setting, undo, redo }
 
-enum CPDFFormConfigTool {undo, redo}
+enum CPDFFormConfigTool { undo, redo }
 
 enum CPDFAnnotBorderStyle { solid, dashed }
 
@@ -84,12 +85,10 @@ extension CPDFTypefaceExtension on CPDFTypeface {
         return 'Courier';
     }
   }
-
-
 }
 
-extension CPDFTypefaceEnumExten on Iterable<CPDFTypeface>{
-  CPDFTypeface byFontName(String fontName){
+extension CPDFTypefaceEnumExten on Iterable<CPDFTypeface> {
+  CPDFTypeface byFontName(String fontName) {
     switch (fontName.toLowerCase()) {
       case 'courier':
         return CPDFTypeface.courier;
@@ -103,12 +102,9 @@ extension CPDFTypefaceEnumExten on Iterable<CPDFTypeface>{
   }
 }
 
-enum CPDFContentEditorType{
-  editorText,
-  editorImage
-}
+enum CPDFContentEditorType { editorText, editorImage }
 
-enum CPDFFormType{
+enum CPDFFormType {
   textField,
   checkBox,
   radioButton,
@@ -118,14 +114,4 @@ enum CPDFFormType{
   pushButton
 }
 
-enum CPDFCheckStyle {
-  check,
-  circle,
-  cross,
-  diamond,
-  square,
-  star
-}
-
-
-
+enum CPDFCheckStyle { check, circle, cross, diamond, square, star }

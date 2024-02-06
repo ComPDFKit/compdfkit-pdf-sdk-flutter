@@ -1,4 +1,4 @@
-///  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
 ///
 ///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 ///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -33,8 +33,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
+
+
+    // online license auth
     // Please replace it with your ComPDFKit license
-    ComPDFKit.init('your compdfkit license');
+    // ComPDFKit.initialize(androidOnlineLicense: 'android compdfkit key',iosOnlineLicense: 'ios compdfkit key');
+
+    // offline license auth
+    ComPDFKit.init('your compdfkit key');
+
   }
 
   @override
@@ -47,9 +54,7 @@ class _MyAppState extends State<MyApp> {
             onPressed: () async {
               showDocument(context);
             },
-            child: const Text(
-              'Open Document'
-            )),
+            child: const Text('Open Document')),
       ))),
     );
   }

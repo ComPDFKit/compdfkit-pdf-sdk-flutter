@@ -18,6 +18,12 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["key"] ?? ""
             CPDFKit.verify(withKey: key as? String)
+        case "init_sdk_keys":
+            let initInfo = call.arguments as? [String: Any]
+            let key = initInfo?["iosOnlineLicense"] ?? ""
+            CPDFKit.verify(withOnlineLicense: key as? String) { code, message in
+                print("Code: \(code), Message:\(String(describing: message))")
+            }
         case "sdk_build_tag":
             result("iOS build tag:\(CPDFKit.sharedInstance().buildNumber)")
         case "openDocument":
@@ -48,7 +54,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             result(FlutterMethodNotImplemented)
         }
     }
-
+    
     func getTemporaryDirectory() -> String {
         let paths = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)
         return paths.first ?? ""

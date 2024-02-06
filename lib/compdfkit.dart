@@ -1,4 +1,4 @@
-///  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
 ///
 ///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 ///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -15,20 +15,38 @@ class ComPDFKit {
       MethodChannel('com.compdfkit.flutter.plugin');
 
   static const initSDK = 'init_sdk';
+  static const initSdkKeys = 'init_sdk_keys';
   static const sdkVersionCode = 'sdk_version_code';
   static const sdkBuildTag = "sdk_build_tag";
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
-  /// A new license verification is enabled in ComPDFKit SDK V1.11.0.
-  /// If you want to update the ComPDFKit SDK to V1.11.0 and do not have a new license,
-  /// please contact the [ComPDFKit team.](https://www.compdf.com/support)"
+  /// This method is used for offline license authentication.
+  /// In version **1.13.0**, we have introduced a brand-new online authentication licensing scheme.
+  /// By default, the ComPDFKit SDK performs online authentication.
+  /// If you are unsure about the type of your license, please contact the [ComPDFKit team.](https://www.compdf.com/support).
   ///
-  /// **samples:**
+  /// **samples:**<br/>
   /// ```dart
   /// ComPDFKit.init('your compdfkit license')
   /// ```
   static void init(String key) async {
     _methodChannel.invokeMethod(initSDK, {'key': key});
+  }
+
+  /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
+  /// This method is used for online license authentication
+  /// In version **1.13.0**, we have introduced a brand-new online authentication licensing scheme.
+  /// By default, the ComPDFKit SDK performs online authentication.
+  /// If you obtained your ComPDFKit License before the release of version 1.13.0, please use [ComPDFKit.init] <br/>
+  /// If you are unsure about the type of your license, please contact the [ComPDFKit team.](https://www.compdf.com/support).
+  ///
+  /// **samples:**<br/>
+  /// **online auth**
+  /// ```dart
+  /// ComPDFKit.initialize(androidOnlineLicense : 'your android platform compdfkit license', iosOnlineLicense: 'your ios platform compdfkit license')
+  /// ```
+  static void initialize({required String androidOnlineLicense,required String iosOnlineLicense}) {
+    _methodChannel.invokeMethod(initSdkKeys, {'androidOnlineLicense': androidOnlineLicense, 'iosOnlineLicense': iosOnlineLicense});
   }
 
   /// Get the version code of the ComPDFKit SDK.
