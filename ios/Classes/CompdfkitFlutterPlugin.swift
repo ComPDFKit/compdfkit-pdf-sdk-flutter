@@ -17,7 +17,8 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         case "init_sdk":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["key"] ?? ""
-            CPDFKit.verify(withKey: key as? String)
+            let code = CPDFKit.verify(withKey: key as? String)
+            print("Code \(code)")
         case "init_sdk_keys":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["iosOnlineLicense"] ?? ""

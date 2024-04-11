@@ -89,8 +89,9 @@ cd example
     <!-- Required to read and write documents from device storage -->
 +    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 +    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  
+    <!-- Optional settings -->
 +    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
-
 
 
     <application
@@ -124,7 +125,7 @@ open android/app/build.gradle
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^1.13.0
++  compdfkit_flutter: ^2.0.0
 ```
 
 7. From the terminal app, run the following command to get all the packages:
@@ -143,7 +144,7 @@ import 'package:compdfkit_flutter/cpdf_configuration.dart';
 
 import 'package:flutter/material.dart';
 
-const String DOCUMENT_PATH = 'pdfs/PDF_Document.pdf';
+const String _documentPath = 'pdfs/PDF_Document.pdf';
 
 void main() {
   runApp(const MyApp());
@@ -190,13 +191,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   void showDocument(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(DOCUMENT_PATH);
+    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
     final list = bytes.buffer.asUint8List();
     final tempDir = await ComPDFKit.getTemporaryDirectory();
     var pdfsDir = Directory('${tempDir.path}/pdfs');
     pdfsDir.createSync(recursive: true);
 
-    final tempDocumentPath = '${tempDir.path}/$DOCUMENT_PATH';
+    final tempDocumentPath = '${tempDir.path}/$_documentPath';
     final file = File(tempDocumentPath);
     if (!file.existsSync()) {
       file.create(recursive: true);
@@ -280,7 +281,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^1.13.0
++  compdfkit_flutter: ^2.0.0
 ```
 
 4. From the terminal app, run the following command to get all the packages:
@@ -309,8 +310,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/1.13.0.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/1.13.0.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.0.0.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.0.0.podspec'
 
  end
 ```
@@ -331,7 +332,7 @@ import 'package:compdfkit_flutter/cpdf_configuration.dart';
 
 import 'package:flutter/material.dart';
 
-const String DOCUMENT_PATH = 'pdfs/PDF_Document.pdf';
+const String _documentPath = 'pdfs/PDF_Document.pdf';
 
 void main() {
   runApp(const MyApp());
@@ -378,13 +379,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   void showDocument(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(DOCUMENT_PATH);
+    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
     final list = bytes.buffer.asUint8List();
     final tempDir = await ComPDFKit.getTemporaryDirectory();
     var pdfsDir = Directory('${tempDir.path}/pdfs');
     pdfsDir.createSync(recursive: true);
 
-    final tempDocumentPath = '${tempDir.path}/$DOCUMENT_PATH';
+    final tempDocumentPath = '${tempDir.path}/$_documentPath';
     final file = File(tempDocumentPath);
     if (!file.existsSync()) {
       file.create(recursive: true);
@@ -474,8 +475,6 @@ flutter emulators --launch apple_ios_simulator
 flutter run
 ```
 
-
-
 #### Apply the License Key
 
 ComPDFKit PDF SDK is a commercial SDK, which requires a license to grant developer permission to release their apps. Each license is only valid for one `bundle ID` or `applicationId` in development mode. Other flexible licensing options are also supported, please contact [our marketing team](mailto:support@compdf.com) to know more.
@@ -493,8 +492,6 @@ ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicen
 ```dart
 ComPDFKit.init('your compdfkit key');
 ```
-
-
 
 #### Troubleshooting
 
@@ -530,8 +527,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '1.13.0'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '1.13.0'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.0'
 
   # Enables Flipper.
   #
@@ -545,8 +542,6 @@ target 'PDFView_RN' do
   end
 end
 ````
-
-
 
 ## UI Customization
 

@@ -1,16 +1,18 @@
-import 'dart:convert';
-
-import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
-import 'package:flutter/material.dart';
-
-import 'cpdf_options.dart';
-
+///
 ///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
 ///
 ///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 ///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
 ///  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 ///  This notice may not be removed from this file.
+///
+
+import 'dart:convert';
+
+import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
+import 'package:flutter/material.dart';
+
+import 'cpdf_options.dart';
 
 /// modeConfig: Configuration of parameters that can be adjusted when opening a PDF interface.
 /// For example, setting the default display mode when opening, such as entering viewer or annotations mode.

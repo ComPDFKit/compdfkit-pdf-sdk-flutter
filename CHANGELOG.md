@@ -1,3 +1,7 @@
+## 2.0.0
+* Added the features support for ComPDFKit PDF SDK for iOS V2.0.0.
+* Added the features support for ComPDFKit PDF SDK for Android V2.0.0.
+
 ## 1.13.0
 
 * Added the features support for ComPDFKit PDF SDK for iOS V1.13.0.
