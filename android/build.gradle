@@ -41,9 +41,9 @@ android {
         implementation 'com.google.android.material:material:1.8.0'
         implementation 'androidx.appcompat:appcompat:1.6.1'
         implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-        api 'com.compdf:compdfkit:2.0.0'
-        api 'com.compdf:compdfkit-ui:2.0.0'
-        api ('com.compdf:compdfkit-tools:2.0.0')
+        api 'com.compdf:compdfkit:2.0.1'
+        api 'com.compdf:compdfkit-ui:2.0.1'
+        api ('com.compdf:compdfkit-tools:2.0.1')
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'
