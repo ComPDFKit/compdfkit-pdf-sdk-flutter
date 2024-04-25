@@ -55,7 +55,7 @@ android {
         applicationId "com.compdfkit.flutter.example"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 5
+        versionCode 6
         versionName flutterVersionName
     }
 

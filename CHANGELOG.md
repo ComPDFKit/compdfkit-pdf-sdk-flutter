@@ -1,3 +1,9 @@
+## 2.0.1
+* Added the features support for ComPDFKit PDF SDK for iOS V2.0.1.
+* Added the features support for ComPDFKit PDF SDK for Android V2.0.1.
+* Fix the issue of continuous memory growth.
+
+
 ## 2.0.0
 * Added the features support for ComPDFKit PDF SDK for iOS V2.0.0.
 * Added the features support for ComPDFKit PDF SDK for Android V2.0.0.
