@@ -11,6 +11,7 @@ package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -18,15 +19,14 @@ import com.compdfkit.core.document.CPDFSdk;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
-import com.compdfkit.tools.common.utils.CToastUtil;
-
-import org.json.JSONObject;
+import com.compdfkit.tools.common.utils.CLog;
 
 import java.util.Map;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.platform.PlatformViewRegistry;
 
 
 public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
@@ -44,29 +44,35 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
     }
 
     @Override
+    public String methodName() {
+        return "com.compdfkit.flutter.plugin";
+    }
+
+    @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         switch (call.method) {
             case INIT_SDK:
-                Map<String, Object> map = (Map<String, Object>) call.arguments;
-                String key = (String) map.get("key");
-                CPDFSdk.init(context, key, true);
+                String key = call.argument("key");
+                CPDFSdk.init(context, key, true, (code, msg) -> {
+                    Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + code + ", msg:" + msg);
+                });
                 break;
             case INIT_SDK_KEYS:
-                Map<String, Object> map1 = (Map<String, Object>) call.arguments;
-                String androidLicenseKey = (String) map1.get("androidOnlineLicense");
-                CPDFSdk.init(context, androidLicenseKey, false);
+                String androidLicenseKey = call.argument("androidOnlineLicense");
+                CPDFSdk.init(context, androidLicenseKey, false, (code, msg) -> {
+                    Log.e("ComPDFKit-Plugin", "INIT_SDK_KEYS: code:" + code + ", msg:" + msg);
+                });
                 break;
             case SDK_VERSION_CODE:
-                result.success(CPDFSdk.getSDKVersion());
+                result.success("ComPDFKit 2.0.2 for Android");
                 break;
             case SDK_BUILD_TAG:
                 result.success(CPDFSdk.getSDKBuildTag());
                 break;
             case "openDocument":
-                Map<String, Object> arguments = (Map<String, Object>) call.arguments;
-                String filePath = (String) arguments.get("document");
-                String password = (String) arguments.get("password");
-                String configurationJson = (String) arguments.get("configuration");
+                String filePath = call.argument("document");
+                String password = call.argument("password");
+                String configurationJson = call.argument("configuration");
                 CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
                 Intent intent = new Intent(context, CPDFDocumentActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -83,8 +89,5 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
         }
     }
 
-    @Override
-    public String methodName() {
-        return "com.compdfkit.flutter.plugin";
-    }
+
 }

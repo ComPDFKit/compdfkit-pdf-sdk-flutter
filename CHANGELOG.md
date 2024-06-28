@@ -1,4 +1,18 @@
+## 2.0.2
+* Added `CPDFReaderWidget` widget.
+```dart
+Scaffold(
+  resizeToAvoidBottomInset: false,
+  appBar: AppBar(),
+  body: CPDFReaderWidget(
+    document: documentPath,
+    configuration: CPDFConfiguration(),
+    onCreated: (controller) {},
+  ));
+```
+
 ## 2.0.1
+
 * Added the features support for ComPDFKit PDF SDK for iOS V2.0.1.
 * Added the features support for ComPDFKit PDF SDK for Android V2.0.1.
 * Fix the issue of continuous memory growth.

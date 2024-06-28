@@ -16,9 +16,6 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-        }
     }
 }
 
@@ -37,13 +34,13 @@ android {
     }
 
     dependencies {
-        compileOnly fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+        compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
         implementation 'com.google.android.material:material:1.8.0'
         implementation 'androidx.appcompat:appcompat:1.6.1'
         implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-        api 'com.compdf:compdfkit:2.0.1'
-        api 'com.compdf:compdfkit-ui:2.0.1'
-        api ('com.compdf:compdfkit-tools:2.0.1')
+
+        // dependencies compdfkit pdf sdk
+        api 'com.compdf:compdfkit-tools:2.0.2'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'

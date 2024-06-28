@@ -12,6 +12,7 @@ package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
 
 import android.content.Context;
+import android.util.Log;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
@@ -19,16 +20,25 @@ import io.flutter.plugin.common.MethodChannel;
 
 public abstract class BaseMethodChannelPlugin implements MethodChannel.MethodCallHandler {
 
+    public static final String LOG_TAG = "ComPDFKit-Plugin";
+
     protected MethodChannel methodChannel = null;
 
     protected Context context;
 
+    protected BinaryMessenger binaryMessenger;
+
     public BaseMethodChannelPlugin(Context context, BinaryMessenger binaryMessenger) {
         this.context = context;
-        methodChannel = new MethodChannel(binaryMessenger, methodName());
-        methodChannel.setMethodCallHandler(this);
+        this.binaryMessenger = binaryMessenger;
     }
 
     public abstract String methodName();
+
+    public void register(){
+        Log.e(LOG_TAG, "create MethodChannel:" + methodName());
+        methodChannel = new MethodChannel(binaryMessenger, methodName());
+        methodChannel.setMethodCallHandler(this);
+    }
 
 }

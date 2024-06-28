@@ -45,8 +45,8 @@ Please install the following required packages:
 Operating Environment Requirements:
 
 * A minSdkVersion of `21` or higher.
-* A `compileSdkVersion` of `30` or higher.
-* A `targetSdkVersion` of `30` or higher.
+* A `compileSdkVersion` of `33` or higher.
+* A `targetSdkVersion` of `33` or higher.
 * Android ABI(s): x86, x86_64, armeabi-v7a, arm64-v8a.
 
 **iOS**
@@ -59,7 +59,7 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* The iOS 10.0 or higher.
+* The iOS 11.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.
 
 ### Integrate into a New Flutter APP
@@ -119,22 +119,48 @@ open android/app/build.gradle
  }
 ```
 
-6. Add the ComPDFKit dependency in `pubspec.yaml`
+6. Open the project’s main activity class, `android/app/src/main/java/com/example/compdfkit/flutter/example/MainActivity.java`, Change the base `Activity` to extend `FlutterFragmentActivity`:
+
+```diff
+- import io.flutter.embedding.android.FlutterActivity;
++ import io.flutter.embedding.android.FlutterFragmentActivity;
+
+- public class MainActivity extends FlutterActivity {
++ public class MainActivity extends FlutterFragmentActivity {
+}
+```
+
+Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragmentActivity` as the launcher activity:
+
+```diff
+<activity
+-     android:name=".MainActivity" 
++     android:name="io.flutter.embedding.android.FlutterFragmentActivity"
+      android:exported="true"
+      android:hardwareAccelerated="true"
+      android:launchMode="singleTop"
+      android:theme="@style/LaunchTheme"
+      android:windowSoftInputMode="adjustPan">
+```
+
+> **Note:** `FlutterFragmentActivity` is not an official part of the Flutter SDK. If you need to use `CPDFReaderWidget` in ComPDFKit for Flutter, you need to use this part of the code. You can skip this step if you don't need to use.
+
+7. Add the ComPDFKit dependency in `pubspec.yaml`
 
 ```diff
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.0.1
++  compdfkit_flutter: ^2.0.2
 ```
 
-7. From the terminal app, run the following command to get all the packages:
+8. From the terminal app, run the following command to get all the packages:
 
 ```bash
 flutter pub get
 ```
 
-8. Open `lib/main.dart` and replace the entire content with the following code. And fill in the license provided to you in the `ComPDFKit.init` method, this simple example will load a PDF document from the local device file system.
+9. Open `lib/main.dart` and replace the entire content with the following code. And fill in the license provided to you in the `ComPDFKit.init` method, this simple example will load a PDF document from the local device file system.
 
 ```dart
 import 'dart:io';
@@ -281,7 +307,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.0.1
++  compdfkit_flutter: ^2.0.2
 ```
 
 4. From the terminal app, run the following command to get all the packages:
@@ -310,8 +336,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.0.1.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.0.1.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.0.2.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.0.2.podspec'
 
  end
 ```
@@ -527,8 +553,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.1'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.1'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.2'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.2'
 
   # Enables Flipper.
   #
@@ -545,7 +571,7 @@ end
 
 ## UI Customization
 
-In version **1.12.0**, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View, you can define this object to meet your product requirements. We will continue to enrich configuration options in the future to further enhance the flexibility of the product. Here are some examples of commonly used configuration options:
+In the **1.12.0** version, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View or use `CPDFReaderWidget`, you can define this object to meet your product needs. We will continue to enrich the configuration options in the future to further enhance the flexibility of the product. The following are some examples of commonly used configuration options:
 
 1. Set the initial display mode and the list of available modes. The following code shows enabling only the viewer mode and annotations mode:
 
@@ -585,7 +611,7 @@ var configuration = CPDFConfiguration(
 ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
 ```
 
-> Note: For more information, please refer to the options defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class
+> Note: For more information, please refer to the options defined in the [CONFIGURATION.md](./CONFIGURATION.md) class
 
 ## Example APP
 
@@ -604,6 +630,15 @@ ComPDFKit.init('your compdfkit key')
 
 /// open pdf document
 ComPDFKit.openDocument(tempDocumentPath, password: '', configuration:  CPDFConfiguration());
+
+/// Here’s how you can open a PDF document using CPDFReaderWidget:
+Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(title: const Text('CPDFReaderWidget Example'),),
+        body: CPDFReaderWidget(
+          document: widget.documentPath,
+          configuration: CPDFConfiguration()
+        ));
 ```
 
 ## Support

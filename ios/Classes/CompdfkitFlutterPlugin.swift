@@ -8,6 +8,9 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         let channel = FlutterMethodChannel(name: "com.compdfkit.flutter.plugin", binaryMessenger: registrar.messenger())
         let instance = CompdfkitFlutterPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
+
+        let factory = CPDFViewCtrlFactory(messenger: registrar.messenger())
+        registrar.register(factory, withId: "com.compdfkit.flutter.ui.pdfviewer")
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

@@ -1,0 +1,54 @@
+/*
+ * Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+ *
+ * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+ * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+ * UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+ * This notice may not be removed from this file.
+ *
+ */
+
+///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+///
+///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+///  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+///  This notice may not be removed from this file.
+///
+
+import 'package:compdfkit_flutter/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/cpdf_options.dart';
+import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
+import 'package:compdfkit_flutter_example/theme/themes.dart';
+import 'package:flutter/material.dart';
+
+class CPDFDarkThemeExample extends StatefulWidget {
+  final String documentPath;
+
+  const CPDFDarkThemeExample({super.key, required this.documentPath});
+
+  @override
+  State<CPDFDarkThemeExample> createState() => _CPDFDarkThemeExampleState();
+}
+
+class _CPDFDarkThemeExampleState extends State<CPDFDarkThemeExample> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        theme: darkTheme,
+        home: Scaffold(
+            resizeToAvoidBottomInset: false,
+            appBar: AppBar(
+              title: const Text('Dark Theme Example'),
+            ),
+            body: CPDFReaderWidget(
+              document: widget.documentPath,
+              configuration: CPDFConfiguration(
+                toolbarConfig: const ToolbarConfig(
+                    iosLeftBarAvailableActions: [ToolbarAction.thumbnail]),
+                globalConfig: CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)
+              ),
+              onCreated: (controller) {},
+            )));
+  }
+}

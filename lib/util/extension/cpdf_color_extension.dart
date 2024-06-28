@@ -11,13 +11,19 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-extension HexColor on Color {
+/// extension [Color] class
+/// toHex: Colors.white.toHex() => '#FFFFFFFF'
+/// formHex: '#FFFFFF' => Colors.white
+extension HexColor on Color{
+
+  /// Colors.white.toHex() => '#FFFFFFFF'
   String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
       '${alpha.toRadixString(16).padLeft(2, '0')}'
       '${red.toRadixString(16).padLeft(2, '0')}'
       '${green.toRadixString(16).padLeft(2, '0')}'
       '${blue.toRadixString(16).padLeft(2, '0')}';
 
+  /// formHex: '#FFFFFF' => Colors.white
   static Color fromHex(String hexString) {
     final buffer = StringBuffer();
     if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');

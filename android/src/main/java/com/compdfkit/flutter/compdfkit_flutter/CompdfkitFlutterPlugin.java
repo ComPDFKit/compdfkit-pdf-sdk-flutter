@@ -12,6 +12,7 @@ package com.compdfkit.flutter.compdfkit_flutter;
 import androidx.annotation.NonNull;
 
 import com.compdfkit.flutter.compdfkit_flutter.plugin.ComPDFKitSDKPlugin;
+import com.compdfkit.flutter.compdfkit_flutter.platformview.CPDFViewCtrlFactory;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -24,10 +25,16 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     private BinaryMessenger mMessenger;
 
+    private PlatformViewRegistry mRegistry;
+
+    private static final String PDF_DOCUMENT_VIEW_TYPE_ID = "com.compdfkit.flutter.ui.pdfviewer";
+
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         mMessenger = flutterPluginBinding.getBinaryMessenger();
-        new ComPDFKitSDKPlugin(flutterPluginBinding.getApplicationContext(), mMessenger);
+        mRegistry = flutterPluginBinding.getPlatformViewRegistry();
+        new ComPDFKitSDKPlugin(flutterPluginBinding.getApplicationContext(), mMessenger)
+                .register();
     }
 
     @Override
@@ -36,6 +43,9 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        if (mRegistry != null) {
+            mRegistry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID,new CPDFViewCtrlFactory(mMessenger));
+        }
     }
 
     @Override
@@ -45,7 +55,6 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-
     }
 
     @Override

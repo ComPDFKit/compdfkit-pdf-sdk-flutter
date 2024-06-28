@@ -43,13 +43,16 @@ class CPDFConfiguration {
 
   CPDFFormsConfig formsConfig;
 
+  CPDFGlobalConfig globalConfig;
+
   CPDFConfiguration(
       {this.modeConfig = const ModeConfig(initialViewMode: CPreviewMode.viewer),
       this.toolbarConfig = const ToolbarConfig(),
       this.readerViewConfig = const ReaderViewConfig(),
       this.annotationsConfig = const CPDFAnnotationsConfig(),
       this.contentEditorConfig = const CPDFContentEditorConfig(),
-      this.formsConfig = const CPDFFormsConfig()});
+      this.formsConfig = const CPDFFormsConfig(),
+      this.globalConfig = const CPDFGlobalConfig()});
 
   String toJson() => jsonEncode({
         'modeConfig': modeConfig.toJson(),
@@ -57,7 +60,8 @@ class CPDFConfiguration {
         'readerViewConfig': readerViewConfig.toJson(),
         'annotationsConfig': annotationsConfig.toJson(),
         'contentEditorConfig': contentEditorConfig.toJson(),
-        'formsConfig': formsConfig.toJson()
+        'formsConfig': formsConfig.toJson(),
+        'global': globalConfig.toJson()
       });
 }
 
@@ -66,12 +70,16 @@ class ModeConfig {
 
   final List<CPreviewMode> availableViewModes;
 
+  final bool readerOnly;
+
   const ModeConfig(
       {this.initialViewMode = CPreviewMode.viewer,
+      this.readerOnly = false,
       this.availableViewModes = CPreviewMode.values});
 
   Map<String, dynamic> toJson() => {
         'initialViewMode': initialViewMode.name,
+        'readerOnly': readerOnly,
         'availableViewModes': availableViewModes.map((e) => e.name).toList()
       };
 }
@@ -710,7 +718,7 @@ class CPDFFormAttr {
       int borderWidth = 2,
       Color checkedColor = const Color(0xFF43474D),
       bool isChecked = false,
-      CPDFCheckStyle checkStyle = CPDFCheckStyle.check})
+      CPDFCheckStyle checkStyle = CPDFCheckStyle.circle})
       : this(
             formType: CPDFFormType.radioButton,
             fillColor: fillColor,
@@ -851,4 +859,15 @@ class CPDFFormAttr {
         return {};
     }
   }
+}
+
+class CPDFGlobalConfig {
+
+  /// Only supports Android platform in version 2.0.2
+  //  Set the view theme mode except the PDF area, the default value is [CPDFThemeMode.system]
+  final CPDFThemeMode themeMode;
+
+  const CPDFGlobalConfig({this.themeMode = CPDFThemeMode.system});
+
+  Map<String, dynamic> toJson() => {"themeMode": themeMode.name};
 }

@@ -117,3 +117,8 @@ enum CPDFFormType {
 }
 
 enum CPDFCheckStyle { check, circle, cross, diamond, square, star }
+
+
+enum CPDFThemeMode {
+  light, dark, system
+}
