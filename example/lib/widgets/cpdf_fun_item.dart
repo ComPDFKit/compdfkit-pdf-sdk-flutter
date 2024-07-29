@@ -1,9 +1,9 @@
-///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
-///
-///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
-///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
-///  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
-///  This notice may not be removed from this file.
+// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+//
+// THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+// AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+// UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+// This notice may not be removed from this file.
 
 
 import 'package:flutter/material.dart';
@@ -52,7 +52,7 @@ class FeatureItem extends StatelessWidget {
               'images/ic_syasarrow.svg',
               width: 24,
               height: 24,
-              color: Theme.of(context).colorScheme.onPrimary,
+              colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.onPrimary, BlendMode.srcIn),
             )
           ],
         )),

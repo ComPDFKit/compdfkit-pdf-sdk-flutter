@@ -71,7 +71,6 @@ public class CPDFViewCtrlFlutter implements PlatformView {
         String configurationJson = (String) creationParams.get("configuration");
         CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
         documentFragment = CPDFDocumentFragment.newInstance(filePath, password, configuration);
-
         fragmentContainerView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@NonNull View v) {

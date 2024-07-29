@@ -31,7 +31,7 @@ class CAppBar extends StatelessWidget implements PreferredSizeWidget {
               'images/ic_home_setting.svg',
               width: 24,
               height: 24,
-              color: Theme.of(context).colorScheme.onPrimary,
+              colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.onPrimary, BlendMode.srcIn),
             ))
       ],
     );

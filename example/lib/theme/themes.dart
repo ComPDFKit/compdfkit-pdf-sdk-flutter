@@ -1,10 +1,9 @@
-///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
-///
-///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
-///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
-///  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
-///  This notice may not be removed from this file.
-
+// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+//
+// THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+// AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+// UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+// This notice may not be removed from this file.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +13,6 @@ final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     colorScheme: const ColorScheme.light(
         primary: Color(0xFFFAFCFF),
-        background: Color(0xFFFFFFFF),
         surface: Color(0xFFFAFCFF),
         onPrimary: Color(0xFF43474D),
         onSecondary: Color(0xFF666666)),
@@ -46,7 +44,6 @@ final ThemeData darkTheme = ThemeData(
     scaffoldBackgroundColor: Colors.black,
     colorScheme: const ColorScheme.dark(
         primary: Color(0xFF222429),
-        background: Color(0xFF414347),
         surface: Color(0xFF222429),
         onPrimary: Colors.white,
         onSecondary: Colors.white),

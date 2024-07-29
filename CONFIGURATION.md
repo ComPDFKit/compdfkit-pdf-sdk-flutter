@@ -64,7 +64,16 @@ var configuration = CPDFConfiguration(
     ]
   )
 );
-ComPDFKit.openDocument(document, password: '', configuration: configuration);    
+ComPDFKit.openDocument(document, password: '', configuration: configuration); 
+
+// usage Widget
+Scaffold(
+  resizeToAvoidBottomInset: false,
+  appBar: AppBar(title: const Text('CPDFReaderWidget Example'),),
+  body: CPDFReaderWidget(
+    document: widget.documentPath,
+    configuration: configuration
+  ));
 ```
 
 ### Option Explanations
@@ -132,17 +141,18 @@ Configure functions for the top toolbar in the PDF view.
 
 ##### **availableMenus Constants**
 
-| Name           | Description                                                |
-| -------------- | ---------------------------------------------------------- |
+| Name           | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
 | viewSetting    | Settings related to PDF viewing, such as scroll direction and theme. |
 | documentEditor | Displays a list of PDF document thumbnails and allows page manipulation such as addition and deletion. |
-| documentInfo   | Displays information related to the PDF document.           |
+| documentInfo   | Displays information related to the PDF document.            |
 | watermark      | Adds text or image watermark to the document, saving it as a new document. |
-| security       | Sets viewing and permission passwords for the document.     |
+| security       | Sets viewing and permission passwords for the document.      |
 | flattened      | Flattens annotations and other content within the document, making annotations uneditable. |
-| save           | Saves the document.                                         |
-| share          | Shares the PDF document.                                    |
+| save           | Saves the document.                                          |
+| share          | Shares the PDF document.                                     |
 | openDocument   | Opens the system file selector to choose and open a PDF document. |
+| snip           | The PDF capture function allows you to capture an area in the PDF document and convert it into an image. |
 ```json
 {
    "toolbarConfig": {
@@ -170,7 +180,8 @@ Configure functions for the top toolbar in the PDF view.
       "flattened",
       "save",
       "share",
-      "openDocument"
+      "openDocument",
+      "snip"
     ]
   }
 }
@@ -182,11 +193,12 @@ Configure annotation-related settings, such as enabling types displayed in the a
 
 ##### **Parameters**
 
-| Name           | Type  | Description                                                  |
-| -------------- | ----- | ------------------------------------------------------------ |
-| availableTypes | Array | The types of annotations enabled in the toolbar at the bottom. |
-| availableTools | Array | Annotation tools, including `Setting`, `Undo`, and `Redo`.   |
-| initAttribute  | Array | Set default attributes for annotations.                      |
+| Name             | Type   | Description                                                              |
+| ---------------- | ------ |--------------------------------------------------------------------------|
+| availableTypes   | Array  | The types of annotations enabled in the toolbar at the bottom.           |
+| availableTools   | Array  | Annotation tools, including `Setting`, `Undo`, and `Redo`.               |
+| initAttribute    | Array  | Set default attributes for annotations.                                  |
+| annotationAuthor | String | Set the author name when adding annotations and replying to annotations. |
 
 ##### **availableTypes Constants**
 
@@ -760,9 +772,10 @@ This section is used to configure the types of forms enabled in the view's botto
 
 ##### Parameters
 
-| Name      | Type          | Example | Description                                                  |
-| --------- | ------------- | ------- | ------------------------------------------------------------ |
-| themeMode | CPDFThemeMode | light   | Set the view theme style, support `light`, `dark`, `system`, the default is `light` theme<br />**ComPDFKit SDK for Flutter:** => 2.0.2<br />Only Android Platform. |
+| Name                    | Type          | Example | Description                                                  |
+| ----------------------- | ------------- | ------- | ------------------------------------------------------------ |
+| themeMode               | CPDFThemeMode | light   | Set the view theme style, support `light`, `dark`, `system`, the default is `light` theme<br />**ComPDFKit SDK for Flutter:** => 2.0.2<br />Only Android Platform. |
+| fileSaveExtraFontSubset | boolean       | true    | When saving a document, whether to save the used font set together with the document. |
 
 ##### themeMode Constants
 
@@ -780,6 +793,7 @@ This section is used to configure the types of forms enabled in the view's botto
 {
   "modeConfig": {
     "initialViewMode": "viewer",
+    "readerOnly": false,
     "availableViewModes": [
       "viewer",
       "annotations",
@@ -813,10 +827,12 @@ This section is used to configure the types of forms enabled in the view's botto
       "flattened",
       "save",
       "share",
-      "openDocument"
+      "openDocument",
+      "snip"
     ]
   },
   "annotationsConfig": {
+    "annotationAuthor": "Guest",
     "availableTypes": [
       "note",
       "highlight",
@@ -1033,6 +1049,10 @@ This section is used to configure the types of forms enabled in the view's botto
     "pageSpacing": 10,
     "pageScale": 1.0,
     "pageSameWidth":true
+  },
+  "global" : {
+    "themeMode" : "system",
+    "fileSaveExtraFontSubset" : true
   }
 }
 ```

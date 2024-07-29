@@ -15,14 +15,14 @@
   
 */
 
-"Open Document" = "Open Document";
-
 "Close" = "Close";
 "Settings" = "Settings";
 "Highlight Links" = "Highlight Links";
 "Highlight Form Fields" = "Highlight Form Fields";
 "File Author" = "File Author";
 "ComPDFKit" = "ComPDFKit";
+"Annotator" = "Annotator";
+"The fonts data is saved with the file" = "The fonts data is saved with the file";
 "SDK Information" = "SDK Information";
 "Version" = "Version";
 "V 1.11.0" = "V 1.11.0";
@@ -134,6 +134,7 @@
 "Dark" = "Dark";
 "Sepia" = "Sepia";
 "Reseda" = "Reseda";
+"Snip" = "Snip";
 
 "Information" = "Document Info";
 "Abstract:" = "Abstract:";
@@ -289,7 +290,6 @@
 "Crop" = "Crop";
 "Export Successfully!" = "Export Successfully!";
 
-
 "Text Field" = "Text Field";
 "Check Box" = "Check Box";
 "Radio Button" = "Radio Button";
@@ -419,6 +419,7 @@
 "Signer:" = "Signer:";
 "Signing Time:" = "Signing Time:";
 "Signaturess" = "Signature";
+"Your message conforms to the format of an email." = "Your message conforms to the format of an email.";
 
 "Certification Authority Statement" = "Certification Authority Statement";
 "The signer's identity is valid." = "The signer's identity is valid.";
@@ -524,3 +525,25 @@
 "Please enter Replace text!" = "Please enter Replace text!";
 "No changes have been made to the document!" = "No changes have been made to the document!";
 "Save successfully！" = "Save successfully！";
+
+
+"Import Annotations" = "Import Annotations";
+"Export Annotations" = "Export Annotations";
+"Delete all annotations" = "Delete all annotations";
+"Delete all replies" = "Delete all replies";
+"Accepted" = "Accepted";
+"Rejected" = "Rejected";
+"Cancelled" = "Cancelled";
+"Completed" = "Completed";
+"Add a new reply" = "Add a new reply";
+"View replies" = "View replies";
+"Delete Annotation" = "Delete Annotation";
+"Delete annotation" = "Delete annotation";
+"Add New Reply" = "Add New Reply";
+"Reply or add thoughts" = "Reply or add thoughts";
+"Replies of Annotation" = "Replies of Annotation";
+"Total: %ld" = "Total: %ld";
+"Unmarked" = "Unmarked";
+"Marked" = "Marked";
+"Reply" = "Reply";
+"View Reply" = "View Reply";

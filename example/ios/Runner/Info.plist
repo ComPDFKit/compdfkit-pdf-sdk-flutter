@@ -41,6 +41,22 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Enable camera access so that you can create scans with your camera.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your consent is required before you could access the function.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -62,21 +78,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Enable camera access so that you can create scans with your camera.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your consent is required before you could access the function.</string>
 </dict>
 </plist>

@@ -151,119 +151,10 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.0.2
++  compdfkit_flutter: ^2.1.0
 ```
 
-8. From the terminal app, run the following command to get all the packages:
-
-```bash
-flutter pub get
-```
-
-9. Open `lib/main.dart` and replace the entire content with the following code. And fill in the license provided to you in the `ComPDFKit.init` method, this simple example will load a PDF document from the local device file system.
-
-```dart
-import 'dart:io';
-
-import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
-
-import 'package:flutter/material.dart';
-
-const String _documentPath = 'pdfs/PDF_Document.pdf';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  void _init() async {
-    /// Please replace it with your ComPDFKit license
-    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-  
-    /// If you are using an offline certified license, please use init() method
-    /// ComPDFKit.init('your compdfkit key')
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          body: SafeArea(
-              child: Center(
-        child: ElevatedButton(
-            onPressed: () async {
-              showDocument(context);
-            },
-            child: const Text(
-              'Open Document',
-              style: TextStyle(color: Colors.white),
-            )),
-      ))),
-    );
-  }
-
-  void showDocument(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
-    final list = bytes.buffer.asUint8List();
-    final tempDir = await ComPDFKit.getTemporaryDirectory();
-    var pdfsDir = Directory('${tempDir.path}/pdfs');
-    pdfsDir.createSync(recursive: true);
-
-    final tempDocumentPath = '${tempDir.path}/$_documentPath';
-    final file = File(tempDocumentPath);
-    if (!file.existsSync()) {
-      file.create(recursive: true);
-      file.writeAsBytesSync(list);
-    }
-    var configuration = CPDFConfiguration();
-    // How to disable functionality:
-    // setting the default display mode when opening
-    //      configuration.modeConfig = const ModeConfig(initialViewMode: CPreviewMode.annotations);
-    // top toolbar configuration:
-    // android:
-    //      configuration.toolbarConfig = const ToolbarConfig(androidAvailableActions: [
-    //           ToolbarAction.thumbnail, ToolbarAction.bota, 
-    //           ToolbarAction.search, ToolbarAction.menu
-    //      ],
-    //      availableMenus: [
-    //        ToolbarMenuAction.viewSettings, ToolbarMenuAction.documentInfo, ToolbarMenuAction.security,
-    //      ]);
-    // iOS:
-    //      configuration.toolbarConfig = const ToolbarConfig(
-    //		// ios top toolbar left buttons
-    //		iosLeftBarAvailableActions: [
-    //          ToolbarAction.back, ToolbarAction.thumbnail
-    //      ],
-    //		// ios top toolbar right buttons
-    //      iosRightBarAvailableActions: [
-    //        ToolbarAction.bota, ToolbarAction.search, ToolbarAction.menu
-    //      ],
-    //      availableMenus: [
-    //        ToolbarMenuAction.viewSettings, ToolbarMenuAction.documentInfo, ToolbarMenuAction.security,
-    //      ]);
-    // readerview configuration
-    //      configuration.readerViewConfig = const ReaderViewConfig(linkHighlight: true, formFieldHighlight: true);
-    ComPDFKit.openDocument(tempDocumentPath,
-        password: '', configuration: configuration);
-  }
-}
-```
-
-9. Add the PDF documents you want to display in the project
+8. Add the PDF documents you want to display in the project
 
 * create a `pdf` directory
 
@@ -272,7 +163,7 @@ class _MyAppState extends State<MyApp> {
   ```
 * Copy your example document into the newly created `pdfs` directory and name it `PDF_Document.pdf`
 
-10. Specify the `assets` directory in `pubspec.yaml`
+9. Specify the `assets` directory in `pubspec.yaml`
 
 ```diff
  flutter:
@@ -280,11 +171,10 @@ class _MyAppState extends State<MyApp> {
 +    - pdfs/
 ```
 
-11. Start your Android emulator, or connect a device.
-12. Run the app with:
+10. From the terminal app, run the following command to get all the packages:
 
 ```bash
-flutter run
+flutter pub get
 ```
 
 #### iOS
@@ -307,16 +197,10 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.0.2
++  compdfkit_flutter: ^2.1.0
 ```
 
-4. From the terminal app, run the following command to get all the packages:
-
-```bash
-flutter pub get
-```
-
-5. Open your project's Podfile in a text editor:
+4. Open your project's Podfile in a text editor:
 
 ```bash
 open ios/Podfile
@@ -336,8 +220,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.0.2.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.0.2.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.1.0.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.1.0.podspec'
 
  end
 ```
@@ -348,107 +232,7 @@ open ios/Podfile
 pod install
 ```
 
-8. Open `lib/main.dart` and replace the entire content with the following code. And fill in the license provided to you in the `ComPDFKit.init` method, this simple example will load a PDF document from the local device file system.
-
-```dart
-import 'dart:io';
-
-import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
-
-import 'package:flutter/material.dart';
-
-const String _documentPath = 'pdfs/PDF_Document.pdf';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  void _init() async {
-    /// Please replace it with your ComPDFKit license
-    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-  
-    /// If you are using an offline certified license, please use init() method
-    /// ComPDFKit.init('your compdfkit key')
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          body: SafeArea(
-              child: Center(
-        child: ElevatedButton(
-            onPressed: () async {
-              showDocument(context);
-            },
-            child: const Text(
-              'Open Document',
-              style: TextStyle(color: Colors.white),
-            )),
-      ))),
-    );
-  }
-
-  void showDocument(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
-    final list = bytes.buffer.asUint8List();
-    final tempDir = await ComPDFKit.getTemporaryDirectory();
-    var pdfsDir = Directory('${tempDir.path}/pdfs');
-    pdfsDir.createSync(recursive: true);
-
-    final tempDocumentPath = '${tempDir.path}/$_documentPath';
-    final file = File(tempDocumentPath);
-    if (!file.existsSync()) {
-      file.create(recursive: true);
-      file.writeAsBytesSync(list);
-    }
-    var configuration = CPDFConfiguration();
-    // How to disable functionality:
-    // setting the default display mode when opening
-    //      configuration.modeConfig = const ModeConfig(initialViewMode: CPreviewMode.annotations);
-    // top toolbar configuration:
-    // android:
-    //      configuration.toolbarConfig = const ToolbarConfig(androidAvailableActions: [
-    //           ToolbarAction.thumbnail, ToolbarAction.bota, 
-    //           ToolbarAction.search, ToolbarAction.menu
-    //      ],
-    //      availableMenus: [
-    //        ToolbarMenuAction.viewSettings, ToolbarMenuAction.documentInfo, ToolbarMenuAction.security,
-    //      ]);
-    // iOS:
-    //      configuration.toolbarConfig = const ToolbarConfig(iosLeftBarAvailableActions: [
-    //          ToolbarAction.back, ToolbarAction.thumbnail
-    //      ],
-    //      iosRightBarAvailableActions: [
-    //        ToolbarAction.bota, ToolbarAction.search, ToolbarAction.menu
-    //      ],
-    //      availableMenus: [
-    //        ToolbarMenuAction.viewSettings, ToolbarMenuAction.documentInfo, ToolbarMenuAction.security,
-    //      ]);
-    // readerview configuration:
-    //      configuration.readerViewConfig = const ReaderViewConfig(linkHighlight: true, formFieldHighlight: 		true);
-    ComPDFKit.openDocument(tempDocumentPath,
-        password: '', configuration: configuration);
-  }
-}
-```
-
-9. Add the PDF documents you want to display in the project
+8. Add the PDF documents you want to display in the project
 
 * create a `pdf` directory
 
@@ -457,7 +241,7 @@ class _MyAppState extends State<MyApp> {
   ```
 * Copy your example document into the newly created `pdfs` directory and name it `PDF_Document.pdf`
 
-10. Specify the `assets` directory in `pubspec.yaml`
+9. Specify the `assets` directory in `pubspec.yaml`
 
 ```diff
  flutter:
@@ -465,7 +249,7 @@ class _MyAppState extends State<MyApp> {
 +    - pdfs/
 ```
 
-11. To protect user privacy, before accessing the sensitive privacy data, you need to find the "***Info\***" configuration in your iOS 10.0 or higher iOS project and configure the relevant privacy terms as shown in the following picture.
+10. To protect user privacy, before accessing the sensitive privacy data, you need to find the "***Info\***" configuration in your iOS 10.0 or higher iOS project and configure the relevant privacy terms as shown in the following picture.
 
 ![](./screenshots/1-8.png)
 
@@ -489,17 +273,13 @@ class _MyAppState extends State<MyApp> {
 	</dict>
 ```
 
-12. Start your Android emulator, or connect a device.
+11. From the terminal app, run the following command to get all the packages:
 
 ```bash
-flutter emulators --launch apple_ios_simulator
+flutter pub get
 ```
 
-13. Run the app with:
 
-```bash
-flutter run
-```
 
 #### Apply the License Key
 
@@ -518,6 +298,230 @@ ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicen
 ```dart
 ComPDFKit.init('your compdfkit key');
 ```
+
+**Example:**
+
+```diff
+import 'dart:io';
+
+import 'package:compdfkit_flutter/compdfkit.dart';
+import 'package:compdfkit_flutter/cpdf_configuration.dart';
+
+import 'package:flutter/material.dart';
+
+const String _documentPath = 'pdfs/PDF_Document.pdf';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  void _init() async {
+    /// Please replace it with your ComPDFKit license
++    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
+  
+    /// If you are using an offline certified license, please use init() method
++    /// ComPDFKit.init('your compdfkit key')
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp();
+  }
+}
+```
+
+#### Usage
+
+There are 2 different ways to use ComPDFKit Flutter API:
+
+* Present a document via a plugin.
+* Show a ComPDFKit document view via a Widget.
+
+##### Usage Plugin
+
+Open `lib/main.dart`,replace the entire file with the following:
+
+```dart
+import 'dart:io';
+
+import 'package:compdfkit_flutter/compdfkit.dart';
+import 'package:compdfkit_flutter/cpdf_configuration.dart';
+
+import 'package:flutter/material.dart';
+
+const String _documentPath = 'pdfs/PDF_Document.pdf';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  void _init() async {
+    /// Please replace it with your ComPDFKit license
+    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
+  
+    /// If you are using an offline certified license, please use init() method
+    /// ComPDFKit.init('your compdfkit key')
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+          body: SafeArea(
+              child: Center(
+        child: ElevatedButton(
+            onPressed: () async {
+              showDocument(context);
+            },
+            child: const Text(
+              'Open Document',
+              style: TextStyle(color: Colors.white),
+            )),
+      ))),
+    );
+  }
+
+  void showDocument(BuildContext context) async {
+    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
+    final list = bytes.buffer.asUint8List();
+    final tempDir = await ComPDFKit.getTemporaryDirectory();
+    var pdfsDir = Directory('${tempDir.path}/pdfs');
+    pdfsDir.createSync(recursive: true);
+
+    final tempDocumentPath = '${tempDir.path}/$_documentPath';
+    final file = File(tempDocumentPath);
+    if (!file.existsSync()) {
+      file.create(recursive: true);
+      file.writeAsBytesSync(list);
+    }
+    var configuration = CPDFConfiguration();
+    // Present a document via a plugin.
+    ComPDFKit.openDocument(tempDocumentPath,
+        password: '', configuration: configuration);
+  }
+}
+```
+
+##### Usage Widget
+
+Open `lib/main.dart`,replace the entire file with the following:
+
+```dart
+import 'dart:io';
+
+import 'package:compdfkit_flutter/compdfkit.dart';
+import 'package:compdfkit_flutter/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
+
+import 'package:flutter/material.dart';
+
+const String _documentPath = 'pdfs/PDF_Document.pdf';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  String? _document;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+    _getDocumentPath(context).then((value) {
+      setState(() {
+        _document = value;
+      });
+    });
+  }
+
+  void _init() async {
+    /// Please replace it with your ComPDFKit license
+    ComPDFKit.initialize(
+         androidOnlineLicense: 'your compdfkit key',
+         iosOnlineLicense: 'your compdfkit key');
+
+    /// If you are using an offline certified license, please use init() method
+    /// ComPDFKit.init('your compdfkit key')
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: const Text('Dark Theme Example'),
+        ),
+        body: _document == null
+        ? Container()
+        : CPDFReaderWidget(
+          document: _document!,
+          configuration: CPDFConfiguration(),
+          onCreated: (_create) => {})));
+  }
+
+  Future<String> _getDocumentPath(BuildContext context) async {
+    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
+    final list = bytes.buffer.asUint8List();
+    final tempDir = await ComPDFKit.getTemporaryDirectory();
+    var pdfsDir = Directory('${tempDir.path}/pdfs');
+    pdfsDir.createSync(recursive: true);
+
+    final tempDocumentPath = '${tempDir.path}/$_documentPath';
+    final file = File(tempDocumentPath);
+    if (!file.existsSync()) {
+      file.create(recursive: true);
+      file.writeAsBytesSync(list);
+    }
+    return tempDocumentPath;
+  }
+}
+```
+
+Start your Android emulator, or connect a device, Run the app with:
+
+```bash
+flutter run
+```
+
+
 
 #### Troubleshooting
 
@@ -553,8 +557,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.2'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.0.2'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.0'
 
   # Enables Flipper.
   #

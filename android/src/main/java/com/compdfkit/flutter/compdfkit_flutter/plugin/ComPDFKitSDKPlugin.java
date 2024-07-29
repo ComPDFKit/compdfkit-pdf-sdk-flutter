@@ -9,6 +9,13 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPEN_DOCUMENT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_BUILD_TAG;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_VERSION_CODE;
+
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -30,14 +37,6 @@ import io.flutter.plugin.platform.PlatformViewRegistry;
 
 
 public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
-
-    public static final String INIT_SDK = "init_sdk";
-
-    public static final String INIT_SDK_KEYS = "init_sdk_keys";
-
-    public static final String SDK_VERSION_CODE = "sdk_version_code";
-
-    public static final String SDK_BUILD_TAG = "sdk_build_tag";
 
     public ComPDFKitSDKPlugin(Context context, BinaryMessenger binaryMessenger) {
         super(context, binaryMessenger);
@@ -64,12 +63,12 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
                 });
                 break;
             case SDK_VERSION_CODE:
-                result.success("ComPDFKit 2.0.2 for Android");
+                result.success(CPDFSdk.getSDKVersion());
                 break;
             case SDK_BUILD_TAG:
                 result.success(CPDFSdk.getSDKBuildTag());
                 break;
-            case "openDocument":
+            case OPEN_DOCUMENT:
                 String filePath = call.argument("document");
                 String password = call.argument("password");
                 String configurationJson = call.argument("configuration");
@@ -81,7 +80,7 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
                 intent.putExtra(CPDFDocumentActivity.EXTRA_CONFIGURATION, configuration);
                 context.startActivity(intent);
                 break;
-            case "getTemporaryDirectory":
+            case GET_TEMP_DIRECTORY:
                 result.success(context.getCacheDir().getPath());
                 break;
             default:

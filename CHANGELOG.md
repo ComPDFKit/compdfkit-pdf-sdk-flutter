@@ -1,3 +1,15 @@
+## 2.1.0
+* Added the features support for ComPDFKit PDF SDK for iOS V2.1.0.
+* Added the features support for ComPDFKit PDF SDK for Android V2.1.0.
+* Added annotation reply functionality.
+* Optimized text aggregation logic for content editing.
+* Added font subsetting.
+* Added screenshot feature.
+* Android platform adaptation for **Laban Key Keyboard**.
+* Fixed an issue with the Ink annotation color display on Android.
+* `CPDFReaderWidgetController.dart` adds widget control methods.
+
+
 ## 2.0.2
 * Added `CPDFReaderWidget` widget.
 ```dart

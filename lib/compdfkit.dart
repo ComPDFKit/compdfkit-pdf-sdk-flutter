@@ -1,26 +1,20 @@
-///
-///  Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
-///
-///  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
-///  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
-///  UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
-///  This notice may not be removed from this file.
-///
+// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+//
+// THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+// AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+// UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+// This notice may not be removed from this file.
 
 import 'dart:io';
 
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:flutter/services.dart';
+
 
 /// ComPDFKit plugin to load PDF and image documents on both platform iOS and Android.
 class ComPDFKit {
   static const MethodChannel _methodChannel =
       MethodChannel('com.compdfkit.flutter.plugin');
-
-  static const initSDK = 'init_sdk';
-  static const initSdkKeys = 'init_sdk_keys';
-  static const sdkVersionCode = 'sdk_version_code';
-  static const sdkBuildTag = "sdk_build_tag";
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
   /// This method is used for offline license authentication.
@@ -33,7 +27,7 @@ class ComPDFKit {
   /// ComPDFKit.init('your compdfkit license')
   /// ```
   static void init(String key) async {
-    _methodChannel.invokeMethod(initSDK, {'key': key});
+    _methodChannel.invokeMethod('init_sdk', {'key': key});
   }
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
@@ -49,19 +43,19 @@ class ComPDFKit {
   /// ComPDFKit.initialize(androidOnlineLicense : 'your android platform compdfkit license', iosOnlineLicense: 'your ios platform compdfkit license')
   /// ```
   static void initialize({required String androidOnlineLicense,required String iosOnlineLicense}) {
-    _methodChannel.invokeMethod(initSdkKeys, {'androidOnlineLicense': androidOnlineLicense, 'iosOnlineLicense': iosOnlineLicense});
+    _methodChannel.invokeMethod('init_sdk_keys', {'androidOnlineLicense': androidOnlineLicense, 'iosOnlineLicense': iosOnlineLicense});
   }
 
   /// Get the version code of the ComPDFKit SDK.
   static Future<String> getVersionCode() async {
     String versionCode =
-        await _methodChannel.invokeMethod(ComPDFKit.sdkVersionCode);
+        await _methodChannel.invokeMethod('sdk_version_code');
     return versionCode;
   }
 
   /// Get the version information of ComPDFKit SDK.
   static Future<String> getSDKBuildTag() async {
-    String buildTag = await _methodChannel.invokeMethod(ComPDFKit.sdkBuildTag);
+    String buildTag = await _methodChannel.invokeMethod('sdk_build_tag');
     return buildTag;
   }
 
@@ -77,7 +71,7 @@ class ComPDFKit {
   /// ```
   static void openDocument(String document,
       {String? password, CPDFConfiguration? configuration}) async {
-    await _methodChannel.invokeMethod('openDocument', <String, dynamic>{
+    await _methodChannel.invokeMethod('open_document', <String, dynamic>{
       'document': document,
       'password': password,
       'configuration': configuration?.toJson()
@@ -88,7 +82,7 @@ class ComPDFKit {
   /// Support [Android] and [iOS] only for now.
   static Future<Directory> getTemporaryDirectory() async {
     final String? path =
-        await _methodChannel.invokeMethod('getTemporaryDirectory');
+        await _methodChannel.invokeMethod('get_temporary_directory');
     if (path == null) {
       throw Exception('Unable to get temporary directory');
     }

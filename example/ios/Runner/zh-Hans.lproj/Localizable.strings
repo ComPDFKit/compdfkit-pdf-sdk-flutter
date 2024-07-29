@@ -12,14 +12,14 @@
   
 */
 
-"Open Document" = "打开文档";
-
 "Close" = "关闭";
 "Settings" = "设置";
 "Highlight Links" = "高亮链接文字";
 "Highlight Form Fields" = "高亮表单域";
 "File Author" = "文档作者";
 "ComPDFKit" = "ComPDFKit";
+"Annotator" = "注释作者";
+"The fonts data is saved with the file" = "字体数据随文件一起保存";
 "SDK Information" = "SDK 信息";
 "Version" = "版本";
 "V 1.11.0" = "V 1.11.0";
@@ -132,6 +132,7 @@
 "Dark" = "夜间模式";
 "Sepia" = "柔和模式";
 "Reseda" = "护眼模式";
+"Snip" = "截取";
 
 
 "Information" = "文档属性";
@@ -286,7 +287,7 @@
 "Crop" = "裁剪";
 "Paste and Match Style" = "带样式粘贴";
 "Export Successfully!" = "图片导出成功！";
-
+"Exit" = "退出";
 
 "Text Field" = "文本域";
 "Check Box" = "复选框";
@@ -417,6 +418,7 @@
 "Signer:" = "签署人:";
 "Signaturess" = "数字签名";
 "Signing Time:" = "签署时间:";
+"Your message conforms to the format of an email." = "您的信息符合电子邮件的格式。";
 
 "Certification Authority Statement" = "有效性小结";
 "The signer's identity is valid." = "签名者的身份有效。";
@@ -521,3 +523,25 @@
 "Please enter Replace text!" = "请输入替换文本!";
 "No changes have been made to the document!" = "文档没有进行任何修改！";
 "Save successfully！" = "保存成功！";
+
+
+"Import Annotations" = "导入注释";
+"Export Annotations" = "导出注释";
+"Delete all annotations" = "删除所有注释";
+"Delete all replies" = "删除所有回复";
+"Accepted" = "已接受";
+"Rejected" = "已拒绝";
+"Cancelled" = "已取消";
+"Completed" = "已完成";
+"Add a new reply" = "新增回复";
+"View replies" = "查看回复";
+"Delete Annotation" = "删除注释";
+"Delete annotation" = "删除注释";
+"Add New Reply" = "新增回复";
+"Reply or add thoughts" = "请输入回复内容";
+"Replies of Annotation" = "所有回复";
+"Total: %ld" = "共计%d条";
+"Unmarked" = "未标记";
+"Marked" = "已标记";
+"Reply" = "回复";
+"View Reply" = "查看回复";

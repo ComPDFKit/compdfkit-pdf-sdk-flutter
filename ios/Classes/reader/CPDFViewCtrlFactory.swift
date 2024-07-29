@@ -44,9 +44,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     private var pdfViewController : CPDFViewController
     
     private var navigationController : CNavigationController
-    
-    private var _methodChannel : FlutterMethodChannel
-    
+
 
     init(
         frame: CGRect,
@@ -70,16 +68,17 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         navigationController.view.frame = frame
         
-        _methodChannel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.ui.pdfviewer.\(viewId)", binaryMessenger: messenger!)
+        var plugin = CPDFViewCtrlPlugin(viewId: viewId, binaryMessenger: messenger!, controller: pdfViewController)
         
         super.init()
         
         // Proxy set, but not used
         pdfViewController.delegate = self
         
-        navigationController.setViewControllers([pdfViewController], animated: false)
+        navigationController.setViewControllers([pdfViewController], animated: true)
+
         
-        registeryMethodChannel(viewId: viewId, binaryMessenger: messenger!)
+
         
     }
 
@@ -88,43 +87,9 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
         
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
-        baseControllerDelete.dismiss(animated: true)
-    }
-    
-    private func registeryMethodChannel(viewId: Int64, binaryMessenger messenger: FlutterBinaryMessenger){
 
-        _methodChannel.setMethodCallHandler({
-            (call: FlutterMethodCall, result: FlutterResult) -> Void in
-            print("ComPDFKit-Flutter: iOS-MethodChannel: [method:\(call.method)]")
-              // Handle battery messages.
-            switch call.method {
-            case "save":
-                // save pdf
-                guard let pdfListView = self.pdfViewController.pdfListView else {
-                    result(true)
-                    return
-                }
-                var isSuccess = false
-                if (pdfListView.isEditing() == true && pdfListView.isEdited() == true) {
-                    pdfListView.commitEditing()
-                    if pdfListView.document.isModified() == true {
-                        isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL)
-                    }
-                    
-                } else {
-                    if(pdfListView.document != nil) {
-                        if pdfListView.document.isModified() == true {
-                            isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL)
-                        }
-                    }
-                }
-                result(isSuccess) // or return false
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        });
-        
     }
+
 }
 
 

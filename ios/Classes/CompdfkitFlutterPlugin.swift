@@ -16,7 +16,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "sdk_version_code":
-            result(CPDFKit.sharedInstance().versionString)
+            result(CPDFKit.sharedInstance().versionNumber)
         case "init_sdk":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["key"] ?? ""
@@ -30,7 +30,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             }
         case "sdk_build_tag":
             result("iOS build tag:\(CPDFKit.sharedInstance().buildNumber)")
-        case "openDocument":
+        case "open_document":
             let initInfo = call.arguments as? [String: Any]
             let jsonString = initInfo?["configuration"] ?? ""
             _ = initInfo?["password"] ?? ""
@@ -51,7 +51,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 navController.modalPresentationStyle = .fullScreen
                 tRootViewControl.present(navController, animated: true)
             }
-        case "getTemporaryDirectory":
+        case "get_temporary_directory":
             result(self.getTemporaryDirectory())
             
         default:
