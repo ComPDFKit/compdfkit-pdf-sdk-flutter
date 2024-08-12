@@ -3,6 +3,6 @@ ext {
             COMPILESDK: 33,
             MINSDK: 21,
             TARGETSDK: 33,
-            VERSIONCODE: 9
+            VERSIONCODE: 10
     ]
 }

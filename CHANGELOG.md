@@ -1,3 +1,12 @@
+## 2.1.1
+
+* Added the features support for ComPDFKit PDF SDK for iOS V2.1.1.
+* Added the features support for ComPDFKit PDF SDK for Android V2.1.1.
+* Optimized the logic for selecting text by long press.
+* Fixed low text contrast issue in dark mode for some documents.
+* Fixed crash issues with some documents.
+
+
 ## 2.1.0
 * Added the features support for ComPDFKit PDF SDK for iOS V2.1.0.
 * Added the features support for ComPDFKit PDF SDK for Android V2.1.0.
