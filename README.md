@@ -59,7 +59,7 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* The iOS 11.0 or higher.
+* The iOS 12.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.
 
 ### Integrate into a New Flutter APP
@@ -151,7 +151,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.1.1
++  compdfkit_flutter: ^2.1.2
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -197,7 +197,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.1.1
++  compdfkit_flutter: ^2.1.2
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -208,20 +208,20 @@ open ios/Podfile
 
 **Note:** If SSL network requests fail to download the `ComPDFKit` library when you run `pod install`, you can see the processing method in [Troubleshooting](#Troubleshooting)).
 
-6. Update the platform to iOS 11 and add the ComPDFKit Podspec:
+6. Update the platform to iOS 12 and add the ComPDFKit Podspec:
 
 ```diff
 
 - platform :ios, '9.0'
-+ platform :ios, '11.0' 
++ platform :ios, '12.0' 
  ...
  target 'Runner' do
    use_frameworks!
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.1.1.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.1.1.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.1.2.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.1.2.podspec'
 
  end
 ```
@@ -389,7 +389,7 @@ class _MyAppState extends State<MyApp> {
     ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
   
     /// If you are using an offline certified license, please use init() method
-    /// ComPDFKit.init('your compdfkit key')
+    // ComPDFKit.init('your compdfkit key');
   }
 
   @override
@@ -478,7 +478,7 @@ class _MyAppState extends State<MyApp> {
          iosOnlineLicense: 'your compdfkit key');
 
     /// If you are using an offline certified license, please use init() method
-    /// ComPDFKit.init('your compdfkit key')
+    // ComPDFKit.init('your compdfkit key');
   }
 
   @override
@@ -534,7 +534,7 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
 - platform :ios, '10.0'
-+ platform :ios, '11.0'
++ platform :ios, '12.0'
 install! 'cocoapods', :deterministic_uuids => false
 
 target 'PDFView_RN' do
@@ -557,8 +557,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.1'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.1'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.2'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.2'
 
   # Enables Flipper.
   #

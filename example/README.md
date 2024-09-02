@@ -38,5 +38,5 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* The iOS 10.0 or higher.
+* The iOS 12.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.

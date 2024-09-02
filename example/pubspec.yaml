@@ -1,6 +1,6 @@
 name: compdfkit_flutter_example
 description: Demonstrates how to use the compdfkit_flutter plugin.
-version: 2.1.1
+version: 2.1.2
 homepage: https://www.compdf.com
 repository: https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter
 issue_tracker: https://www.compdf.com/support
