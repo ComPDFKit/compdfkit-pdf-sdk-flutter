@@ -49,10 +49,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _init() async {
-    // online license auth
-    // Please replace it with your ComPDFKit license
-    // ComPDFKit.initialize(androidOnlineLicense: 'IVTAsbJCW0X45qIy5cTEuzxZzKpYIpJe6WPY7uCPIiI=',iosOnlineLicense: 'lkw3Gr0HuD5pV1/+DVRSxp7qBlvK+Izo3mOKyAEHXz4=');
-
     // offline license auth
     if(Platform.isAndroid){
       ComPDFKit.init('m1bIAk/3mPQu+j6vJAMeauodNbxWBKE5DsdcvD+/dixxtZP2sLsLi4V9Cqj7mLP1hPTTYkfKrKTjpMqf06+f1ySt18aLuYh9IbHZpbhldGb4Vi8NG8rB/N/B6Dl4kqL80a7wlswqzKj/5OuTcbnVgOgC892udbsjcuh1/RVdujWYZn+eEgOyiWCyyOB1I7h0KkvqU+Uhjs1hI4UUOl5Zf43EZKcj7WkbI91UCGL4FpBs5QX1Gxt+9agdNGWTedmShLYyLw/50nOkO7VdvFScVoArkE7w02WT1dtzbrAePMNEzKFco58L5kCTkJKXdlLft12zv5kUhw2TZkrDuIiJWmu0lH1oY17eVN2TRW5amzrVRSqpTOyx2LGvW1Ilra90nzlp2dEBHH+rU3Jo93jy94eWecFWMwgKBD5sABvhJFteiZTpP6NufkmmJm5UhS1bbWwQ3416ecpKs8D9TAlLLO+rbIocuxdoPE2dxWFYLq6zF8kJV3z7dKYtAwQKdoQiS08ryGXVZybCx2GjZp97I7zNemiorRWKQUrxpNk0vCLwL1yz7NzjlB6YQ8UxvmTkX/GU7T7Ubg9LoyZuVo4tLHLplMSlHIcA4guqZL7JbQ6/jomhcJGFpGo+X7tbrCvMTnbvjZoxJRlcNN1+9x100WEfF4A2XbJZEjcpxV9tk1rTt+jS8dkX803ij16yHI1THSycP2aKkWjgDAsAUt98KCUHLaZi4F73ifo4l7JQoj0MxqN2wuiDb2PRCz4539YtkdVIZEXZTwWHfrGGmBtk3dx1799HZhql3JBz0M8qWu0orf8D8MSMhoXp8+4gqXbcjQenhtwoj/Djoo004nn6imYxyhOvWz1Gr+RnmewvsMekW5tRLYGyh4Wzm8iz7FfbeUBBSnACmDjQJakv7XZbEC+8aL7krtxm/FHFSIEQ16OXVquY+uWr1r5qGwfIX5PeVDJnm/N/Wr1SQL0aw1U39cth85eJcdDrrSE+Qsa+ZM5dJ3Wz5uqSZb/edA4VQTm9v11EslX6/qIaDIY9MV63ZN5xLwpFEG1t+aAFBUxaz4xBYu66dXNz1mZ12KGm03c/VbZB9RRCWzag8ple8Qp54b33fhHNpH59zJUfLY80vUJhiyZlMVDKJ5nvFgOcnq+c+5t6xDPfO1JnRjw3rWXr5Q==');

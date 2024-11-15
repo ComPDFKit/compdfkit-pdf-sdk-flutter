@@ -58,11 +58,24 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         let password = initInfo?["password"] ?? ""
         let path = initInfo?["document"] as? String ?? ""
         
+        let document = NSURL(fileURLWithPath: path)
+
+        let fileManager = FileManager.default
+        let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
+        let fileName = document.lastPathComponent ?? ""
+        let docsFilePath = samplesFilePath + "/" + fileName
+
+        if !fileManager.fileExists(atPath: samplesFilePath) {
+            try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+        }
+
+        try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+
         let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
         let configuration = jsonDataParse.configuration
-        
+
         // Create the pdfview controller view
-        pdfViewController = CPDFViewController(filePath: path, password: password as? String, configuration: configuration!)
+        pdfViewController = CPDFViewController(filePath: docsFilePath, password: password as? String, configuration: configuration!)
         
         navigationController = CNavigationController(rootViewController: pdfViewController)
         navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]

@@ -20,9 +20,9 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* A minSdkVersion of `19` or higher.
-* A `compileSdkVersion` of `30` or higher.
-* A `targetSdkVersion` of `30` or higher.
+* A minSdkVersion of `21` or higher.
+* A `compileSdkVersion` of `33` or higher.
+* A `targetSdkVersion` of `33` or higher.
 * Android ABI(s): x86, x86_64, armeabi-v7a, arm64-v8a.
 
 

@@ -1,3 +1,18 @@
+## 2.1.3
+* Added the features support for ComPDFKit PDF SDK for iOS V2.1.3.
+* Added the features support for ComPDFKit PDF SDK for Android V2.1.3.
+* Android:
+  * Fixed crash issue when opening certain documents.
+  * Fixed crash issue when adding mark annotations to some documents.
+  * Fixed potential crash during SDK initialization.
+  * Fixed incomplete display of underline annotations.
+  * Fixed abnormal annotation display after rotating the page.
+  * Fixed crash when releasing watermarks.
+  * Fixed memory leak in the property window of the ComPDFKit_Tools module.
+* iOS:
+  * iOS annotation toolbar image button adaptation for iPad.
+  * RN iOS sandbox structure modification.
+
 ## 2.1.2
 
 * Added the features support for ComPDFKit PDF SDK for iOS V2.1.2.

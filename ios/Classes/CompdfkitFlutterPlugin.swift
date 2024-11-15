@@ -12,7 +12,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         let factory = CPDFViewCtrlFactory(messenger: registrar.messenger())
         registrar.register(factory, withId: "com.compdfkit.flutter.ui.pdfviewer")
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "sdk_version_code":
@@ -35,17 +35,29 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             let jsonString = initInfo?["configuration"] ?? ""
             _ = initInfo?["password"] ?? ""
             let path = initInfo?["document"] as? String ?? ""
+            let document = NSURL(fileURLWithPath: path)
+
+            let fileManager = FileManager.default
+            let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
+            let fileName = document.lastPathComponent ?? ""
+            let docsFilePath = samplesFilePath + "/" + fileName
+
+            if !fileManager.fileExists(atPath: samplesFilePath) {
+                try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+            }
+
+            try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
 
             let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
             guard let configuration = jsonDataParse.configuration else { return }
             if let rootViewControl = UIApplication.shared.keyWindow?.rootViewController {
                 var tRootViewControl = rootViewControl
-                
+
                 if let presentedViewController = rootViewControl.presentedViewController {
                     tRootViewControl = presentedViewController
                 }
-                
-                let pdfViewController = CPDFViewController(filePath: path, password: nil, configuration: configuration)
+
+                let pdfViewController = CPDFViewController(filePath: docsFilePath, password: nil, configuration: configuration)
                 let navController = CNavigationController(rootViewController: pdfViewController)
                 pdfViewController.delegate = self
                 navController.modalPresentationStyle = .fullScreen
