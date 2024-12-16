@@ -28,13 +28,17 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
     private PlatformViewRegistry mRegistry;
 
     private static final String PDF_DOCUMENT_VIEW_TYPE_ID = "com.compdfkit.flutter.ui.pdfviewer";
+    private FlutterPluginBinding pluginBinding;
 
+    private ActivityPluginBinding activityPluginBinding;
+
+    private ComPDFKitSDKPlugin comPDFKitSDKPlugin;
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        this.pluginBinding = flutterPluginBinding;
         mMessenger = flutterPluginBinding.getBinaryMessenger();
         mRegistry = flutterPluginBinding.getPlatformViewRegistry();
-        new ComPDFKitSDKPlugin(flutterPluginBinding.getApplicationContext(), mMessenger)
-                .register();
+
     }
 
     @Override
@@ -43,9 +47,23 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        this.activityPluginBinding = binding;
+        setUp();
+    }
+
+    private void setUp(){
+        comPDFKitSDKPlugin = new ComPDFKitSDKPlugin(activityPluginBinding.getActivity(), mMessenger);
+        comPDFKitSDKPlugin.register();
+        activityPluginBinding.addActivityResultListener(comPDFKitSDKPlugin);
         if (mRegistry != null) {
             mRegistry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID,new CPDFViewCtrlFactory(mMessenger));
         }
+    }
+
+    private void clear(){
+        this.activityPluginBinding.removeActivityResultListener(comPDFKitSDKPlugin);
+        this.activityPluginBinding = null;
+        this.comPDFKitSDKPlugin = null;
     }
 
     @Override
@@ -59,6 +77,6 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     @Override
     public void onDetachedFromActivity() {
-
+        clear();
     }
 }

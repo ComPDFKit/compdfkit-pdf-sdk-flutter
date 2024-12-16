@@ -3,16 +3,25 @@ import UIKit
 import ComPDFKit
 import ComPDFKit_Tools
 
-public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseControllerDelete {
+public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseControllerDelete, UIDocumentPickerDelegate {
+
+    public var messager : FlutterBinaryMessenger?
+    
+    private var _reuslt: FlutterResult?
+    
+    private var pdfViewController: CPDFViewController?
+
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "com.compdfkit.flutter.plugin", binaryMessenger: registrar.messenger())
+        let channel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.plugin", binaryMessenger: registrar.messenger())
+
         let instance = CompdfkitFlutterPlugin()
+        instance.messager = registrar.messenger()
         registrar.addMethodCallDelegate(instance, channel: channel)
 
         let factory = CPDFViewCtrlFactory(messenger: registrar.messenger())
         registrar.register(factory, withId: "com.compdfkit.flutter.ui.pdfviewer")
     }
-
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "sdk_version_code":
@@ -36,36 +45,62 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             _ = initInfo?["password"] ?? ""
             let path = initInfo?["document"] as? String ?? ""
             let document = NSURL(fileURLWithPath: path)
-
-            let fileManager = FileManager.default
-            let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
-            let fileName = document.lastPathComponent ?? ""
-            let docsFilePath = samplesFilePath + "/" + fileName
-
-            if !fileManager.fileExists(atPath: samplesFilePath) {
-                try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+            
+            var success = false
+            var documentPath = path
+            
+            let homeDiectory = NSHomeDirectory()
+            let bundlePath = Bundle.main.bundlePath
+                
+            if (path.hasPrefix(homeDiectory) || path.hasPrefix(bundlePath)) {
+                let fileManager = FileManager.default
+                let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
+                let fileName = document.lastPathComponent ?? ""
+                let docsFilePath = samplesFilePath + "/" + fileName
+                
+                if !fileManager.fileExists(atPath: samplesFilePath) {
+                    try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+                }
+                
+                try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+                
+                documentPath = docsFilePath
+            } else {
+                success = document.startAccessingSecurityScopedResource()
             }
-
-            try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
-
+            
+        
             let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
             guard let configuration = jsonDataParse.configuration else { return }
             if let rootViewControl = UIApplication.shared.keyWindow?.rootViewController {
                 var tRootViewControl = rootViewControl
-
+                
                 if let presentedViewController = rootViewControl.presentedViewController {
                     tRootViewControl = presentedViewController
                 }
-
-                let pdfViewController = CPDFViewController(filePath: docsFilePath, password: nil, configuration: configuration)
-                let navController = CNavigationController(rootViewController: pdfViewController)
-                pdfViewController.delegate = self
+                
+                pdfViewController = CPDFViewController(filePath: documentPath, password: nil, configuration: configuration)
+                let navController = CNavigationController(rootViewController: pdfViewController!)
+                pdfViewController?.delegate = self
                 navController.modalPresentationStyle = .fullScreen
                 tRootViewControl.present(navController, animated: true)
+            }
+            
+            if success {
+                document.stopAccessingSecurityScopedResource()
             }
         case "get_temporary_directory":
             result(self.getTemporaryDirectory())
             
+        case "pick_file":
+            let documentTypes = ["com.adobe.pdf"]
+            let documentPickerViewController = UIDocumentPickerViewController(documentTypes: documentTypes, in: .open)
+            documentPickerViewController.delegate = self
+            UIApplication.presentedViewController()?.present(documentPickerViewController, animated: true, completion: nil)
+            _reuslt = result
+        case "remove_sign_file_list":
+            CSignatureManager.sharedManager.removeAllSignatures()
+            result(true)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -80,6 +115,16 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
     
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
         baseControllerDelete.dismiss(animated: true)
+    }
+    
+    // MARK: - UIDocumentPickerDelegate
+    
+    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        let fileUrlAuthozied = urls.first?.startAccessingSecurityScopedResource() ?? false
+        if fileUrlAuthozied {
+            let filePath = urls.first?.path ?? ""
+            _reuslt?(filePath)
+        }
     }
     
 }

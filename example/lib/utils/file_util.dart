@@ -11,7 +11,7 @@ import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:flutter/material.dart';
 
 Future<File> extractAsset(BuildContext context, String assetPath,
-    {bool shouldOverwrite = true, String prefix = ''}) async {
+    {bool shouldOverwrite = false, String prefix = ''}) async {
   final bytes = await DefaultAssetBundle.of(context).load(assetPath);
   final list = bytes.buffer.asUint8List();
 

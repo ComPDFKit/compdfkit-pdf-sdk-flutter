@@ -13,33 +13,45 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPEN_DOCUMENT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.PICK_FILE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_SIGN_FILE_LIST;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_BUILD_TAG;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_VERSION_CODE;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import androidx.annotation.Nullable;
 import com.compdfkit.core.document.CPDFSdk;
+import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
-import com.compdfkit.tools.common.utils.CLog;
+import com.compdfkit.tools.common.utils.CFileUtils;
 
-import java.util.Map;
+import io.flutter.plugin.common.PluginRegistry;
+import java.io.File;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.platform.PlatformViewRegistry;
 
 
-public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
+public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements PluginRegistry.ActivityResultListener {
+    private static final int REQUEST_CODE = (ComPDFKitSDKPlugin.class.hashCode() + 43) & 0x0000ffff;
 
-    public ComPDFKitSDKPlugin(Context context, BinaryMessenger binaryMessenger) {
-        super(context, binaryMessenger);
+    private Activity activity;
+
+    private MethodChannel.Result pendingResult;
+
+    public ComPDFKitSDKPlugin(Activity activity, BinaryMessenger binaryMessenger) {
+        super(activity, binaryMessenger);
+        this.activity = activity;
     }
 
     @Override
@@ -75,7 +87,7 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
                 CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
                 Intent intent = new Intent(context, CPDFDocumentActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PATH, filePath);
+                FileUtils.parseDocument(context, filePath, intent);
                 intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PASSWORD, password);
                 intent.putExtra(CPDFDocumentActivity.EXTRA_CONFIGURATION, configuration);
                 context.startActivity(intent);
@@ -83,10 +95,45 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin {
             case GET_TEMP_DIRECTORY:
                 result.success(context.getCacheDir().getPath());
                 break;
+            case REMOVE_SIGN_FILE_LIST:
+                File dirFile = new File(context.getFilesDir(), CFileUtils.SIGNATURE_FOLDER);
+                boolean deleteResult = CFileUtils.deleteDirectory(dirFile.getAbsolutePath());
+                result.success(deleteResult);
+                break;
+            case PICK_FILE:
+                pendingResult = result;
+                if (activity != null) {
+                    activity.startActivityForResult(CFileUtils.getContentIntent(), REQUEST_CODE);
+                }
+                break;
             default:
                 break;
         }
     }
 
+    @Override
+    public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
+            if(data != null && data.getData() != null){
+                Uri uri = data.getData();
+                successResult(uri.toString());
+            }
+            return true;
+        } else if (requestCode == REQUEST_CODE && resultCode != Activity.RESULT_OK){
+            successResult(null);
+        }
 
+        return false;
+    }
+
+    private void successResult(String uri){
+        if(pendingResult != null){
+            pendingResult.success(uri);
+        }
+        clearPendingResult();
+    }
+
+    private void clearPendingResult() {
+        pendingResult = null;
+    }
 }

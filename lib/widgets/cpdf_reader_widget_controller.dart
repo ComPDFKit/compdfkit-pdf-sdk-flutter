@@ -9,6 +9,9 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 import '../configuration/cpdf_options.dart';
+import '../document/cpdf_document.dart';
+import '../util/extension/cpdf_color_extension.dart';
+import 'cpdf_reader_widget.dart';
 
 /// PDF Reader Widget Controller
 ///
@@ -28,19 +31,37 @@ import '../configuration/cpdf_options.dart';
 ///         ));
 /// ```
 class CPDFReaderWidgetController {
+
   late MethodChannel _channel;
 
-  // late CPDFDocument _document;
+  late CPDFDocument _document;
 
-  CPDFReaderWidgetController(int id) {
+  CPDFReaderWidgetController(int id, {
+    CPDFPageChangedCallback? onPageChanged,
+    CPDFDocumentSaveCallback? saveCallback}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
-    _channel.setMethodCallHandler((call) async {});
-    // _document = CPDFDocument.withController(id);
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'onPageChanged':
+          var pageIndex = call.arguments['pageIndex'];
+          onPageChanged?.call(pageIndex);
+          break;
+        case 'saveDocument':
+          saveCallback?.call();
+          break;
+      }
+    });
+    _document = CPDFDocument.withController(id);
   }
 
-  // CPDFDocument get document => _document;
+  CPDFDocument get document => _document;
 
   /// Save document
+  ///
+  /// example:
+  /// ```dart
+  /// bool result = await _controller.save();
+  /// ```
   /// Return value: **true** if the save is successful,
   /// **false** if the save fails.
   Future<bool> save() async {
@@ -52,7 +73,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setScale(1.5);
+  /// await _controller.setScale(1.5);
   /// ```
   Future<void> setScale(double scale) async {
     await _channel.invokeMethod('set_scale', scale);
@@ -73,7 +94,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setCanScale(canScale);
+  /// await _controller.setCanScale(canScale);
   /// ```
   Future<void> setCanScale(bool canScale) async {
     assert(Platform.isAndroid, 'This method is only supported on Android');
@@ -85,11 +106,15 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// await _controller.setReadBackgroundColor(Colors.white);
+  /// await _controller.setReadBackgroundColor(theme: CPDFThemes.light);
   /// ```
-  // Future<void> setReadBackgroundColor(Color color) async {
-  //   await _channel.invokeMethod('set_read_background_color', color.toHex());
-  // }
+  Future<void> setReadBackgroundColor(CPDFThemes theme) async {
+    await _channel.invokeMethod('set_read_background_color', {
+      'displayMode': theme.name,
+      'color' : theme.color
+    });
+  }
+
 
   /// Get background color of reader.
   ///
@@ -97,17 +122,17 @@ class CPDFReaderWidgetController {
   /// ```dart
   /// Color color = await _controller.getReadBackgroundColor();
   /// ```
-  // Future<Color> getReadBackgroundColor() async {
-  //   String hexColor = await _channel.invokeMethod('get_read_background_color');
-  //   return HexColor.fromHex(hexColor);
-  // }
+  Future<Color> getReadBackgroundColor() async {
+    String hexColor = await _channel.invokeMethod('get_read_background_color');
+    return HexColor.fromHex(hexColor);
+  }
 
   /// Sets whether to display highlight Form Field.
   /// [isFormFieldHighlight] : true to display highlight Form Field.
   ///
   /// example:
   /// ```dart
-  /// _controller.setFormFieldHighlight(true);
+  /// await _controller.setFormFieldHighlight(true);
   /// ```
   Future<void> setFormFieldHighlight(bool isFormFieldHighlight) async {
     await _channel.invokeMethod(
@@ -130,7 +155,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setLinkHighlight(true);
+  /// await _controller.setLinkHighlight(true);
   /// ```
   Future<void> setLinkHighlight(bool isLinkHighlight) async {
     await _channel.invokeMethod('set_link_highlight', isLinkHighlight);
@@ -152,7 +177,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setVerticalMode(true);
+  /// await _controller.setVerticalMode(true);
   /// ```
   Future<void> setVerticalMode(bool isVerticalMode) async {
     await _channel.invokeMethod('set_vertical_mode', isVerticalMode);
@@ -174,10 +199,26 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setMargins(const CPDFEdgeInsets.symmetric(horizontal: 10, vertical: 10));
+  /// await _controller.setMargins(const CPDFEdgeInsets.symmetric(horizontal: 10, vertical: 10));
   /// ```
   Future<void> setMargins(CPDFEdgeInsets edgeInsets) async {
     await _channel.invokeMethod('set_margin' , edgeInsets.toJson());
+  }
+
+  /// Sets the spacing between pages. This method is supported only on the [Android] platform.
+  ///
+  /// - For the [iOS] platform, use the [setMargins] method instead.
+  ///   The spacing between pages is equal to the value of [CPDFEdgeInsets.top].
+  ///
+  /// Parameters:
+  /// [spacing] The space between pages, in pixels.
+  ///
+  /// example:
+  /// ```dart
+  /// await _controller.setPageSpacing(10);
+  /// ```
+  Future<void> setPageSpacing(int spacing) async {
+    await _channel.invokeMethod('set_page_spacing', spacing);
   }
 
   /// Sets whether it is continuous scroll mode.
@@ -186,7 +227,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setContinueMode(true);
+  /// await _controller.setContinueMode(true);
   /// ```
   Future<void> setContinueMode(bool isContinueMode) async {
     await _channel.invokeMethod('set_continue_mode', isContinueMode);
@@ -208,7 +249,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setDoublePageMode(true);
+  /// await _controller.setDoublePageMode(true);
   /// ```
   Future<void> setDoublePageMode(bool isDoublePageMode) async {
     await _channel.invokeMethod('set_double_page_mode', isDoublePageMode);
@@ -228,7 +269,7 @@ class CPDFReaderWidgetController {
   ///
   /// example:
   /// ```dart
-  /// _controller.setCoverPageMode(true);
+  /// await _controller.setCoverPageMode(true);
   /// ```
   Future<void> setCoverPageMode(bool coverPageMode) async {
     await _channel.invokeMethod('set_cover_page_mode', coverPageMode);
@@ -317,6 +358,11 @@ class CPDFReaderWidgetController {
 
   /// Sets whether to fix the position of the non-swipe direction when zooming in for reading.
   ///
+  /// example:
+  /// ```dart
+  /// await _controller.setFixedScroll(true);
+  /// ```
+  ///
   /// [isFixedScroll] true: fixed position; false: not fixed position; Set false by default
   ///
   Future<void> setFixedScroll(bool isFixedScroll) async {
@@ -330,7 +376,8 @@ class CPDFReaderWidgetController {
   /// ```dart
   /// bool hasChange = await document.hasChange();
   /// ```
+  @Deprecated("use CPDFDocument().hasChange()")
   Future<bool> hasChange() async {
-    return await _channel.invokeMethod('has_change');
+    return await _document.hasChange();
   }
 }

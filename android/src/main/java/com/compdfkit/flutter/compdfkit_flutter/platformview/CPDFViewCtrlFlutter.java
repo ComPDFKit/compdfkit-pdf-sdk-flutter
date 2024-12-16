@@ -13,6 +13,7 @@ package com.compdfkit.flutter.compdfkit_flutter.platformview;
 
 import android.content.Context;
 import android.content.MutableContextWrapper;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 
@@ -23,6 +24,7 @@ import androidx.fragment.app.FragmentContainerView;
 
 
 import com.compdfkit.flutter.compdfkit_flutter.plugin.CPDFViewCtrlPlugin;
+import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
@@ -55,9 +57,11 @@ public class CPDFViewCtrlFlutter implements PlatformView {
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter:Create CPDFDocumentFragment");
         initCPDFViewCtrl(context, creationParams);
 
+        // Register plug-ins related to interaction with the document
+        // interface to control document display, such as setting the document scrolling direction.
         methodChannel = new CPDFViewCtrlPlugin(context, binaryMessenger, viewId);
-        methodChannel.setDocumentFragment(documentFragment);
         methodChannel.register();
+        methodChannel.setDocumentFragment(documentFragment);
 
     }
 
@@ -70,7 +74,11 @@ public class CPDFViewCtrlFlutter implements PlatformView {
 
         String configurationJson = (String) creationParams.get("configuration");
         CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
-        documentFragment = CPDFDocumentFragment.newInstance(filePath, password, configuration);
+        if (filePath.startsWith(FileUtils.CONTENT_SCHEME) || filePath.startsWith(FileUtils.FILE_SCHEME)){
+            documentFragment = CPDFDocumentFragment.newInstance(Uri.parse(filePath), password, configuration);
+        }else {
+            documentFragment = CPDFDocumentFragment.newInstance(filePath, password, configuration);
+        }
         fragmentContainerView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@NonNull View v) {
@@ -81,7 +89,7 @@ public class CPDFViewCtrlFlutter implements PlatformView {
                             .beginTransaction()
                             .add(fragmentContainerView.getId(), documentFragment)
                             .setReorderingAllowed(true)
-                            .commitNow();
+                            .commit();
                 }
             }
 

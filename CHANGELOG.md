@@ -1,3 +1,12 @@
+## 2.2.0
+* Added the features support for ComPDFKit PDF SDK for iOS [iOS V2.2.0](https://www.compdf.com/pdf-sdk/changelog-ios#v2-2-0).
+* Added the features support for ComPDFKit PDF SDK for Android  [Android V2.2.0](https://www.compdf.com/pdf-sdk/changelog-android#v2-2-0).
+* Added import and export annotation interfaces.
+* Added delete all annotations interface.
+* Added get page number interface and page number listener callback.
+* Added save document callback.
+* For more details on the newly added APIs, please refer to `cpdf_reader_widget_controller.dart` and `cpdf_document.dart`.
+
 ## 2.1.3
 * Added the features support for ComPDFKit PDF SDK for iOS V2.1.3.
 * Added the features support for ComPDFKit PDF SDK for Android V2.1.3.

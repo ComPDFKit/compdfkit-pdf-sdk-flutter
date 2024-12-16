@@ -11,9 +11,9 @@
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_CURRENT_PAGE_INDEX;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_SIZE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_SCALE;
-import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.HAS_CHANGE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_CONTINUE_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_COVER_PAGE_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_CROP_MODE;
@@ -32,8 +32,9 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_FIXED_SCROLL;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_FORM_FIELD_HIGHLIGHT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_LINK_HIGHLIGHT;
-import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_MARGIN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_SAME_WIDTH;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_MARGIN;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_SPACING;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_VERTICAL_MODE;
@@ -46,9 +47,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.compdfkit.core.document.CPDFDocument;
-import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 
+import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
+import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
 import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -63,13 +65,41 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
 
   private CPDFDocumentFragment documentFragment;
 
+  private CPDFDocumentPlugin documentPlugin;
+
   public CPDFViewCtrlPlugin(Context context, BinaryMessenger binaryMessenger, int viewId) {
     super(context, binaryMessenger);
     this.viewId = viewId;
+
+    // Register document plugin,get document info
+    documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, String.valueOf(viewId));
+    documentPlugin.register();
   }
 
   public void setDocumentFragment(CPDFDocumentFragment documentFragment) {
     this.documentFragment = documentFragment;
+    this.documentFragment.setInitListener((pdfView)->{
+      documentPlugin.setReaderView(pdfView);
+      pdfView.addReaderViewCallback(new CPDFIReaderViewCallback() {
+        @Override
+        public void onMoveToChild(int pageIndex) {
+          super.onMoveToChild(pageIndex);
+          io.flutter.Log.e("ComPDFKit", "onMoveToChild:" + pageIndex);
+          Map<String, Object> map = new HashMap<>();
+          map.put("pageIndex", pageIndex);
+          if (methodChannel != null) {
+            methodChannel.invokeMethod("onPageChanged", map);
+          }
+        }
+      });
+      pdfView.setSaveCallback((s, uri) -> {
+        if (methodChannel != null) {
+          methodChannel.invokeMethod("saveDocument", "");
+        }
+      }, e -> {
+
+      });
+    });
   }
 
   @Override
@@ -80,6 +110,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
     Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:" + call.method);
+
     if (documentFragment == null) {
       Log.e(LOG_TAG,
           "CPDFViewCtrlFlutter:onMethodCall: documentFragment is Null return not implemented.");
@@ -109,7 +140,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         readerView.setCanScale(canScale);
         break;
       case SET_READ_BACKGROUND_COLOR:
-        String colorHex = (String) call.arguments;
+        String colorHex = call.argument("color");
         readerView.setReadBackgroundColor(Color.parseColor(colorHex));
         documentFragment.pdfView.setBackgroundColor(
             CViewUtils.getColor(Color.parseColor(colorHex), 190));
@@ -136,11 +167,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         int top = call.argument("top");
         int right = call.argument("right");
         int bottom = call.argument("bottom");
-        readerView.setFixReaderViewHorizontalMargin(true);
-        readerView.setReaderViewHorizontalMargin(left);
+        readerView.setReaderViewHorizontalMargin(left, right);
         readerView.setReaderViewTopMargin(top);
         readerView.setReaderViewBottomMargin(bottom);
-        readerView.setPageSpacing(top);
+        readerView.reloadPages();
+        break;
+      case SET_PAGE_SPACING:
+        int pageSpacing = (int) call.arguments;
+        readerView.setPageSpacing(pageSpacing);
         readerView.reloadPages();
         break;
       case SET_VERTICAL_MODE:
@@ -176,7 +210,6 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         result.success(readerView.getPageNum());
         break;
       case SET_PAGE_SAME_WIDTH:
-        Log.e("ComPDFKit", "setPageSameWidth:" + call.arguments);
         readerView.setPageSameWidth((Boolean) call.arguments);
         readerView.reloadPages();
         break;
@@ -194,24 +227,20 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case SET_FIXED_SCROLL:
         readerView.setFixedScroll((Boolean) call.arguments);
         break;
-      case HAS_CHANGE:
-        CPDFDocument document = readerView.getPDFDocument();
-        result.success(document.hasChanges());
+      case GET_PAGE_SIZE:
+        boolean noZoomPage = call.argument("noZoom");
+        int page = call.argument("pageIndex");
+        RectF rectF;
+        if (noZoomPage){
+          rectF = readerView.getPageNoZoomSize(page);
+        }else {
+          rectF = readerView.getPageSize(page);
+        }
+        Map<String, Float> pageSizeMap = new HashMap<>();
+        pageSizeMap.put("width", rectF.width());
+        pageSizeMap.put("height", rectF.height());
+        result.success(pageSizeMap);
         break;
-//      case GET_PAGE_SIZE:
-//        boolean noZoomPage = call.argument("noZoom");
-//        int page = call.argument("pageIndex");
-//        RectF rectF;
-//        if (noZoomPage){
-//          rectF = readerView.getPageNoZoomSize(page);
-//        }else {
-//          rectF = readerView.getPageSize(page);
-//        }
-//        Map<String, Float> pageSizeMap = new HashMap<>();
-//        pageSizeMap.put("width", rectF.width());
-//        pageSizeMap.put("height", rectF.height());
-//        result.success(pageSizeMap);
-//        break;
       default:
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:notImplemented");
         result.notImplemented();

@@ -13,8 +13,7 @@ import 'package:flutter/services.dart';
 
 /// ComPDFKit plugin to load PDF and image documents on both platform iOS and Android.
 class ComPDFKit {
-  static const MethodChannel _methodChannel =
-      MethodChannel('com.compdfkit.flutter.plugin');
+  static const MethodChannel _methodChannel = MethodChannel('com.compdfkit.flutter.plugin');
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
   /// This method is used for offline license authentication.
@@ -87,5 +86,19 @@ class ComPDFKit {
       throw Exception('Unable to get temporary directory');
     }
     return Directory(path);
+  }
+
+  /// Delete annotated electronic signature file list data
+  /// **for Samples:**
+  /// ```dart
+  /// ComPDFKit.removeSignFileList()
+  /// ```
+  static Future<bool> removeSignFileList() async {
+    return await _methodChannel.invokeMethod('remove_sign_file_list');
+  }
+
+  static Future<String?> pickFile() async {
+    final String? filePath = await _methodChannel.invokeMethod('pick_file');
+    return filePath;
   }
 }

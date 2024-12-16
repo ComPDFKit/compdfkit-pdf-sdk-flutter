@@ -94,6 +94,7 @@ class CPDFModeConfig {
 
 /// Configuration for top toolbar functionality.
 class CPDFToolbarConfig {
+
   /// Top toolbar actions for Android platform
   ///
   /// Default: thumbnail, search, bota, menu.
@@ -113,6 +114,8 @@ class CPDFToolbarConfig {
 
   /// Configure the menu options opened in the top toolbar [CPDFToolbarAction.menu]
   final List<CPDFToolbarMenuAction> availableMenus;
+
+  final bool mainToolbarVisible;
 
   const CPDFToolbarConfig(
       {this.androidAvailableActions = const [
@@ -141,7 +144,8 @@ class CPDFToolbarConfig {
         CPDFToolbarMenuAction.share,
         CPDFToolbarMenuAction.openDocument,
         CPDFToolbarMenuAction.snip
-      ]});
+      ],
+      this.mainToolbarVisible = true});
 
   Map<String, dynamic> toJson() => {
         'androidAvailableActions':
@@ -150,7 +154,8 @@ class CPDFToolbarConfig {
             iosLeftBarAvailableActions.map((e) => e.name).toList(),
         'iosRightBarAvailableActions':
             iosRightBarAvailableActions.map((e) => e.name).toList(),
-        'availableMenus': availableMenus.map((e) => e.name).toList()
+        'availableMenus': availableMenus.map((e) => e.name).toList(),
+        'mainToolbarVisible' : mainToolbarVisible
       };
 }
 
@@ -202,6 +207,8 @@ class CPDFReaderViewConfig {
   /// only android platform
   final bool pageSameWidth;
 
+  final List<int> margins;
+
   const CPDFReaderViewConfig(
       {this.linkHighlight = true,
       this.formFieldHighlight = true,
@@ -214,7 +221,8 @@ class CPDFReaderViewConfig {
       this.enablePageIndicator = true,
       this.pageSpacing = 10,
       this.pageScale = 1.0,
-      this.pageSameWidth = true});
+      this.pageSameWidth = true,
+      this.margins = const [0,0,0,0]});
 
   Map<String, dynamic> toJson() => {
         'linkHighlight': linkHighlight,
@@ -228,7 +236,8 @@ class CPDFReaderViewConfig {
         'enablePageIndicator': enablePageIndicator,
         'pageSpacing': pageSpacing,
         'pageScale': pageScale,
-        'pageSameWidth': pageSameWidth
+        'pageSameWidth': pageSameWidth,
+        'margins' : margins
       };
 }
 

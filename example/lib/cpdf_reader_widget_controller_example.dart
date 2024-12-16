@@ -8,10 +8,13 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
+import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:flutter/material.dart';
 
 class CPDFReaderWidgetControllerExample extends StatefulWidget {
@@ -69,6 +72,12 @@ class _CPDFReaderWidgetControllerExampleState
               _controller = controller;
             });
           },
+          onPageChanged: (pageIndex){
+            debugPrint('pageIndex:$pageIndex');
+          },
+          onSaveCallback: (){
+            debugPrint('CPDFDocument: save success');
+          },
         ));
   }
 
@@ -79,6 +88,10 @@ class _CPDFReaderWidgetControllerExampleState
 
   void handleClick(String value, CPDFReaderWidgetController controller) async {
     switch (value) {
+      case 'save':
+        bool saveResult = await controller.save();
+        debugPrint('ComPDFKit: save():$saveResult');
+        break;
       case 'setScale':
         controller.setScale(1.5);
         break;
@@ -109,7 +122,10 @@ class _CPDFReaderWidgetControllerExampleState
         final Random random = Random();
         int value = random.nextInt(50);
         debugPrint('ComPDFKit:setMargin:$value');
-        controller.setMargins(const CPDFEdgeInsets.symmetric(horizontal: 100, vertical: 10));
+        controller.setMargins(const CPDFEdgeInsets.only(left: 20, top:20, right: 20, bottom: 20));
+        break;
+      case "setPageSpacing":
+        await controller.setPageSpacing(20);
         break;
       case 'setContinueMode':
         bool isContinueMode = await controller.isContinueMode();
@@ -128,7 +144,7 @@ class _CPDFReaderWidgetControllerExampleState
         break;
       case 'setDisplayPageIndex':
         int nextPageIndex = await controller.getCurrentPageIndex() + 1;
-        controller.setDisplayPageIndex(nextPageIndex, animated: false);
+        controller.setDisplayPageIndex(nextPageIndex, animated: true);
         break;
       case 'getCurrentPageIndex':
         debugPrint('ComPDFKit:getCurrentPageIndex:${await controller.getCurrentPageIndex()}');
@@ -150,23 +166,72 @@ class _CPDFReaderWidgetControllerExampleState
         isFixedScroll = !isFixedScroll;
         await controller.setFixedScroll(isFixedScroll);
         break;
+      case 'setReadBackgroundColor':
+        var currentReadBackgroundColor = await controller.getReadBackgroundColor();
+        debugPrint('readBackgroundColor:${currentReadBackgroundColor.toHex()}');
+        await controller.setReadBackgroundColor(CPDFThemes.dark);
+        break;
       case 'isChanged':
-        bool hasChange = await controller.hasChange();
+        bool hasChange = await controller.document.hasChange();
         debugPrint('ComPDFKit:hasChange:$hasChange');
+        break;
+      case "documentInfo":
+        var document = controller.document;
+        debugPrint('ComPDFKit:Document: fileName:${await document.getFileName()}');
+        debugPrint('ComPDFKit:Document: checkOwnerUnlocked:${await document.checkOwnerUnlocked()}');
+        debugPrint('ComPDFKit:Document: hasChange:${await document.hasChange()}');
+        debugPrint('ComPDFKit:Document: isEncrypted:${await document.isEncrypted()}');
+        debugPrint('ComPDFKit:Document: isImageDoc:${await document.isImageDoc()}');
+        debugPrint('ComPDFKit:Document: getPermissions:${await document.getPermissions()}');
+        debugPrint('ComPDFKit:Document: getPageCount:${await document.getPageCount()}');
+        break;
+      case "openDocument":
+        String? path = await ComPDFKit.pickFile();
+        if (path != null) {
+          var document = controller.document;
+          document.open(path, "");
+        }
+        break;
+      case "importAnnotations":
+        // android assets:
+        // String? xfdfFile = "file:///android_asset/test.xfdf";
+
+        // android file path sample:
+        File xfdfFile = await extractAsset(context, 'pdfs/test.xfdf');
+
+        // android Uri:
+        //String xfdfFile = "content://xxx";
+
+        bool result = await controller.document.importAnnotations(xfdfFile.path);
+        debugPrint('ComPDFKit:Document: importAnnotations:$result');
+        break;
+      case "exportAnnotations":
+        String xfdfPath = await controller.document.exportAnnotations();
+        debugPrint('ComPDFKit:Document: exportAnnotations:$xfdfPath');
+        break;
+      case "removeAllAnnotations":
+        await controller.document.removeAllAnnotations();
+        break;
+      case "removeSignFileList":
+        bool result = await ComPDFKit.removeSignFileList();
+        debugPrint('ComPDFKit:removeSignFileList:$result');
         break;
     }
   }
 }
 
 var actions = [
+  'save',
   'setScale',
   'getScale',
   if(Platform.isAndroid) ...[
     'setCanScale',
     'pageSameWidth',
     'isPageInScreen',
-    'setFixedScroll'
+    'setFixedScroll',
   ],
+  'setPageSpacing',
+  'setReadBackgroundColor',
   'setFormHighlight',
   'setLinkHighlight',
   'setVerticalMode',
@@ -177,7 +242,13 @@ var actions = [
   'setDisplayPageIndex',
   'getCurrentPageIndex',
   'setCoverPageMode',
-  'isChanged'
+  'isChanged',
+  'documentInfo',
+  'openDocument',
+  'importAnnotations',
+  'exportAnnotations',
+  'removeAllAnnotations',
+  'removeSignFileList'
 ];
 
 Color randomColor() {

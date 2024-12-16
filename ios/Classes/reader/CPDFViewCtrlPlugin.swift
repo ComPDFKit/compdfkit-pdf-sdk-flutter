@@ -15,18 +15,20 @@ import ComPDFKit_Tools
 
 class CPDFViewCtrlPlugin {
     
-    private var _methodChannel : FlutterMethodChannel
+    public var _methodChannel : FlutterMethodChannel
     
     private var pdfViewController : CPDFViewController
     
     init(viewId: Int64, binaryMessenger messenger: FlutterBinaryMessenger, controller : CPDFViewController) {
         self.pdfViewController = controller
         _methodChannel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.ui.pdfviewer.\(viewId)", binaryMessenger: messenger)
-        registeryMethodChannel(viewId: viewId, binaryMessenger: messenger)
+        registeryMethodChannel()
+
+        var documentPlugin = CPDFDocumentPlugin(pdfViewController: pdfViewController, uid: String(describing: viewId), binaryMessager: messenger)
     }
     
     
-    private func registeryMethodChannel(viewId: Int64, binaryMessenger messenger: FlutterBinaryMessenger){
+    private func registeryMethodChannel(){
 
         _methodChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: FlutterResult) -> Void in
@@ -53,6 +55,10 @@ class CPDFViewCtrlPlugin {
                         }
                     }
                 }
+                
+                if isSuccess {
+                    self._methodChannel.invokeMethod("saveDocument", arguments: nil)
+                }
                 result(isSuccess) // or return false
             case "set_scale":
                 guard let pdfListView = self.pdfViewController.pdfListView else {
@@ -66,6 +72,50 @@ class CPDFViewCtrlPlugin {
                     return
                 }
                 result(pdfListView.scaleFactor)
+            case "set_read_background_color":
+                guard let pdfListView = self.pdfViewController.pdfListView else {
+                    return
+                }
+           
+                let initInfo = call.arguments as? [String: String]
+                let displayModeName = initInfo?["displayMode"] ?? "light"
+                // light, dark,repia, reseda
+                switch displayModeName {
+                case "light":
+                    pdfListView.displayMode = .normal
+                case "dark":
+                    pdfListView.displayMode = .night
+                case "sepia":
+                    pdfListView.displayMode = .soft
+                case "reseda":
+                    pdfListView.displayMode = .green
+                default:
+                    pdfListView.displayMode = .normal
+                }
+
+                pdfListView.layoutDocumentView()
+            case "get_read_background_color":
+                guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result("#FFFFFF")
+                    return
+                }
+                let dispalyMode = pdfListView.displayMode
+                switch dispalyMode {
+                    
+                case .normal:
+                    result("#FFFFFF")
+                case .night:
+                    result("#000000")
+                case .soft:
+                    result("#FFFFFF")
+                case .green:
+                    result("#FFEFBE")
+                case .custom:
+                    result("#CDE6D0")
+                @unknown default:
+                    result("#FFFFFF")
+                }
+               
             case "set_form_field_highlight":
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     return
@@ -97,6 +147,8 @@ class CPDFViewCtrlPlugin {
                     return
                 }
                 result(pdfListView.displayDirection == .vertical)
+            case "set_page_spacing":
+                result(FlutterError(code: "NOT_SUPPORT", message: "This method is not supported on iOS. Please use controller.setMargins(left,top,right,bottom)", details: ""))
             case "set_margin":
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     return
@@ -178,12 +230,6 @@ class CPDFViewCtrlPlugin {
                     return
                 }
                 result(pdfListView.currentPageIndex)
-            case "has_change":
-                guard let pdfListView = self.pdfViewController.pdfListView else {
-                    result(false)
-                    return
-                }
-                result(pdfListView.document.isModified())
             default:
                 result(FlutterMethodNotImplemented)
             }

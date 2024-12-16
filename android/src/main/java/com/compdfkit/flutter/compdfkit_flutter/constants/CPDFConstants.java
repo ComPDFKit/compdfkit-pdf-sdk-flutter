@@ -11,9 +11,6 @@
 package com.compdfkit.flutter.compdfkit_flutter.constants;
 
 
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel.Result;
-
 public class CPDFConstants {
 
   public static class ChannelMethod {
@@ -39,6 +36,9 @@ public class CPDFConstants {
     public static final String OPEN_DOCUMENT = "open_document";
 
     public static final String GET_TEMP_DIRECTORY = "get_temporary_directory";
+    public static final String REMOVE_SIGN_FILE_LIST = "remove_sign_file_list";
+
+    public static final String PICK_FILE = "pick_file";
 
     public static final String SAVE = "save";
 
@@ -63,6 +63,8 @@ public class CPDFConstants {
     public static final String IS_VERTICAL_MODE = "is_vertical_mode";
 
     public static final String SET_MARGIN = "set_margin";
+
+    public static final String SET_PAGE_SPACING = "set_page_spacing";
 
     public static final String SET_CONTINUE_MODE = "set_continue_mode";
 
@@ -92,8 +94,29 @@ public class CPDFConstants {
 
     public static final String GET_PAGE_SIZE = "get_page_size";
 
+    public static final String GET_FILE_NAME = "get_file_name";
+
+    public static final String IS_ENCRYPTED = "is_encrypted";
+
+    public static final String IS_IMAGE_DOC = "is_image_doc";
+
+    public static final String GET_PERMISSIONS = "get_permissions";
+
+    public static final String CHECK_OWNER_UNLOCKED = "check_owner_unlocked";
+
+    public static final String CHECK_OWNER_PASSWORD = "check_owner_password";
+
+    public static final String CLOSE = "close";
+
     public static final String HAS_CHANGE = "has_change";
 
+    public static final String IMPORT_ANNOTATIONS = "import_annotations";
+
+    public static final String EXPORT_ANNOTATIONS = "export_annotations";
+
+    public static final String REMOVE_ALL_ANNOTATIONS = "remove_all_annotations";
+
+    public static final String GET_PAGE_COUNT = "get_page_count";
   }
 
 }

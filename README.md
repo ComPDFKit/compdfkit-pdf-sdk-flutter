@@ -45,8 +45,8 @@ Please install the following required packages:
 Operating Environment Requirements:
 
 * A minSdkVersion of `21` or higher.
-* A `compileSdkVersion` of `33` or higher.
-* A `targetSdkVersion` of `33` or higher.
+* A `compileSdkVersion` of `34` or higher.
+* A `targetSdkVersion` of `34` or higher.
 * Android ABI(s): x86, x86_64, armeabi-v7a, arm64-v8a.
 
 **iOS**
@@ -151,7 +151,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.1.3
++  compdfkit_flutter: ^2.2.0
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -197,7 +197,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.1.3
++  compdfkit_flutter: ^2.2.0
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -220,8 +220,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.1.3.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.1.3.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.2.0.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.2.0.podspec'
 
  end
 ```
@@ -360,7 +360,7 @@ Open `lib/main.dart`,replace the entire file with the following:
 import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 
 import 'package:flutter/material.dart';
 
@@ -387,7 +387,7 @@ class _MyAppState extends State<MyApp> {
   void _init() async {
     /// Please replace it with your ComPDFKit license
     ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-  
+
     /// If you are using an offline certified license, please use init() method
     // ComPDFKit.init('your compdfkit key');
   }
@@ -398,15 +398,15 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
           body: SafeArea(
               child: Center(
-        child: ElevatedButton(
-            onPressed: () async {
-              showDocument(context);
-            },
-            child: const Text(
-              'Open Document',
-              style: TextStyle(color: Colors.white),
-            )),
-      ))),
+                child: ElevatedButton(
+                    onPressed: () async {
+                      showDocument(context);
+                    },
+                    child: const Text(
+                      'Open Document',
+                      style: TextStyle(color: Colors.white),
+                    )),
+              ))),
     );
   }
 
@@ -439,7 +439,7 @@ Open `lib/main.dart`,replace the entire file with the following:
 import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 
 import 'package:flutter/material.dart';
@@ -557,8 +557,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.3'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.1.3'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.2.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.2.0'
 
   # Enables Flipper.
   #
@@ -575,7 +575,7 @@ end
 
 ## UI Customization
 
-In the **1.12.0** version, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View or use `CPDFReaderWidget`, you can define this object to meet your product needs. We will continue to enrich the configuration options in the future to further enhance the flexibility of the product. The following are some examples of commonly used configuration options:
+In the **1.12.0** version, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/configuration/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View or use `CPDFReaderWidget`, you can define this object to meet your product needs. We will continue to enrich the configuration options in the future to further enhance the flexibility of the product. The following are some examples of commonly used configuration options:
 
 1. Set the initial display mode and the list of available modes. The following code shows enabling only the viewer mode and annotations mode:
 

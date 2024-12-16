@@ -49,7 +49,15 @@ var configuration = ComPDFKit.getDefaultConfig({
     ]
   }
 })
+
 ComPDFKit.openDocument(document, '', configuration)
+
+// Use in UI components
+<CPDFReaderView
+	document={samplePDF}
+	configuration={config}
+	style={{ flex: 1 }}
+/>
 ```
 
 **Flutter**
@@ -64,7 +72,7 @@ var configuration = CPDFConfiguration(
     ]
   )
 );
-ComPDFKit.openDocument(document, password: '', configuration: configuration); 
+ComPDFKit.openDocument(document, password: '', configuration: configuration);
 
 // usage Widget
 Scaffold(
@@ -106,6 +114,7 @@ Used to configure the initial display mode and supported modes when displaying a
 {
   "modeConfig": {
     "initialViewMode": "viewer",
+    "readerOnly": false,
     "availableViewModes": [
       "viewer",
       "annotations",
@@ -123,12 +132,13 @@ Configure functions for the top toolbar in the PDF view.
 
 ##### **Parameters**
 
-| Name                        | Type  | Description                                                  |
-| --------------------------- | ----- | ------------------------------------------------------------ |
-| androidAvailableActions     | Array | Functions available in the top toolbar for Android platform.<br />Defaults: `thumbnail`, `search`, `bota`, `menu` |
-| iosLeftBarAvailableActions  | Array | Functions available in the left side of the top toolbar for iOS platform.<br />Defaults: `back`, `thumbnail` |
-| iosRightBarAvailableActions | Array | Functions available in the right side of the top toolbar for iOS platform.<br />Defaults: `search`, `bota`, `menu` |
-| availableMenus              | Array | A list of more functions popped up by the `menu` option on the top toolbar. |
+| Name                        | Type    | Description                                                  |
+| --------------------------- | ------- | ------------------------------------------------------------ |
+| androidAvailableActions     | Array   | Functions available in the top toolbar for Android platform.<br />Defaults: `thumbnail`, `search`, `bota`, `menu` |
+| iosLeftBarAvailableActions  | Array   | Functions available in the left side of the top toolbar for iOS platform.<br />Defaults: `back`, `thumbnail` |
+| iosRightBarAvailableActions | Array   | Functions available in the right side of the top toolbar for iOS platform.<br />Defaults: `search`, `bota`, `menu` |
+| availableMenus              | Array   | A list of more functions popped up by the `menu` option on the top toolbar. |
+| mainToolbarVisible          | boolean | Whether to display the toolbar at the top of the main interface view.                                 |
 
 ##### **Constants**
 
@@ -156,6 +166,7 @@ Configure functions for the top toolbar in the PDF view.
 ```json
 {
    "toolbarConfig": {
+    "mainToolbarVisible" : true,
     "androidAvailableActions": [
       "thumbnail",
       "search",
@@ -750,6 +761,7 @@ This section is used to configure the types of forms enabled in the view's botto
 | pageSpacing         | int     | 10           | Spacing between each page of the PDF.<br/>default `10px`.    |
 | pageScale           | double  | 1.0          | Page scale value, default 1.0.<br/>value range:1.0~5.0       |
 | pageSameWidth       | boolean | true         | only android platform.                                       |
+| margins             | Array   | [0,0,0,0]    | Set the outer spacing of the PDF area. The setting order is: left, top, right, bottom. |
 
 ##### displayMode Constants
 
@@ -803,6 +815,7 @@ This section is used to configure the types of forms enabled in the view's botto
     ]
   },
   "toolbarConfig": {
+    "mainToolbarVisible" : true,
     "androidAvailableActions": [
       "thumbnail",
       "search",
@@ -1047,6 +1060,7 @@ This section is used to configure the types of forms enabled in the view's botto
     "enableSliderBar": true,
     "enablePageIndicator": true,
     "pageSpacing": 10,
+    "margins" : [0,0,0,0],
     "pageScale": 1.0,
     "pageSameWidth":true
   },

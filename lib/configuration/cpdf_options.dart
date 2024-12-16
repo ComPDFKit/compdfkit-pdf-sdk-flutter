@@ -32,16 +32,26 @@ enum CPDFDisplayMode { singlePage, doublePage, coverPage }
 /// readerView background themes
 enum CPDFThemes {
   /// Bright mode, readerview background is white
-  light,
+  light('#FFFFFF'),
 
   /// dark mode, readerview background is black
-  dark,
+  dark('#000000'),
 
   /// brown paper color
-  sepia,
+  sepia('#FFEFBE'),
 
   /// Light green, eye protection mode
-  reseda
+  reseda('#CDE6D0');
+
+  final String color;
+
+  const CPDFThemes(this.color);
+
+  // 获取颜色值
+  String getColor() {
+    return color;
+  }
+
 }
 
 enum CPDFAnnotationType {
@@ -121,16 +131,15 @@ enum CPDFCheckStyle { check, circle, cross, diamond, square, star }
 
 enum CPDFThemeMode { light, dark, system }
 
-/// The [CPDFEdgeInsets] is used to set the padding of the PDF document.
+/// [CPDFEdgeInsets] defines the padding for a PDF document.
 ///
-/// [Android] can only set horizontal margins, [top] and [bottom] margins.
-/// Horizontal spacing cannot be set independently.
-/// The horizontal spacing value is set using the [left] attribute,
-/// the spacing between two pages is the same as the top spacing.
+/// - On **Android**, you can set individual margins for [top], [bottom], [left], and [right].
+///   To adjust the spacing between pages, use the `setPageSpacing()` method.
 ///
-/// The [iOS] platform can set the [top], [bottom], [left] and [right] margins,
-/// and the spacing between two pages is the same as the top spacing.
+/// - On **iOS**, you can also configure [top], [bottom], [left], and [right] margins.
+///   The spacing between pages is equal to the [top] margin.
 class CPDFEdgeInsets {
+
   final int left;
 
   final int top;
@@ -164,4 +173,46 @@ class CPDFEdgeInsets {
         'right': right,
         'bottom': bottom,
       };
+}
+
+
+enum CPDFDocumentPermissions {
+
+  none,
+
+  user,
+
+  owner
+
+}
+
+/// Error types of the opening document.
+enum CPDFDocumentError {
+  /// No read permission.
+  noReadPermission,
+
+  /// SDK No verified license
+  notVerifyLicense,
+
+  /// open document success.
+  success,
+
+  /// Unknown error
+  unknown,
+
+  /// File not found or could not be opened.
+  errorFile,
+
+  /// File not in PDF format or corrupted.
+  errorFormat,
+
+  /// Password required or incorrect password.
+  errorPassword,
+
+  /// Unsupported security scheme.
+  errorSecurity,
+
+  /// Error page.
+  errorPage
+
 }

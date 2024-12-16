@@ -19,6 +19,11 @@ import 'package:flutter/services.dart';
 typedef CPDFReaderWidgetCreatedCallback = void Function(
     CPDFReaderWidgetController controller);
 
+typedef CPDFPageChangedCallback = void Function(int pageIndex);
+
+typedef CPDFDocumentSaveCallback = void Function();
+
+
 class CPDFReaderWidget extends StatefulWidget {
   /// pdf file path
   final String document;
@@ -30,13 +35,19 @@ class CPDFReaderWidget extends StatefulWidget {
 
   final CPDFReaderWidgetCreatedCallback onCreated;
 
+  final CPDFPageChangedCallback? onPageChanged;
+
+  final CPDFDocumentSaveCallback? onSaveCallback;
+
   /// init callback
   const CPDFReaderWidget(
       {Key? key,
       required this.document,
       this.password = '',
       required this.configuration,
-      required this.onCreated})
+      required this.onCreated,
+      this.onPageChanged,
+      this.onSaveCallback})
       : super(key: key);
 
   @override
@@ -94,6 +105,6 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
 
   Future<void> _onPlatformViewCreated(int id) async {
     debugPrint('ComPDFKit-Flutter: CPDFReaderWidget created');
-    widget.onCreated(CPDFReaderWidgetController(id));
+    widget.onCreated(CPDFReaderWidgetController(id, onPageChanged: widget.onPageChanged, saveCallback : widget.onSaveCallback));
   }
 }

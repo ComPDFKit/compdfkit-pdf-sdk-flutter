@@ -45,7 +45,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     
     private var navigationController : CNavigationController
 
-
+    private var plugin : CPDFViewCtrlPlugin
     init(
         frame: CGRect,
         viewIdentifier viewId: Int64,
@@ -59,48 +59,74 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         let path = initInfo?["document"] as? String ?? ""
         
         let document = NSURL(fileURLWithPath: path)
-
-        let fileManager = FileManager.default
-        let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
-        let fileName = document.lastPathComponent ?? ""
-        let docsFilePath = samplesFilePath + "/" + fileName
-
-        if !fileManager.fileExists(atPath: samplesFilePath) {
-            try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+        
+        var success = false
+        var documentPath = path
+        
+        let homeDiectory = NSHomeDirectory()
+        let bundlePath = Bundle.main.bundlePath
+            
+        if (path.hasPrefix(homeDiectory) || path.hasPrefix(bundlePath)) {
+            let fileManager = FileManager.default
+            let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
+            let fileName = document.lastPathComponent ?? ""
+            let docsFilePath = samplesFilePath + "/" + fileName
+            
+            if !fileManager.fileExists(atPath: samplesFilePath) {
+                try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+            try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+            
+            documentPath = docsFilePath
+        } else {
+            success = document.startAccessingSecurityScopedResource()
         }
-
-        try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
-
+        
+        
+        
         let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
         let configuration = jsonDataParse.configuration
-
+        
         // Create the pdfview controller view
-        pdfViewController = CPDFViewController(filePath: docsFilePath, password: password as? String, configuration: configuration!)
+        pdfViewController = CPDFViewController(filePath: documentPath, password: password as? String, configuration: configuration!)
         
         navigationController = CNavigationController(rootViewController: pdfViewController)
         navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         navigationController.view.frame = frame
         
-        var plugin = CPDFViewCtrlPlugin(viewId: viewId, binaryMessenger: messenger!, controller: pdfViewController)
-        
+        plugin = CPDFViewCtrlPlugin(viewId: viewId, binaryMessenger: messenger!, controller: pdfViewController)
+
         super.init()
         
         // Proxy set, but not used
         pdfViewController.delegate = self
         
         navigationController.setViewControllers([pdfViewController], animated: true)
-
         
-
-        
+        if success {
+            document.stopAccessingSecurityScopedResource()
+        }
     }
 
     func view() -> UIView {
         return navigationController.view
     }
+    
+    // MARK: - CPDFViewBaseControllerDelete
         
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
 
+    }
+   
+    func PDFViewBaseController(_ baseController: CPDFViewBaseController, SaveState success: Bool) {
+        if success {
+            plugin._methodChannel.invokeMethod("saveDocument", arguments: nil)
+        }
+    }
+    
+    func PDFViewBaseController(_ baseController: CPDFViewBaseController, currentPageIndex index: Int) {
+        plugin._methodChannel.invokeMethod("onPageChanged", arguments: ["pageIndex": index])
     }
 
 }
