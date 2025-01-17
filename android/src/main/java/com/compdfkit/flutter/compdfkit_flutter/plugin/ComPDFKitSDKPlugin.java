@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
  * <p>
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,6 +9,7 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_URI;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
@@ -17,23 +18,28 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_SIGN_FILE_LIST;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_BUILD_TAG;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_VERSION_CODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_IMPORT_FONT_DIRECTORY;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import androidx.annotation.Nullable;
 import com.compdfkit.core.document.CPDFSdk;
+import com.compdfkit.core.font.CPDFFont;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
 import com.compdfkit.tools.common.utils.CFileUtils;
 
+import com.compdfkit.tools.common.utils.CUriUtil;
 import io.flutter.plugin.common.PluginRegistry;
 import java.io.File;
 
@@ -93,7 +99,7 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 context.startActivity(intent);
                 break;
             case GET_TEMP_DIRECTORY:
-                result.success(context.getCacheDir().getPath());
+                result.success(context.getCacheDir().getAbsolutePath());
                 break;
             case REMOVE_SIGN_FILE_LIST:
                 File dirFile = new File(context.getFilesDir(), CFileUtils.SIGNATURE_FOLDER);
@@ -105,6 +111,29 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 if (activity != null) {
                     activity.startActivityForResult(CFileUtils.getContentIntent(), REQUEST_CODE);
                 }
+                break;
+            case CREATE_URI:
+                String fileName = call.argument("file_name");
+                String mimeType = call.argument("mime_type");
+                String childDirectoryName = call.argument("child_directory_name");
+                String dir = Environment.DIRECTORY_DOWNLOADS ;
+                if (!TextUtils.isEmpty(childDirectoryName)){
+                    dir += File.separator + childDirectoryName;
+                }
+                Uri uri = CUriUtil.createFileUri(context,
+                    dir,
+                    fileName, mimeType);
+                if (uri != null){
+                    result.success(uri.toString());
+                }else {
+                    result.error("CREATE_URI_FAIL", "create uri fail", "");
+                }
+                break;
+            case SET_IMPORT_FONT_DIRECTORY:
+                String importFontDir = call.argument("dir_path");
+                boolean addSysFont = call.argument("add_sys_font");
+                CPDFSdk.setImportFontDir(importFontDir, addSysFont);
+                result.success(true);
                 break;
             default:
                 break;

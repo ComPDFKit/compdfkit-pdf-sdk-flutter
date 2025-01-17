@@ -1,4 +1,4 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter_example/examples.dart';
 import 'package:compdfkit_flutter_example/theme/themes.dart';
+import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:compdfkit_flutter_example/widgets/cpdf_app_bar.dart';
 
 import 'package:flutter/material.dart';
@@ -53,13 +54,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _init() async {
+    final fontDir = await extractAssetFolder(context, 'extraFonts/');
+    await ComPDFKit.setImportFontDir(fontDir, addSysFont: false);
+
     // online license auth
     // Please replace it with your ComPDFKit license
-    // ComPDFKit.initialize(androidOnlineLicense: 'IVTAsbJCW0X45qIy5cTEuzxZzKpYIpJe6WPY7uCPIiI=',iosOnlineLicense: 'lkw3Gr0HuD5pV1/+DVRSxp7qBlvK+Izo3mOKyAEHXz4=');
+    // ComPDFKit.initialize(androidOnlineLicense: 'android license key',iosOnlineLicense: 'ios license key');
 
     // offline license auth
     ComPDFKit.init(Platform.isAndroid ? androidLicenseKey : iosLicenseKey);
   }
+
+
 
   @override
   Widget build(BuildContext context) {

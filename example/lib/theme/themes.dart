@@ -1,4 +1,4 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -12,8 +12,7 @@ final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: const ColorScheme.light(
-        primary: Color(0xFFFAFCFF),
-        surface: Color(0xFFFAFCFF),
+        primary: Colors.blue,
         onPrimary: Color(0xFF43474D),
         onSecondary: Color(0xFF666666)),
     textTheme: const TextTheme(
@@ -32,18 +31,37 @@ final ThemeData lightTheme = ThemeData(
             color: Color(0xFF43474D)),
         backgroundColor: Color(0xFFFAFCFF),
         foregroundColor: Color(0xFF43474D),
-        systemOverlayStyle: SystemUiOverlayStyle(
-            systemNavigationBarColor: Color(0xFFFFFFFF)
-        )),
+        systemOverlayStyle:
+            SystemUiOverlayStyle(systemNavigationBarColor: Color(0xFFFFFFFF))),
     elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)));
+        style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)),
+    switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((status){
+          if(status.contains(WidgetState.selected)) {
+            return Colors.blue;
+          }
+          return Colors.grey.shade400;
+        } ),
+        trackColor: WidgetStateProperty.resolveWith((status){
+          if(status.contains(WidgetState.selected)) {
+            return Colors.blue.shade50;
+          }
+          return Colors.grey.shade100;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((status){
+          if(status.contains(WidgetState.selected)) {
+            return Colors.blue.shade50;
+          }
+          return Colors.grey.shade100;
+        }),
+    ));
 
 final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: Colors.black,
     colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF222429),
+        primary: Colors.blue,
         surface: Color(0xFF222429),
         onPrimary: Colors.white,
         onSecondary: Colors.white),
@@ -59,8 +77,27 @@ final ThemeData darkTheme = ThemeData(
             fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         backgroundColor: Color(0xFF222429),
         foregroundColor: Colors.white,
-    systemOverlayStyle: SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0xFF222429)
-    )),
+        systemOverlayStyle:
+            SystemUiOverlayStyle(systemNavigationBarColor: Color(0xFF222429))),
     elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)));
+        style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((status){
+        if(status.contains(WidgetState.selected)) {
+          return Colors.blue;
+        }
+        return Colors.grey.shade400;
+      } ),
+      trackColor: WidgetStateProperty.resolveWith((status){
+        if(status.contains(WidgetState.selected)) {
+          return Colors.blue.shade50;
+        }
+        return Colors.grey.shade100;
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith((status){
+        if(status.contains(WidgetState.selected)) {
+          return Colors.blue.shade50;
+        }
+        return Colors.grey.shade100;
+      }),
+    ));

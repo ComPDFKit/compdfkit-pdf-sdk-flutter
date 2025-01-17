@@ -1,4 +1,4 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -64,8 +64,9 @@ class CPDFReaderWidgetController {
   /// ```
   /// Return value: **true** if the save is successful,
   /// **false** if the save fails.
+  @Deprecated("use CPDFDocument().save()")
   Future<bool> save() async {
-    return await _channel.invokeMethod('save');
+    return await document.save();
   }
 
   /// Set the page scale
@@ -380,4 +381,97 @@ class CPDFReaderWidgetController {
   Future<bool> hasChange() async {
     return await _document.hasChange();
   }
+
+  /// Switch the mode displayed by the current CPDFReaderWidget.
+  /// Please see [CPDFViewMode] for available modes.
+  ///
+  /// example:
+  /// ```dart
+  /// await setPreviewMode(CPDFViewMode.viewer);
+  /// ```
+  Future<void> setPreviewMode(CPDFViewMode viewMode) async {
+    await _channel.invokeMethod('set_preview_mode', viewMode.name);
+  }
+
+  /// Get the currently displayed mode
+  ///
+  /// example:
+  /// ```dart
+  /// CPDFViewMode mode = await controller.getPreviewMode();
+  /// ```
+  Future<CPDFViewMode> getPreviewMode() async {
+    String modeName = await _channel.invokeMethod('get_preview_mode');
+    return CPDFViewMode.values.where((e) => e.name == modeName).first;
+  }
+
+  /// Displays the thumbnail view. When [editMode] is `true`, the page enters edit mode, allowing operations such as insert, delete, extract, etc.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showThumbnailView(false);
+  /// ```
+  Future<void> showThumbnailView(bool editMode) async {
+    await _channel.invokeMethod('show_thumbnail_view', editMode);
+  }
+
+  /// Displays the BOTA view, which includes the document outline, bookmarks, and annotation list.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showBotaView();
+  /// ```
+  Future<void> showBotaView() async {
+    await _channel.invokeMethod('show_bota_view');
+  }
+
+  /// Displays the "Add Watermark" view, where users can add watermarks to the document.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showAddWatermarkView();
+  /// ```
+  Future<void> showAddWatermarkView() async {
+    await _channel.invokeMethod('show_add_watermark_view');
+  }
+
+  /// Displays the document security settings view, allowing users to configure document security options.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showSecurityView();
+  /// ```
+  Future<void> showSecurityView() async {
+    await _channel.invokeMethod('show_security_view');
+  }
+
+  /// Displays the display settings view, where users can configure options such as scroll direction, scroll mode, and themes.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showDisplaySettingView();
+  /// ```
+  Future<void> showDisplaySettingView() async {
+    await _channel.invokeMethod('show_display_settings_view');
+  }
+
+  /// Enters snip mode, allowing users to capture screenshots.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.enterSnipMode();
+  /// ```
+  Future<void> enterSnipMode() async {
+    await _channel.invokeMethod('enter_snip_mode');
+  }
+
+  /// Exits snip mode, stopping the screenshot capture.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.exitSnipMode();
+  /// ```
+  Future<void> exitSnipMode() async {
+    await _channel.invokeMethod('exit_snip_mode');
+  }
+
 }

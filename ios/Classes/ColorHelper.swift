@@ -10,25 +10,28 @@ import UIKit
 
 class ColorHelper {
     static func colorWithHexString (hex:String) -> UIColor {
-        var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+                
 
-        if (cString.hasPrefix("#")) {
-            cString.remove(at: cString.startIndex)
-        }
+                if hexString.hasPrefix("#") {
+                    hexString.remove(at: hexString.startIndex)
+                }
+                
 
-        if ((cString.count) != 6) {
-            return UIColor.gray
-        }
+                if hexString.count == 8 {
+                    var rgba: UInt64 = 0
+                    Scanner(string: hexString).scanHexInt64(&rgba)
+                    
+                    let a = CGFloat((rgba >> 24) & 0xFF) / 255.0
+                    let r = CGFloat((rgba >> 16) & 0xFF) / 255.0
+                    let g = CGFloat((rgba >> 8) & 0xFF) / 255.0
+                    let b = CGFloat(rgba & 0xFF) / 255.0
+                    
+                    return UIColor(red: r, green: g, blue: b, alpha: a)
+                } else {
 
-        var rgbValue:UInt64 = 0
-        Scanner(string: cString).scanHexInt64(&rgbValue)
-
-        return UIColor(
-            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
-        )
+                    return UIColor(white: 0.0, alpha: 0.0)
+                }
     }
 }
 

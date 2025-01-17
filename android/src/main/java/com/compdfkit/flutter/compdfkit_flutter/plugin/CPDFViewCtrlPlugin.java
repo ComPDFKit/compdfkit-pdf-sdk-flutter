@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,8 +10,11 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ENTER_SNIP_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXIT_SNIP_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_CURRENT_PAGE_INDEX;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_SIZE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PREVIEW_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_CONTINUE_MODE;
@@ -22,6 +25,11 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_LINK_HIGHLIGHT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_PAGE_IN_SCREEN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_VERTICAL_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_ADD_WATERMARK_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_BOTA_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_DISPLAY_SETTINGS_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_SECURITY_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_THUMBNAIL_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_CAN_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_CONTINUE_MODE;
@@ -35,6 +43,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_SAME_WIDTH;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_MARGIN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_SPACING;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PREVIEW_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_VERTICAL_MODE;
@@ -46,11 +55,13 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.compdfkit.core.document.CPDFDocument;
-
+import androidx.core.content.ContextCompat;
+import com.compdfkit.flutter.compdfkit_flutter.R;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
 import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
+import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
+import com.compdfkit.tools.common.views.pdfview.CPreviewMode;
 import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -116,18 +127,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
           "CPDFViewCtrlFlutter:onMethodCall: documentFragment is Null return not implemented.");
       result.notImplemented();
     }
-
-    CPDFReaderView readerView = documentFragment.pdfView.getCPdfReaderView();
+    CPDFViewCtrl pdfView = documentFragment.pdfView;
+    CPDFReaderView readerView = pdfView.getCPdfReaderView();
     switch (call.method) {
-      case SAVE:
-        documentFragment.pdfView.savePDF((s, uri) -> {
-          Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-success");
-          result.success(true);
-        }, e -> {
-          Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-fail");
-          result.success(false);
-        });
-        break;
       case SET_SCALE:
         double scaleValue = (double) call.arguments;
         readerView.setScale((float) scaleValue);
@@ -142,8 +144,12 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case SET_READ_BACKGROUND_COLOR:
         String colorHex = call.argument("color");
         readerView.setReadBackgroundColor(Color.parseColor(colorHex));
-        documentFragment.pdfView.setBackgroundColor(
-            CViewUtils.getColor(Color.parseColor(colorHex), 190));
+        if (colorHex.equals("#FFFFFFFF")){
+          pdfView.setBackgroundColor(ContextCompat.getColor(context, R.color.tools_pdf_view_ctrl_background_color));
+        } else {
+          pdfView.setBackgroundColor(
+              CViewUtils.getColor(Color.parseColor(colorHex), 190));
+        }
         break;
       case GET_READ_BACKGROUND_COLOR:
         String readBgColor =
@@ -240,6 +246,36 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         pageSizeMap.put("width", rectF.width());
         pageSizeMap.put("height", rectF.height());
         result.success(pageSizeMap);
+        break;
+      case SET_PREVIEW_MODE:
+        String alias = (String) call.arguments;
+        CPreviewMode previewMode = CPreviewMode.fromAlias(alias);
+        documentFragment.setPreviewMode(previewMode);
+        break;
+      case GET_PREVIEW_MODE:
+        result.success(documentFragment.pdfToolBar.getMode().alias);
+        break;
+      case SHOW_THUMBNAIL_VIEW:
+        boolean enterEditMode = (boolean) call.arguments;
+        documentFragment.showPageEdit(enterEditMode);
+        break;
+      case SHOW_BOTA_VIEW:
+        documentFragment.showBOTA();
+        break;
+      case SHOW_ADD_WATERMARK_VIEW:
+        documentFragment.showAddWatermarkDialog();
+        break;
+      case SHOW_SECURITY_VIEW:
+        documentFragment.showSecurityDialog();
+        break;
+      case SHOW_DISPLAY_SETTINGS_VIEW:
+        documentFragment.showDisplaySettings(pdfView);
+        break;
+      case ENTER_SNIP_MODE:
+        documentFragment.enterSnipMode();
+        break;
+      case EXIT_SNIP_MODE:
+        documentFragment.exitScreenShot();
         break;
       default:
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:notImplemented");

@@ -1,4 +1,4 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -53,7 +53,7 @@ class _CPDFReaderWidgetExampleState extends State<CPDFReaderWidgetExample> {
   }
 
   void _save() async {
-    bool saveResult = await _controller.save();
+    bool saveResult = await _controller.document.save();
     debugPrint('ComPDFKit-Flutter: saveResult:$saveResult');
   }
 }

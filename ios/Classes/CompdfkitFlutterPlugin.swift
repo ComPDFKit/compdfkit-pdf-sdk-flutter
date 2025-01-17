@@ -101,6 +101,29 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         case "remove_sign_file_list":
             CSignatureManager.sharedManager.removeAllSignatures()
             result(true)
+        case "set_import_font_directory":
+            let initInfo = call.arguments as? [String: Any]
+    
+            let dirPath = initInfo?["dir_path"] as? String ?? ""
+        
+            let addSysFont = initInfo?["add_sys_font"] as? Bool ?? true
+            
+            let fileManager = FileManager.default
+            let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let destinationPath = documentDirectory.appendingPathComponent("Font")
+
+            do {
+                if fileManager.fileExists(atPath: destinationPath.path) {
+                    try fileManager.removeItem(at: destinationPath)
+                }
+
+                try fileManager.copyItem(atPath: dirPath, toPath: destinationPath.path)
+                CPDFFont.setImportDir(destinationPath.path, isContainSysFont: addSysFont)
+            } catch {
+                print("Error copying Font directory: \(error)")
+            }
+            result(true)
+            
         default:
             result(FlutterMethodNotImplemented)
         }

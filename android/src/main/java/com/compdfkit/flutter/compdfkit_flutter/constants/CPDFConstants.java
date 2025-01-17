@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -117,6 +117,39 @@ public class CPDFConstants {
     public static final String REMOVE_ALL_ANNOTATIONS = "remove_all_annotations";
 
     public static final String GET_PAGE_COUNT = "get_page_count";
+
+    public static final String SET_PREVIEW_MODE = "set_preview_mode";
+
+    public static final String GET_PREVIEW_MODE = "get_preview_mode";
+
+    public static final String SHOW_THUMBNAIL_VIEW = "show_thumbnail_view";
+
+    public static final String SHOW_BOTA_VIEW = "show_bota_view";
+
+    public static final String SHOW_ADD_WATERMARK_VIEW = "show_add_watermark_view";
+
+    public static final String SHOW_SECURITY_VIEW = "show_security_view";
+
+    public static final String SHOW_DISPLAY_SETTINGS_VIEW = "show_display_settings_view";
+
+    public static final String ENTER_SNIP_MODE = "enter_snip_mode";
+
+    public static final String EXIT_SNIP_MODE = "exit_snip_mode";
+
+    public static final String SET_SECURITY_INFO = "set_security_info";
+
+    public static final String SAVE_AS = "save_as";
+
+    public static final String PRINT = "print";
+
+    public static final String CREATE_URI = "create_uri";
+    public static final String SET_USER_PASSWORD = "set_user_password";
+    public static final String REMOVE_PASSWORD = "remove_password";
+    public static final String SET_PASSWORD = "set_password";
+    public static final String CREATE_WATERMARK = "create_watermark";
+    public static final String REMOVE_ALL_WATERMARKS = "remove_all_watermarks";
+    public static final String GET_ENCRYPT_ALGORITHM = "get_encrypt_algorithm";
+    public static final String SET_IMPORT_FONT_DIRECTORY = "set_import_font_directory";
   }
 
 }

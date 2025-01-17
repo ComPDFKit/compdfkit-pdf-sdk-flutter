@@ -1,4 +1,4 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 
@@ -100,5 +101,56 @@ class ComPDFKit {
   static Future<String?> pickFile() async {
     final String? filePath = await _methodChannel.invokeMethod('pick_file');
     return filePath;
+  }
+
+  /// This method is supported only on the Android platform. It is used to create a URI for saving a file on the Android device.
+  /// The file is saved in the `Downloads` directory by default, but you can specify a subdirectory within `Downloads` using the
+  /// [childDirectoryName] parameter. If the [childDirectoryName] is not provided, the file will be saved directly in the `Downloads` directory.
+  /// The [fileName] parameter is required to specify the name of the file (e.g., `test.pdf`).
+  ///
+  /// Example usage:
+  /// ```dart
+  /// String? uri = await ComPDFKit.createUri('test.pdf');
+  /// ```
+  ///
+  /// - [fileName] (required) specifies the name of the file, for example `test.pdf`.
+  /// - [childDirectoryName] (optional) specifies a subdirectory within the `Downloads` folder.
+  /// - [mimeType] (optional) is the MIME type of the file, defaulting to `application/pdf`.
+  static Future<String?> createUri(
+      String fileName,
+      {String? childDirectoryName,
+        String mimeType = 'application/pdf'}) async {
+    final String? uri = await _methodChannel.invokeMethod('create_uri', {
+      'file_name' : fileName,
+      'child_directory_name' : childDirectoryName,
+      'mime_type' : mimeType
+    });
+    return uri;
+  }
+
+  /// Import font directory and configure whether to include system fonts.
+  ///
+  /// - Parameters:
+  ///   - **dirPath**: The directory path where the font files are stored.
+  ///     The imported fonts will be available for selection in text annotations and content editing, resolving issues with missing text in certain languages.
+  ///   - **addSysFont**: Whether to include system fonts. Default is `true`, which will show system fonts in the font list.
+  ///
+  /// Note:
+  /// This method must be called before [ComPDFKit.init] or [ComPDFKit.initialize], otherwise the settings will have no effect.
+  ///
+  /// Example:
+  /// ```dart
+  /// ComPDFKit.setImportFontDir('path/to/your/font', addSysFont: true);
+  /// ComPDF
+  static Future<bool> setImportFontDir(String dirPath, {bool addSysFont = true}) async {
+    try{
+      return await _methodChannel.invokeMethod('set_import_font_directory', {
+        'dir_path': dirPath,
+        'add_sys_font': addSysFont
+      });
+    }catch(e){
+      debugPrint("setImportFontDir error: $e");
+      return false;
+    }
   }
 }

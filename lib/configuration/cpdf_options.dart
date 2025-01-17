@@ -1,10 +1,14 @@
-// Copyright © 2014-2024 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+
+import 'dart:ui';
+
+import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
 enum CPDFViewMode { viewer, annotations, contentEditor, forms, signatures }
 
@@ -32,21 +36,28 @@ enum CPDFDisplayMode { singlePage, doublePage, coverPage }
 /// readerView background themes
 enum CPDFThemes {
   /// Bright mode, readerview background is white
-  light('#FFFFFF'),
+  light('#FFFFFFFF'),
 
   /// dark mode, readerview background is black
-  dark('#000000'),
+  dark('#FF000000'),
 
   /// brown paper color
-  sepia('#FFEFBE'),
+  sepia('#FFFFEFBE'),
 
   /// Light green, eye protection mode
-  reseda('#CDE6D0');
+  reseda('#FFCDE6D0');
 
   final String color;
 
   const CPDFThemes(this.color);
 
+  // 根据 Color 对象获取对应的 CPDFThemes
+  static CPDFThemes of(Color color) {
+    return CPDFThemes.values.firstWhere(
+          (theme) => theme.color == color.toHex().toUpperCase(),
+      orElse: () => CPDFThemes.light,
+    );
+  }
   // 获取颜色值
   String getColor() {
     return color;
@@ -215,4 +226,24 @@ enum CPDFDocumentError {
   /// Error page.
   errorPage
 
+}
+
+enum CPDFDocumentEncryptAlgo {
+  // RC4 encryption algorithm.
+  rc4,
+
+  /// AES encryption with a 128-bit key.
+  aes128,
+
+  /// AES encryption with a 256-bit key.
+  aes256,
+
+  /// No encryption algorithm selected.
+  noEncryptAlgo;
+}
+
+enum CPDFWatermarkType {
+  text,
+
+  image
 }
