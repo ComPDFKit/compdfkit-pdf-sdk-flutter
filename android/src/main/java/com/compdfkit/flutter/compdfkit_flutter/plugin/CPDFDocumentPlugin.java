@@ -40,9 +40,14 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
+import android.print.PrintAttributes;
+import android.print.PrintAttributes.MediaSize;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.request.target.Target;
 import com.compdfkit.core.common.CPDFDocumentException;
 import com.compdfkit.core.document.CPDFDocument;
@@ -58,8 +63,10 @@ import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.utils.CFileUtils;
 import com.compdfkit.tools.common.utils.glide.GlideApp;
 import com.compdfkit.tools.common.utils.image.CBitmapUtil;
+import com.compdfkit.tools.common.utils.print.CPDFPrintUtils;
 import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import com.compdfkit.tools.common.utils.threadpools.SimpleBackgroundTask;
+import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
 import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -75,6 +82,8 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   private CPDFViewCtrl pdfView;
 
+  private CPDFDocument document;
+
   public CPDFDocumentPlugin(Context context,
       BinaryMessenger binaryMessenger, String documentUid) {
     super(context, binaryMessenger);
@@ -83,8 +92,12 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   public void setReaderView(CPDFViewCtrl pdfView) {
     this.pdfView = pdfView;
+    this.document = pdfView.getCPdfReaderView().getPDFDocument();
   }
 
+  public void setDocument(CPDFDocument cpdfDocument) {
+    this.document = cpdfDocument;
+  }
 
   @Override
   public String methodName() {
@@ -93,26 +106,55 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    if (pdfView == null || pdfView.getCPdfReaderView().getPDFDocument() == null) {
+    if (document == null) {
       result.error("-1", "CPDFReaderView isnull or CPDFDocument is null", null);
       return;
     }
-    CPDFReaderView readerView = pdfView.getCPdfReaderView();
-    CPDFDocument document = readerView.getPDFDocument();
     switch (call.method) {
       case OPEN_DOCUMENT:
         String filePath = call.argument("filePath");
         String openPwd = call.argument("password");
         PDFDocumentError error;
+        Object object;
         if (filePath.startsWith(CONTENT_SCHEME) || filePath.startsWith(
             FileUtils.FILE_SCHEME)) {
-          pdfView.openPDF(Uri.parse(filePath), openPwd, () -> {
-            result.success(true);
-          });
+          object = Uri.parse(filePath);
+          error = document.open(Uri.parse(filePath), openPwd);
         } else {
-          pdfView.openPDF(filePath, openPwd, () -> {
-            result.success(true);
-          });
+          object = filePath;
+          error = document.open(filePath, openPwd);
+        }
+        switch (error){
+          case PDFDocumentErrorSuccess:
+            result.success("success");
+            break;
+          case PDFDocumentErrorPassword:
+            result.success("errorPassword");
+            break;
+          case PDFDocumentErrorFile:
+            result.success("errorFile");
+            break;
+          case PDFDocumentErrorPage:
+            result.success("errorPage");
+            break;
+          case PDFDocumentErrorFormat:
+            result.success("errorFormat");
+            break;
+          case PDFDocumentErrorUnknown:
+            result.success("unknown");
+            break;
+          case PDFDocumentErrorSecurity:
+            result.success("errorSecurity");
+            break;
+          case PDFDocumentNotVerifyLicense:
+            result.success("notVerifyLicense");
+            break;
+          case PDFDocumentErrorNoReadPermission:
+            result.success("noReadPermission");
+            break;
+        }
+        if (error == PDFDocumentError.PDFDocumentErrorSuccess && pdfView != null){
+          pdfView.setPDFDocument(document, object, error, null);
         }
         break;
       case GET_FILE_NAME:
@@ -159,7 +201,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
           cacheFile.mkdirs();
           boolean importResult = document.importAnnotations(xfdfFilePath,
               cacheFile.getAbsolutePath());
-          readerView.reloadPages();
+          if (pdfView != null) {
+            pdfView.getCPdfReaderView().reloadPages();
+          }
           result.success(importResult);
         } catch (Exception e) {
           e.printStackTrace();
@@ -190,8 +234,8 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         break;
       case REMOVE_ALL_ANNOTATIONS:
         boolean deleteResult = document.removeAllAnnotations();
-        if (deleteResult) {
-          readerView.invalidateAllChildren();
+        if (deleteResult && pdfView != null) {
+          pdfView.getCPdfReaderView().invalidateAllChildren();
         }
         result.success(deleteResult);
         break;
@@ -211,6 +255,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         String savePath = call.argument("save_path");
         boolean removeSecurity = call.argument("remove_security");
         boolean fontSubSet = call.argument("font_sub_set");
+        if (pdfView != null){
+          pdfView.exitEditMode();
+        }
         CThreadPoolUtils.getInstance().executeIO(() -> {
           try {
             boolean saveResult;
@@ -219,10 +266,15 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             } else {
               saveResult = document.saveAs(savePath, removeSecurity, false, fontSubSet);
             }
-            if (document.shouleReloadDocument()) {
-              document.reload();
-            }
-            result.success(saveResult);
+            CThreadPoolUtils.getInstance().executeMain(()->{
+              if (document.shouleReloadDocument()) {
+                document.reload();
+                if (pdfView != null) {
+                  pdfView.getCPdfReaderView().reloadPages();
+                }
+              }
+              result.success(saveResult);
+            });
           } catch (CPDFDocumentException e) {
             e.printStackTrace();
             result.error("SAVE_FAIL",
@@ -232,9 +284,10 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         });
         break;
       case PRINT:
-        String path = readerView.getPDFDocument().getAbsolutePath();
-        Uri uri = readerView.getPDFDocument().getUri();
-        CFileUtils.startPrint(context, path, uri);
+        FragmentActivity fragmentActivity = CViewUtils.getFragmentActivity(pdfView.getContext());
+        if (fragmentActivity != null){
+          CPDFPrintUtils.printCurrentDocument(fragmentActivity, document);
+        }
         break;
       case REMOVE_PASSWORD:
         CThreadPoolUtils.getInstance().executeIO(() -> {
@@ -326,8 +379,8 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         }
         break;
       case CREATE_WATERMARK:
-        Object object = call.arguments;
-        Log.e("ComPDFKit-Flutter", "watermark:" + object.toString());
+        Object watermarkObj = call.arguments;
+        Log.e("ComPDFKit-Flutter", "watermark:" + watermarkObj.toString());
         createWatermark(call, result, pdfView, document);
         break;
       case REMOVE_ALL_WATERMARKS:
@@ -335,7 +388,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             watermarkCount--) {
           document.getWatermark(watermarkCount - 1).clear();
         }
-        pdfView.getCPdfReaderView().reloadPages();
+        if (pdfView != null) {
+          pdfView.getCPdfReaderView().reloadPages();
+        }
         break;
       default:
         break;

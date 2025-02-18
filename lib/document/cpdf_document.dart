@@ -10,6 +10,9 @@ import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../compdfkit.dart';
+import '../util/cpdf_uuid_util.dart';
+
 /// A class to handle PDF documents without using [CPDFReaderWidget]
 ///
 /// example:
@@ -30,14 +33,37 @@ class CPDFDocument {
 
   get isValid => _isValid;
 
+  static Future<CPDFDocument> createInstance() async {
+    var id = CpdfUuidUtil.generateShortUniqueId();
+    bool success = await ComPDFKit.createDocumentInstance(id);
+    if (!success) {
+      throw Exception('Failed to create document instance');
+    }
+    return CPDFDocument._(id);
+  }
+
+  CPDFDocument._(String id) {
+    _channel = MethodChannel('com.compdfkit.flutter.document_$id');
+  }
+
   CPDFDocument.withController(int viewId)
       : _channel = MethodChannel('com.compdfkit.flutter.document_$viewId'),
         _isValid = true;
 
-  Future<bool> open(String filePath, String password) async {
-    return  await _channel.invokeMethod(
-        'open_document', {'filePath': filePath, 'password': password});
+  Future<CPDFDocumentError> open(String filePath, String password) async {
+    try{
+      var error = await _channel.invokeMethod(
+          'open_document', {'filePath': filePath, 'password': password});
+      var type =  CPDFDocumentError.values.where((e) => e.name == error).first;
+      if(type == CPDFDocumentError.success){
+        _isValid = true;
+      }
+      return type;
+    } on PlatformException {
+      return CPDFDocumentError.unknown;
+    }
   }
+
 
   /// Gets the file name of the PDF document.
   ///
@@ -320,5 +346,12 @@ class CPDFDocument {
   /// ```
   Future<void> removeAllWatermarks() async{
     return await _channel.invokeMethod('remove_all_watermarks');
+  }
+
+  Future<void> close() async {
+    if (!_isValid) return;
+    await _channel.invokeMethod('close');
+    debugPrint('ComPDFKit:CPDFDocument.close');
+    _isValid = false;
   }
 }

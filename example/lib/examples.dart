@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:compdfkit_flutter_example/cpdf_document_examples.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_widget_controller_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_widget_dark_theme_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_widget_security_example.dart';
@@ -31,14 +32,18 @@ List<Widget> examples(BuildContext context) => [
           onTap: () async {
             File document = await extractAsset(context, _documentPath,
                 shouldOverwrite: false);
-            showCPDFReaderWidget(context, document.path);
+            if (context.mounted) {
+              showCPDFReaderWidget(context, document.path);
+            }
           }),
       FeatureItem(
           title: 'Select External Files',
           description: 'Select pdf document from system file manager',
           onTap: () async {
             String? path = await pickDocument();
-            showCPDFReaderWidget(context, path);
+            if (context.mounted) {
+              showCPDFReaderWidget(context, path);
+            }
           }),
       if (Platform.isAndroid) ...[
         FeatureItem(
@@ -58,8 +63,10 @@ List<Widget> examples(BuildContext context) => [
           onTap: () async {
             File document = await extractAsset(context, _documentPath,
                 shouldOverwrite: false);
-            goTo(CPDFReaderWidgetSecurityExample(documentPath: document.path),
-                context);
+            if (context.mounted) {
+              goTo(CPDFReaderWidgetSecurityExample(documentPath: document.path),
+                  context);
+            }
           }),
       FeatureItem(
           title: 'Annotations Examples',
@@ -68,9 +75,12 @@ List<Widget> examples(BuildContext context) => [
           onTap: () async {
             File document = await extractAsset(context, _documentPath,
                 shouldOverwrite: false);
-            goTo(
-                CPDFReaderWidgetAnnotationsExample(documentPath: document.path),
-                context);
+            if (context.mounted) {
+              goTo(
+                  CPDFReaderWidgetAnnotationsExample(
+                      documentPath: document.path),
+                  context);
+            }
           }),
       _title(context, 'Modal View Examples'),
       FeatureItem(
@@ -86,7 +96,15 @@ List<Widget> examples(BuildContext context) => [
               ComPDFKit.openDocument(path,
                   password: '', configuration: CPDFConfiguration());
             }
-          })
+          }),
+      _title(context, 'CPDFDocument Examples'),
+      FeatureItem(
+          title: 'CPDFDocument Example',
+          description:
+              'This example demonstrates how to use CPDFDocument independently for PDF document operations, including opening documents, importing and exporting XFDF annotation files, setting passwords, and more.',
+          onTap: () async {
+            goTo(const CPDFDocumentExamples(), context);
+          }),
     ];
 
 void showDocument(context) async {

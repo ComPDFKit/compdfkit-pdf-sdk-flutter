@@ -118,6 +118,9 @@ class _CPDFReaderWidgetControllerExampleState
         // only android platform
         //   String? savePath = await ComPDFKit.createUri('aaa.pdf', childDirectoryName: 'compdfkit');
         bool saveResult = await controller.document.saveAs(savePath);
+        if(saveResult){
+          _controller?.document.open(savePath, '');
+        }
         debugPrint('ComPDFKit:saveAs:Result:$saveResult');
         debugPrint('ComPDFKit:saveAs:Path:$savePath');
         break;
@@ -172,7 +175,8 @@ class _CPDFReaderWidgetControllerExampleState
         String? path = await ComPDFKit.pickFile();
         if (path != null) {
           var document = controller.document;
-          document.open(path, "");
+          var error = await document.open(path, "");
+          debugPrint('ComPDFKit:Document: open:$error');
         }
         break;
       case "removeSignFileList":
@@ -196,7 +200,7 @@ class _CPDFReaderWidgetControllerExampleState
         await controller.showDisplaySettingView();
         break;
       case 'Watermark':
-        await controller.showAddWatermarkView();
+        await controller.showAddWatermarkView(saveAsNewFile: false);
         break;
       case 'Security':
         await controller.showSecurityView();

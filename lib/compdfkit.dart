@@ -153,4 +153,8 @@ class ComPDFKit {
       return false;
     }
   }
+
+  static Future<bool> createDocumentInstance(String id) async {
+    return await _methodChannel.invokeMethod('create_document_plugin', id);
+  }
 }

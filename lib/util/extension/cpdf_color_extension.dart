@@ -13,14 +13,16 @@ import 'package:flutter/material.dart';
 /// extension [Color] class
 /// toHex: Colors.white.toHex() => '#FFFFFFFF'
 /// formHex: '#FFFFFF' => Colors.white
-extension HexColor on Color{
+extension HexColor on Color {
 
   /// Colors.white.toHex() => '#FFFFFFFF'
-  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
-      '${alpha.toRadixString(16).padLeft(2, '0')}'
-      '${red.toRadixString(16).padLeft(2, '0')}'
-      '${green.toRadixString(16).padLeft(2, '0')}'
-      '${blue.toRadixString(16).padLeft(2, '0')}';
+  String toHex({bool leadingHashSign = true}) {
+    final hexA = (a * 255).round().toRadixString(16).padLeft(2, '0');
+    final hexR = (r * 255).round().toRadixString(16).padLeft(2, '0');
+    final hexG = (g * 255).round().toRadixString(16).padLeft(2, '0');
+    final hexB = (b * 255).round().toRadixString(16).padLeft(2, '0');
+    return '${leadingHashSign ? '#' : ''}$hexA$hexR$hexG$hexB';
+  }
 
   /// formHex: '#FFFFFF' => Colors.white
   static Color fromHex(String hexString) {

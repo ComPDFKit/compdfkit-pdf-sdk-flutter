@@ -32,7 +32,9 @@ Future<String> extractAssetFolder(BuildContext context, String folder) async {
   final tempDir = await ComPDFKit.getTemporaryDirectory();
   final assetPaths = await getAssetPaths(folder);
   for (var path in assetPaths) {
-    await extractAsset(context, path);
+    if(context.mounted){
+      await extractAsset(context, path);
+    }
   }
   String dir = '${tempDir.path}/$folder';
   debugPrint('ComPDFKit-fontDir: $dir');

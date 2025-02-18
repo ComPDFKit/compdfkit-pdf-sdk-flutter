@@ -5,6 +5,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
+
     }
 
     dependencies {
@@ -16,6 +18,9 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+
     }
 }
 
@@ -23,7 +28,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdk 33
-
+    namespace "com.compdfkit.flutter.compdfkit_flutter"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -40,7 +45,7 @@ android {
         implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:2.2.1'
+        api 'com.compdf:compdfkit-tools:2.2.2'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'

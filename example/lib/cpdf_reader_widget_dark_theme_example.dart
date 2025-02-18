@@ -8,7 +8,6 @@
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
-import 'package:compdfkit_flutter_example/theme/themes.dart';
 import 'package:flutter/material.dart';
 
 class CPDFDarkThemeExample extends StatefulWidget {
@@ -23,21 +22,19 @@ class CPDFDarkThemeExample extends StatefulWidget {
 class _CPDFDarkThemeExampleState extends State<CPDFDarkThemeExample> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        theme: darkTheme,
-        home: Scaffold(
-            resizeToAvoidBottomInset: false,
-            appBar: AppBar(
-              title: const Text('Dark Theme Example'),
-            ),
-            body: CPDFReaderWidget(
-              document: widget.documentPath,
-              configuration: CPDFConfiguration(
-                toolbarConfig: const CPDFToolbarConfig(
-                    iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail]),
-                globalConfig: const CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)
-              ),
-              onCreated: (controller) {},
-            )));
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: const Text('Dark Theme Example'),
+        ),
+        body: CPDFReaderWidget(
+          document: widget.documentPath,
+          configuration: CPDFConfiguration(
+              toolbarConfig: const CPDFToolbarConfig(
+                  iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail]),
+              globalConfig: const CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)
+          ),
+          onCreated: (controller) {},
+        ));
   }
 }

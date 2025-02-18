@@ -1,3 +1,19 @@
+## 2.2.2
+* Added the features support for ComPDFKit PDF SDK for iOS iOS V2.2.2.
+* Added the features support for ComPDFKit PDF SDK for Android Android V2.2.2.
+* `CPDFDocument()` can now be used independently, without relying on `CPDFReaderWidget`, enhancing flexibility and ease of use.
+* Added the ability to save a watermark to the current PDF when adding it.
+* Fixed the inaccurate judgment issue in the `hasChange()` method.
+* Fixed an issue where some document text fields in forms were not displaying content.
+* Fixed an issue on the Android platform where Ink annotations became smaller after drawing.
+* Fixed an issue on the Android platform where the pen size shrank when drawing Ink annotations after zooming in on a page.
+* Fixed an input issue with the **LaBan Key** input method on the Android platform.
+* Fixed a potential crash issue on the Android platform when enabling the rotate function. 
+* Fixed a crash issue on the Android platform when importing XFDF annotations. 
+* Fixed an issue on the Android platform where annotations did not appear when printing with `document.printDocument()`. 
+* Fixed an issue on Android where the `saveAs()` method resulted in a “document cannot be edited” prompt after saving.
+
+
 ## 2.2.1
 * Added the features support for ComPDFKit PDF SDK for iOS [iOS V2.2.1](https://www.compdf.com/pdf-sdk/changelog-ios#v2-2-1).
 * Added the features support for ComPDFKit PDF SDK for Android [Android V2.2.1](https://www.compdf.com/pdf-sdk/changelog-android#v2-2-1).

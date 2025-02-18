@@ -9,6 +9,7 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_DOCUMENT_PLUGIN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_URI;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
@@ -31,6 +32,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import androidx.annotation.Nullable;
+import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.CPDFSdk;
 import com.compdfkit.core.font.CPDFFont;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
@@ -135,6 +137,13 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 CPDFSdk.setImportFontDir(importFontDir, addSysFont);
                 result.success(true);
                 break;
+            case CREATE_DOCUMENT_PLUGIN:
+                String id = (String) call.arguments;
+                CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
+                documentPlugin.setDocument(new CPDFDocument(context));
+                documentPlugin.register();
+                result.success(true);
+                break;
             default:
                 break;
         }
@@ -145,13 +154,13 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
             if(data != null && data.getData() != null){
                 Uri uri = data.getData();
+                CFileUtils.takeUriPermission(context, uri);
                 successResult(uri.toString());
             }
             return true;
         } else if (requestCode == REQUEST_CODE && resultCode != Activity.RESULT_OK){
             successResult(null);
         }
-
         return false;
     }
 

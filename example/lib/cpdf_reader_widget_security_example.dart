@@ -17,10 +17,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class CPDFReaderWidgetSecurityExample extends StatefulWidget {
+
   final String documentPath;
 
+  final String password;
+
   const CPDFReaderWidgetSecurityExample(
-      {super.key, required this.documentPath});
+      {super.key, required this.documentPath, this.password = ''});
 
   @override
   State<CPDFReaderWidgetSecurityExample> createState() =>
@@ -47,6 +50,7 @@ class _CPDFReaderWidgetSecurityExampleState
         ),
         body: CPDFReaderWidget(
           document: widget.documentPath,
+          password: widget.password,
           configuration: CPDFConfiguration(
               toolbarConfig: const CPDFToolbarConfig(
                   iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),

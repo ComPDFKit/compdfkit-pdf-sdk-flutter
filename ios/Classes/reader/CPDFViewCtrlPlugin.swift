@@ -1,7 +1,7 @@
 //
 //  CPDFViewCtrlPlugin.swift
 //
-//  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+//  Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 //  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 //  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -249,7 +249,8 @@ class CPDFViewCtrlPlugin {
             case CPDFConstants.showBotaView:
                 self.pdfViewController.buttonItemClicked_Bota(UIButton(frame: .zero))
             case CPDFConstants.showAddWatermarkView:
-                self.pdfViewController.enterPDFWatermark()
+                let isSaveAs = call.arguments as! Bool
+                self.pdfViewController.enterPDFWatermark(isSaveAs: isSaveAs)
             case CPDFConstants.showSecurityView:
                 self.pdfViewController.enterPDFSecurity()
             case CPDFConstants.showDisplaySettingsView:

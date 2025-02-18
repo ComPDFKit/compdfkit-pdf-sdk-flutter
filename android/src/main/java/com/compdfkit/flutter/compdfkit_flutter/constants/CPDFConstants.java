@@ -150,6 +150,8 @@ public class CPDFConstants {
     public static final String REMOVE_ALL_WATERMARKS = "remove_all_watermarks";
     public static final String GET_ENCRYPT_ALGORITHM = "get_encrypt_algorithm";
     public static final String SET_IMPORT_FONT_DIRECTORY = "set_import_font_directory";
+    public static final String CREATE_DOCUMENT_PLUGIN = "create_document_plugin";
+
   }
 
 }

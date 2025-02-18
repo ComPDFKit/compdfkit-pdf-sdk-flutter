@@ -426,12 +426,28 @@ class CPDFGlobalConfig {
   /// The default value is true. Saving font subsets may increase file size.
   final bool fileSaveExtraFontSubset;
 
+  final CPDFWatermarkConfig watermark;
+
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
-      this.fileSaveExtraFontSubset = true});
+      this.fileSaveExtraFontSubset = true,
+      this.watermark = const CPDFWatermarkConfig()});
 
   Map<String, dynamic> toJson() => {
         "themeMode": themeMode.name,
-        "fileSaveExtraFontSubset": fileSaveExtraFontSubset
+        "fileSaveExtraFontSubset": fileSaveExtraFontSubset,
+        "watermark" : watermark.toJson()
       };
+}
+
+class CPDFWatermarkConfig{
+
+  final bool saveAsNewFile;
+
+  const CPDFWatermarkConfig({
+    this.saveAsNewFile = true});
+
+
+  Map<String, dynamic> toJson() => {
+    "saveAsNewFile": saveAsNewFile};
 }

@@ -430,8 +430,8 @@ class CPDFReaderWidgetController {
   /// ```dart
   /// await controller.showAddWatermarkView();
   /// ```
-  Future<void> showAddWatermarkView() async {
-    await _channel.invokeMethod('show_add_watermark_view');
+  Future<void> showAddWatermarkView({bool saveAsNewFile = true}) async {
+    await _channel.invokeMethod('show_add_watermark_view', saveAsNewFile);
   }
 
   /// Displays the document security settings view, allowing users to configure document security options.

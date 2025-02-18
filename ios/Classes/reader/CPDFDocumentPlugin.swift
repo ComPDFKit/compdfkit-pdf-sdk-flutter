@@ -1,7 +1,7 @@
 //
 //  CPDFDocumentPlugin.swift
 //  compdfkit_flutter
-//  Copyright © 2014-2023 PDF Technologies, Inc. All Rights Reserved.
+//  Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
 //
 //  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 //  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -32,6 +32,7 @@ public class CPDFDocumentPlugin {
         _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
         registeryMethodChannel()
     }
+
     
     
     private func registeryMethodChannel(){
@@ -59,7 +60,6 @@ public class CPDFDocumentPlugin {
                     if pdfListView.document.isModified() == true {
                         isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL)
                     }
-                    
                 } else {
                     if(pdfListView.document != nil) {
                         if pdfListView.document.isModified() == true {
@@ -76,14 +76,64 @@ public class CPDFDocumentPlugin {
                 let initInfo = call.arguments as? [String: Any]
                 let path = initInfo?["filePath"] as? String ?? ""
                 let password = initInfo?["password"] ?? ""
-                
+              
                 self.document = CPDFDocument(url: URL(fileURLWithPath: path))
                 if(self.document?.isLocked == true){
-                    self.document?.unlock(withPassword: password as? String ?? "")
+                    let success = self.document?.unlock(withPassword: password as? String ?? "")
+                    if(success == true){
+                        if let error = self.document?.error as? NSError {
+                            let code = error.code
+                            
+                            switch code {
+                            case CPDFDocumentUnknownError:
+                                result("unknown")
+                            case CPDFDocumentFileError:
+                                result("errorFile")
+                            case CPDFDocumentFormatError:
+                                result("errorFormat")
+                            case CPDFDocumentPasswordError:
+                                result("errorPassword")
+                            case CPDFDocumentSecurityError:
+                                result("errorSecurity")
+                            case CPDFDocumentPageError:
+                                result("errorPage")
+                            default:
+                                result("success")
+                            }
+                        } else {
+                            result("success")
+                        }
+                        
+                    }else {
+                        result("errorPassword")
+                    }
+                } else {
+                    if let error = self.document?.error as? NSError {
+                        let code = error.code
+                        
+                        switch code {
+                        case CPDFDocumentUnknownError:
+                            result("unknown")
+                        case CPDFDocumentFileError:
+                            result("errorFile")
+                        case CPDFDocumentFormatError:
+                            result("errorFormat")
+                        case CPDFDocumentPasswordError:
+                            result("errorPassword")
+                        case CPDFDocumentSecurityError:
+                            result("errorSecurity")
+                        case CPDFDocumentPageError:
+                            result("errorPage")
+                        default:
+                            result("success")
+                        }
+                    } else {
+                        result("success")
+                    }
                 }
                 self.pdfViewController?.pdfListView?.document = self.document
                 self.pdfViewController?.pdfListView?.setNeedsDisplay()
-                result(true)
+
             case CPDFConstants.getFileName:
                 if(self.document == nil){
                     print("self.document is nil")
@@ -163,9 +213,20 @@ public class CPDFDocumentPlugin {
                 var success = false
              
                 if removeSecurity {
-                    success = self.document?.writeDecrypt(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    if (self.pdfViewController?.pdfListView?.isEditing() == true && self.pdfViewController?.pdfListView?.isEdited() == true) {
+                        self.pdfViewController?.pdfListView?.commitEditing()
+                        
+                        success = self.document?.writeDecrypt(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    } else {
+                        success = self.document?.writeDecrypt(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    }
                 } else {
-                    success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    if (self.pdfViewController?.pdfListView?.isEditing() == true && self.pdfViewController?.pdfListView?.isEdited() == true) {
+                        self.pdfViewController?.pdfListView?.commitEditing()
+                        success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    } else {
+                        success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                    }
                 }
                
                 result(success)

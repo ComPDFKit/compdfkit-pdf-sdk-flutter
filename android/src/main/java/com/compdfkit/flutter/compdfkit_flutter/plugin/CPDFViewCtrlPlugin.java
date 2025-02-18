@@ -263,7 +263,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         documentFragment.showBOTA();
         break;
       case SHOW_ADD_WATERMARK_VIEW:
-        documentFragment.showAddWatermarkDialog();
+        boolean saveAsNewFile = (boolean) call.arguments;
+        documentFragment.showAddWatermarkDialog(saveAsNewFile);
         break;
       case SHOW_SECURITY_VIEW:
         documentFragment.showSecurityDialog();
