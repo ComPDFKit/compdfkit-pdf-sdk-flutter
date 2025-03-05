@@ -56,7 +56,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import androidx.core.content.ContextCompat;
-import com.compdfkit.flutter.compdfkit_flutter.R;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
 import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
@@ -145,7 +144,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         String colorHex = call.argument("color");
         readerView.setReadBackgroundColor(Color.parseColor(colorHex));
         if (colorHex.equals("#FFFFFFFF")){
-          pdfView.setBackgroundColor(ContextCompat.getColor(context, R.color.tools_pdf_view_ctrl_background_color));
+          pdfView.setBackgroundColor(ContextCompat.getColor(context, com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color));
         } else {
           pdfView.setBackgroundColor(
               CViewUtils.getColor(Color.parseColor(colorHex), 190));

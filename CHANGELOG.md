@@ -1,3 +1,6 @@
+## 2.2.3
+* Fixed the issue where `R.color.tools_pdf_view_ctrl_background_color` resource could not be found during Android build.
+
 ## 2.2.2
 * Added the features support for ComPDFKit PDF SDK for iOS iOS V2.2.2.
 * Added the features support for ComPDFKit PDF SDK for Android Android V2.2.2.

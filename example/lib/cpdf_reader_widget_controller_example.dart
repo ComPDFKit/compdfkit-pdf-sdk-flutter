@@ -118,9 +118,6 @@ class _CPDFReaderWidgetControllerExampleState
         // only android platform
         //   String? savePath = await ComPDFKit.createUri('aaa.pdf', childDirectoryName: 'compdfkit');
         bool saveResult = await controller.document.saveAs(savePath);
-        if(saveResult){
-          _controller?.document.open(savePath, '');
-        }
         debugPrint('ComPDFKit:saveAs:Result:$saveResult');
         debugPrint('ComPDFKit:saveAs:Path:$savePath');
         break;
