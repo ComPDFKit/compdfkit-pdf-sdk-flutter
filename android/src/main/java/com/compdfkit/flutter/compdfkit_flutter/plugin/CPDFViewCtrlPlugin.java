@@ -143,7 +143,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case SET_READ_BACKGROUND_COLOR:
         String colorHex = call.argument("color");
         readerView.setReadBackgroundColor(Color.parseColor(colorHex));
-        if (colorHex.equals("#FFFFFFFF")){
+        if ("#FFFFFFFF".equals(colorHex)){
           pdfView.setBackgroundColor(ContextCompat.getColor(context, com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color));
         } else {
           pdfView.setBackgroundColor(

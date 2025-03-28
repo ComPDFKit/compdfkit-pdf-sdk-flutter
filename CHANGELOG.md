@@ -1,3 +1,16 @@
+## 2.3.0
+* Added the features support for ComPDFKit PDF SDK for iOS iOS V2.3.0.
+* Added the features support for ComPDFKit PDF SDK for Android Android V2.3.0.
+* Added the ability to create text input fields and insert images by clicking on a page area in content editing mode. 
+* Fixed a crash issue when editing or deleting text in certain documents. 
+* Fixed the border display issue after completing a free text annotation. 
+* Fixed an issue where the LaBan Key input method could not delete the last character while editing text. 
+* Fixed text garbling issues in content editing mode. 
+* Fixed an issue where form field content was not displayed in some documents. 
+* Fixed the issue that the zoomed-in page area did not follow the zooming when jumping to draw a rectangular area. 
+* Fixed the issue of Chinese garbled characters in the form name.
+* Fixed the issue where the prompt did not appear for scanned PDF documents on iOS.
+
 ## 2.2.3
 * Fixed the issue where `R.color.tools_pdf_view_ctrl_background_color` resource could not be found during Android build.
 

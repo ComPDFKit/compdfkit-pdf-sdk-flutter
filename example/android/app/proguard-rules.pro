@@ -23,3 +23,4 @@
 -keep class com.compdfkit.core.** {*;}
 -keep class com.compdfkit.tools.** {*;}
 -keep interface com.compdfkit.tools.**{*;}
+-keep class org.xmlpull.v1.** { *; }
