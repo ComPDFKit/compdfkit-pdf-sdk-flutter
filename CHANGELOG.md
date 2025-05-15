@@ -1,3 +1,5 @@
+## 2.4.0+1
+1. Fixed the issue of `flattenAllPages()` not working.
 ## 2.4.0
 
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.0.  

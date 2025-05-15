@@ -154,7 +154,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.0
++  compdfkit_flutter: ^2.4.0+1
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -200,7 +200,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.0
++  compdfkit_flutter: ^2.4.0+1
 ```
 
 4. Open your project's Podfile in a text editor:

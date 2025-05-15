@@ -118,7 +118,7 @@ class CPDFConstants {
     
     static let exportWidgets = "export_widgets"
     
-    static let flattenAllPages = "flattenAllPages"
+    static let flattenAllPages = "flatten_all_pages"
     
     static let importDocument = "import_document"
     
