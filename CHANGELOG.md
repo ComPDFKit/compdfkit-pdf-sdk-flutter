@@ -1,4 +1,35 @@
+## 2.4.0
+
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.0.  
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.0.
+3. Added configuration options for signature methods in signature form fields on Android.
+4. Added a document save reminder when exiting the interface on Android.  
+5. Added functionality to erase existing Ink annotations on Android.  
+6. Added APIs to retrieve annotation and form field data.  
+7. Added APIs to delete annotations and form fields.  
+8. Added an API to insert blank pages.  
+9. Added an API to split documents.  
+10. Added APIs to import and export XFDF form files.  
+11. Added an API to insert PDF documents.  
+12. Added an API to flatten documents.  
+13. Added configuration option for watermark dialog background color.  
+14. Added callback notification when exiting the page editing dialog.  
+15. Added callback notification when entering full-screen mode by tapping a page.  
+16. Added callback notification for tapping the 'back' button on the toolbar on iOS.
+17. Fixed OOM crash issues on some devices during SDK initialization.
+18. Fixed an issue where signature appearance was not correctly displayed after digital signing.
+19. Fixed an issue where images failed to display after adding a watermark to certain documents.
+20. Fixed an issue that prevented inserting PNG images when inserting pages.
+21. Fixed incorrect handling of `ActionType_GoToR` and `ActionType_Launch` in hyperlink annotations.
+22. Fixed an issue where long input in electronic signatures within `ComPDFKit_Tools` caused incomplete display after saving.
+23. Fixed blurry display issue after zooming in on text annotations.
+24. Fixed jump behavior of `CPDFReaderView.setScale() `scaling method.
+25. Fixed a font inconsistency issue during content editing when adding text to already selected text with an existing device font.
+
+
+
 ## 2.3.0
+
 * Added the features support for ComPDFKit PDF SDK for iOS iOS V2.3.0.
 * Added the features support for ComPDFKit PDF SDK for Android Android V2.3.0.
 * Added the ability to create text input fields and insert images by clicking on a page area in content editing mode. 

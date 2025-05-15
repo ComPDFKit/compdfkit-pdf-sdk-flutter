@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
@@ -23,6 +22,11 @@ typedef CPDFPageChangedCallback = void Function(int pageIndex);
 
 typedef CPDFDocumentSaveCallback = void Function();
 
+typedef CPDFPageEditDialogBackPressCallback = void Function();
+
+typedef CPDFFillScreenChangedCallback = void Function(bool isFillScreen);
+
+typedef CPDFIOSClickBackPressedCallback = void Function();
 
 class CPDFReaderWidget extends StatefulWidget {
   /// pdf file path
@@ -39,6 +43,12 @@ class CPDFReaderWidget extends StatefulWidget {
 
   final CPDFDocumentSaveCallback? onSaveCallback;
 
+  final CPDFPageEditDialogBackPressCallback? onPageEditDialogBackPress;
+
+  final CPDFFillScreenChangedCallback? onFillScreenChanged;
+
+  final CPDFIOSClickBackPressedCallback? onIOSClickBackPressed;
+
   /// init callback
   const CPDFReaderWidget(
       {Key? key,
@@ -47,7 +57,10 @@ class CPDFReaderWidget extends StatefulWidget {
       required this.configuration,
       required this.onCreated,
       this.onPageChanged,
-      this.onSaveCallback})
+      this.onSaveCallback,
+      this.onPageEditDialogBackPress,
+      this.onFillScreenChanged,
+      this.onIOSClickBackPressed})
       : super(key: key);
 
   @override
@@ -55,7 +68,6 @@ class CPDFReaderWidget extends StatefulWidget {
 }
 
 class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
-
   @override
   Widget build(BuildContext context) {
     const String viewType = 'com.compdfkit.flutter.ui.pdfviewer';
@@ -105,6 +117,11 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
 
   Future<void> _onPlatformViewCreated(int id) async {
     debugPrint('ComPDFKit-Flutter: CPDFReaderWidget created');
-    widget.onCreated(CPDFReaderWidgetController(id, onPageChanged: widget.onPageChanged, saveCallback : widget.onSaveCallback));
+    widget.onCreated(CPDFReaderWidgetController(id,
+        onPageChanged: widget.onPageChanged,
+        saveCallback: widget.onSaveCallback,
+        onPageEditBackPress: widget.onPageEditDialogBackPress,
+        onFillScreenChanged: widget.onFillScreenChanged,
+        onIOSClickBackPressed: widget.onIOSClickBackPressed));
   }
 }

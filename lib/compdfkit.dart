@@ -11,10 +11,10 @@ import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
-
 /// ComPDFKit plugin to load PDF and image documents on both platform iOS and Android.
 class ComPDFKit {
-  static const MethodChannel _methodChannel = MethodChannel('com.compdfkit.flutter.plugin');
+  static const MethodChannel _methodChannel =
+      MethodChannel('com.compdfkit.flutter.plugin');
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
   /// This method is used for offline license authentication.
@@ -42,14 +42,18 @@ class ComPDFKit {
   /// ```dart
   /// ComPDFKit.initialize(androidOnlineLicense : 'your android platform compdfkit license', iosOnlineLicense: 'your ios platform compdfkit license')
   /// ```
-  static void initialize({required String androidOnlineLicense,required String iosOnlineLicense}) {
-    _methodChannel.invokeMethod('init_sdk_keys', {'androidOnlineLicense': androidOnlineLicense, 'iosOnlineLicense': iosOnlineLicense});
+  static void initialize(
+      {required String androidOnlineLicense,
+      required String iosOnlineLicense}) {
+    _methodChannel.invokeMethod('init_sdk_keys', {
+      'androidOnlineLicense': androidOnlineLicense,
+      'iosOnlineLicense': iosOnlineLicense
+    });
   }
 
   /// Get the version code of the ComPDFKit SDK.
   static Future<String> getVersionCode() async {
-    String versionCode =
-        await _methodChannel.invokeMethod('sdk_version_code');
+    String versionCode = await _methodChannel.invokeMethod('sdk_version_code');
     return versionCode;
   }
 
@@ -116,14 +120,12 @@ class ComPDFKit {
   /// - [fileName] (required) specifies the name of the file, for example `test.pdf`.
   /// - [childDirectoryName] (optional) specifies a subdirectory within the `Downloads` folder.
   /// - [mimeType] (optional) is the MIME type of the file, defaulting to `application/pdf`.
-  static Future<String?> createUri(
-      String fileName,
-      {String? childDirectoryName,
-        String mimeType = 'application/pdf'}) async {
+  static Future<String?> createUri(String fileName,
+      {String? childDirectoryName, String mimeType = 'application/pdf'}) async {
     final String? uri = await _methodChannel.invokeMethod('create_uri', {
-      'file_name' : fileName,
-      'child_directory_name' : childDirectoryName,
-      'mime_type' : mimeType
+      'file_name': fileName,
+      'child_directory_name': childDirectoryName,
+      'mime_type': mimeType
     });
     return uri;
   }
@@ -142,13 +144,12 @@ class ComPDFKit {
   /// ```dart
   /// ComPDFKit.setImportFontDir('path/to/your/font', addSysFont: true);
   /// ComPDF
-  static Future<bool> setImportFontDir(String dirPath, {bool addSysFont = true}) async {
-    try{
-      return await _methodChannel.invokeMethod('set_import_font_directory', {
-        'dir_path': dirPath,
-        'add_sys_font': addSysFont
-      });
-    }catch(e){
+  static Future<bool> setImportFontDir(String dirPath,
+      {bool addSysFont = true}) async {
+    try {
+      return await _methodChannel.invokeMethod('set_import_font_directory',
+          {'dir_path': dirPath, 'add_sys_font': addSysFont});
+    } catch (e) {
       debugPrint("setImportFontDir error: $e");
       return false;
     }

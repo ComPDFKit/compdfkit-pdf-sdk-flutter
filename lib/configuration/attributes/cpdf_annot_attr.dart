@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'package:flutter/material.dart';
 
 import '../cpdf_options.dart';
@@ -473,7 +472,6 @@ class CPDFPushButtonAttr extends CPDFAnnotAttrBase {
 }
 
 class CPDFSignatureWidgetAttr extends CPDFAnnotAttrBase {
-
   final Color? fillColor;
 
   final Color? borderColor;
@@ -486,7 +484,6 @@ class CPDFSignatureWidgetAttr extends CPDFAnnotAttrBase {
     this.borderWidth = 2,
   });
 
-
   @override
   Map<String, dynamic> toJson() {
     return {
@@ -496,4 +493,3 @@ class CPDFSignatureWidgetAttr extends CPDFAnnotAttrBase {
     };
   }
 }
-

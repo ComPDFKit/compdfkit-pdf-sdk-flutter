@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,7 +33,7 @@ Future<String> extractAssetFolder(BuildContext context, String folder) async {
   final tempDir = await ComPDFKit.getTemporaryDirectory();
   final assetPaths = await getAssetPaths(folder);
   for (var path in assetPaths) {
-    if(context.mounted){
+    if (context.mounted) {
       await extractAsset(context, path);
     }
   }
@@ -44,8 +45,29 @@ Future<String> extractAssetFolder(BuildContext context, String folder) async {
 Future<List<String>> getAssetPaths(String folderPath) async {
   final manifestJson = await rootBundle.loadString('AssetManifest.json');
   final Map<String, dynamic> manifestMap = json.decode(manifestJson);
-  final assetPaths = manifestMap.keys
-      .where((key) => key.startsWith(folderPath))
-      .toList();
+  final assetPaths =
+      manifestMap.keys.where((key) => key.startsWith(folderPath)).toList();
   return assetPaths;
+}
+
+void printJsonString(String jsonStr) {
+  try {
+    final dynamic jsonData = json.decode(jsonStr);
+    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    final String prettyJson = encoder.convert(jsonData);
+    _printLongText(prettyJson);
+  } catch (e) {
+    if (kDebugMode) {
+      print('Invalid JSON: $e');
+    }
+  }
+}
+
+void _printLongText(String text, {int chunkSize = 800}) {
+  final pattern = RegExp('.{1,$chunkSize}', dotAll: true);
+  for (final match in pattern.allMatches(text)) {
+    if (kDebugMode) {
+      print(match.group(0));
+    }
+  }
 }

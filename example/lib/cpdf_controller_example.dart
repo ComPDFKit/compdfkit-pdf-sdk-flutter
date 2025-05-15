@@ -10,102 +10,91 @@ import 'dart:math';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
-import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
+import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_reader_widget_display_setting_page.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_reader_widget_switch_preview_mode_page.dart';
 import 'package:flutter/material.dart';
 
-class CPDFReaderWidgetControllerExample extends StatefulWidget {
+class CPDFControllerExample extends StatefulWidget {
   final String documentPath;
 
-  const CPDFReaderWidgetControllerExample(
-      {super.key, required this.documentPath});
+  const CPDFControllerExample({super.key, required this.documentPath});
 
   @override
-  State<CPDFReaderWidgetControllerExample> createState() =>
-      _CPDFReaderWidgetControllerExampleState();
+  State<CPDFControllerExample> createState() => _CPDFControllerExampleState();
 }
 
-class _CPDFReaderWidgetControllerExampleState
-    extends State<CPDFReaderWidgetControllerExample> {
-  CPDFReaderWidgetController? _controller;
+class _CPDFControllerExampleState extends State<CPDFControllerExample> {
 
   bool pageSameWidth = true;
 
   bool isFixedScroll = false;
 
+  static const actions = [
+    'save',
+    'saveAs',
+    'openDocument',
+    'setScale',
+    'setPageSpacing',
+    'setMargin',
+    'setDisplayPageIndex',
+    'isChanged',
+    'documentInfo',
+    'removeSignFileList',
+    'print'
+  ];
+
+  static const actions1 = [
+    'PreviewMode',
+    'DisplaySettingPage',
+    'DisplaySetting',
+    'Watermark',
+    'Security',
+    'Thumbnail',
+    'BOTA',
+    'SnipMode',
+    'ExitSnipMode'
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: const Text('CPDFReaderWidget Example'),
-          leading: IconButton(
-              onPressed: () {
-                _save();
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back)),
-          actions: null == _controller ? null : _buildAppBarActions(context),
+    return CPDFReaderPage(
+      title: 'Widget Controller Example',
+      documentPath: widget.documentPath,
+      configuration: CPDFConfiguration(),
+      onPageChanged: (pageIndex){
+        debugPrint('pageIndex:$pageIndex');
+      },
+      onSaveCallback: (){
+        debugPrint('CPDFDocument: save success');
+      },
+      onFillScreenChanged: (isFillScreen){
+        debugPrint('isFillScreen:$isFillScreen');
+      },
+      onIOSClickBackPressed: (){
+        Navigator.pop(context);
+      },
+      appBarActions: (controller) => [
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.settings),
+          onSelected: (value) => _handleAction(context, value, controller),
+          itemBuilder: (context) => actions1.map((action) {
+            return PopupMenuItem(value: action, child: Text(action));
+          }).toList(),
         ),
-        body: CPDFReaderWidget(
-          document: widget.documentPath,
-          configuration: CPDFConfiguration(
-              toolbarConfig: const CPDFToolbarConfig(
-                  iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
-          onCreated: (controller) {
-            setState(() {
-              _controller = controller;
-            });
-          },
-          onPageChanged: (pageIndex) {
-            debugPrint('pageIndex:$pageIndex');
-          },
-          onSaveCallback: () {
-            debugPrint('CPDFDocument: save success');
-          },
-        ));
+        PopupMenuButton<String>(
+          onSelected: (value) => _handleAction(context, value, controller),
+          itemBuilder: (context) => actions.map((action) {
+            return PopupMenuItem(value: action, child: Text(action));
+          }).toList(),
+        )
+      ],
+    );
   }
 
-  void _save() async {
-    bool saveResult = await _controller!.document.save();
-    debugPrint('ComPDFKit-Flutter: saveResult:$saveResult');
-  }
-
-  List<Widget> _buildAppBarActions(BuildContext context) {
-    return [
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.settings),
-        onSelected: (value) {
-          handleClick(value, _controller!);
-        },
-        itemBuilder: (context) {
-          return actions1.map((action) {
-            return PopupMenuItem(
-              value: action,
-              child: Text(action),
-            );
-          }).toList();
-        },
-      ),
-      PopupMenuButton<String>(
-        onSelected: (value) {
-          handleClick(value, _controller!);
-        },
-        itemBuilder: (context) {
-          return actions.map((action) {
-            return PopupMenuItem(
-              value: action,
-              child: Text(action),
-            );
-          }).toList();
-        },
-      ),
-    ];
-  }
-
-  void handleClick(String value, CPDFReaderWidgetController controller) async {
+  void _handleAction(BuildContext context, String value,
+      CPDFReaderWidgetController controller) async {
     switch (value) {
       case 'save':
         bool saveResult = await controller.document.save();
@@ -156,6 +145,9 @@ class _CPDFReaderWidgetControllerExampleState
         debugPrint(
             'ComPDFKit:Document: fileName:${await document.getFileName()}');
         debugPrint(
+          'ComPDFKit:Document: documentPath:${await document.getDocumentPath()}'
+        );
+        debugPrint(
             'ComPDFKit:Document: checkOwnerUnlocked:${await document.checkOwnerUnlocked()}');
         debugPrint(
             'ComPDFKit:Document: hasChange:${await document.hasChange()}');
@@ -172,7 +164,7 @@ class _CPDFReaderWidgetControllerExampleState
         String? path = await ComPDFKit.pickFile();
         if (path != null) {
           var document = controller.document;
-          var error = await document.open(path, "");
+          var error = await document.open(path);
           debugPrint('ComPDFKit:Document: open:$error');
         }
         break;
@@ -182,7 +174,7 @@ class _CPDFReaderWidgetControllerExampleState
         break;
       case "PreviewMode":
         CPDFViewMode mode = await controller.getPreviewMode();
-        if (mounted) {
+        if (context.mounted) {
           CPDFViewMode? switchMode = await showModalBottomSheet(
               context: context,
               builder: (context) {
@@ -227,40 +219,4 @@ class _CPDFReaderWidgetControllerExampleState
         break;
     }
   }
-}
-
-var actions = [
-  'save',
-  'saveAs',
-  'openDocument',
-  'setScale',
-  'setPageSpacing',
-  'setMargin',
-  'setDisplayPageIndex',
-  'isChanged',
-  'documentInfo',
-  'removeSignFileList',
-  'print'
-];
-
-var actions1 = [
-  'PreviewMode',
-  'DisplaySettingPage',
-  'DisplaySetting',
-  'Watermark',
-  'Security',
-  'Thumbnail',
-  'BOTA',
-  'SnipMode',
-  'ExitSnipMode'
-];
-
-Color randomColor() {
-  final Random random = Random();
-  return Color.fromARGB(
-    255, // Alpha value (fully opaque)
-    random.nextInt(256), // Red value
-    random.nextInt(256), // Green value
-    random.nextInt(256), // Blue value
-  );
 }

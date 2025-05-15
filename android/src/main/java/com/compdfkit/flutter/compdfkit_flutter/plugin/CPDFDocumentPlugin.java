@@ -15,8 +15,16 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_OWNER_PASSWORD;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLOSE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_WATERMARK;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_WIDGETS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.FLATTEN_ALL_PAGES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_PATH;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ENCRYPT_ALGORITHM;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_COUNT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WIDGETS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IMPORT_DOCUMENT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IMPORT_WIDGETS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INSERT_BLANK_PAGE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.PRINT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ALL_ANNOTATIONS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_ANNOTATIONS;
@@ -28,53 +36,55 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_IMAGE_DOC;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPEN_DOCUMENT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ALL_WATERMARKS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ANNOTATION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_PASSWORD;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_WIDGET;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE_AS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PASSWORD;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SPLIT_DOCUMENT_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils.CONTENT_SCHEME;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Environment;
-import android.print.PrintAttributes;
-import android.print.PrintAttributes.MediaSize;
-import android.print.PrintDocumentAdapter;
-import android.print.PrintManager;
 import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.request.target.Target;
+import com.compdfkit.core.annotation.CPDFAnnotation;
 import com.compdfkit.core.common.CPDFDocumentException;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.CPDFDocument.PDFDocumentEncryptAlgo;
 import com.compdfkit.core.document.CPDFDocument.PDFDocumentError;
 import com.compdfkit.core.document.CPDFDocument.PDFDocumentSaveType;
 import com.compdfkit.core.document.CPDFDocumentPermissionInfo;
+import com.compdfkit.core.page.CPDFPage;
+import com.compdfkit.core.page.CPDFPage.PDFFlattenOption;
 import com.compdfkit.core.watermark.CPDFWatermark;
 import com.compdfkit.core.watermark.CPDFWatermark.Horizalign;
 import com.compdfkit.core.watermark.CPDFWatermark.Type;
 import com.compdfkit.core.watermark.CPDFWatermark.Vertalign;
+import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFPageUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
+import com.compdfkit.tools.annotation.pdfannotationlist.data.CPDFAnnotDatas;
 import com.compdfkit.tools.common.utils.CFileUtils;
 import com.compdfkit.tools.common.utils.glide.GlideApp;
-import com.compdfkit.tools.common.utils.image.CBitmapUtil;
 import com.compdfkit.tools.common.utils.print.CPDFPrintUtils;
 import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import com.compdfkit.tools.common.utils.threadpools.SimpleBackgroundTask;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
+import com.compdfkit.tools.common.views.pdfview.CPDFPageIndicatorView;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
-import com.compdfkit.ui.reader.CPDFReaderView;
+import com.compdfkit.ui.proxy.CPDFBaseAnnotImpl;
+import com.compdfkit.ui.reader.CPDFPageView;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.io.File;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
 
 public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
@@ -82,7 +92,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   private CPDFViewCtrl pdfView;
 
-  private CPDFDocument document;
+  private CPDFDocument mDocument;
+
+  CPDFPageUtil pageUtil = new CPDFPageUtil();
 
   public CPDFDocumentPlugin(Context context,
       BinaryMessenger binaryMessenger, String documentUid) {
@@ -92,11 +104,11 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   public void setReaderView(CPDFViewCtrl pdfView) {
     this.pdfView = pdfView;
-    this.document = pdfView.getCPdfReaderView().getPDFDocument();
+    this.mDocument = pdfView.getCPdfReaderView().getPDFDocument();
   }
 
   public void setDocument(CPDFDocument cpdfDocument) {
-    this.document = cpdfDocument;
+    this.mDocument = cpdfDocument;
   }
 
   @Override
@@ -106,12 +118,19 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
+    CPDFDocument document;
+    if (pdfView != null){
+      document = pdfView.getCPdfReaderView().getPDFDocument();
+    } else {
+      document = mDocument;
+    }
+    pageUtil.setDocument(document);
     if (document == null) {
       result.error("-1", "CPDFReaderView isnull or CPDFDocument is null", null);
       return;
     }
     switch (call.method) {
-      case OPEN_DOCUMENT:
+      case OPEN_DOCUMENT:{
         String filePath = call.argument("filePath");
         String openPwd = call.argument("password");
         PDFDocumentError error;
@@ -157,6 +176,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
           pdfView.setPDFDocument(document, object, error, null);
         }
         break;
+      }
       case GET_FILE_NAME:
         result.success(document.getFileName());
         break;
@@ -175,10 +195,11 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
       case CHECK_OWNER_UNLOCKED:
         result.success(document.checkOwnerUnlocked());
         break;
-      case CHECK_OWNER_PASSWORD:
+      case CHECK_OWNER_PASSWORD:{
         String password = call.argument("password");
         result.success(document.checkOwnerPassword(password));
         break;
+      }
       case CLOSE:
         document.close();
         result.success(true);
@@ -188,7 +209,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         break;
       case IMPORT_ANNOTATIONS:
         try {
-          String xfdfFilePath = FileUtils.getImportAnnotationsPath(context,
+          String xfdfFilePath = FileUtils.getImportFilePath(context,
               (String) call.arguments);
           File file = new File(xfdfFilePath);
           if (!file.exists()) {
@@ -251,7 +272,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
           result.success(false);
         });
         break;
-      case SAVE_AS:
+      case SAVE_AS:{
         String savePath = call.argument("save_path");
         boolean removeSecurity = call.argument("remove_security");
         boolean fontSubSet = call.argument("font_sub_set");
@@ -283,6 +304,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
           }
         });
         break;
+      }
       case PRINT:
         FragmentActivity fragmentActivity = CViewUtils.getFragmentActivity(pdfView.getContext());
         if (fragmentActivity != null){
@@ -392,6 +414,194 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
           pdfView.getCPdfReaderView().reloadPages();
         }
         break;
+      case IMPORT_WIDGETS:
+        try {
+          String xfdfFilePath = FileUtils.getImportFilePath(context,
+              (String) call.arguments);
+          File file = new File(xfdfFilePath);
+          if (!file.exists()) {
+            result.success(false);
+            return;
+          }
+          boolean importWidgetResult = CPDFAnnotDatas.importWidgets(document, xfdfFilePath);
+          if (pdfView != null) {
+            pdfView.getCPdfReaderView().reloadPages();
+          }
+          result.success(importWidgetResult);
+        } catch (Exception e) {
+          e.printStackTrace();
+          result.success(false);
+        }
+        break;
+      case EXPORT_WIDGETS:
+        try {
+          File saveDir = new File(context.getFilesDir(), "compdfkit/widgets/export/");
+          saveDir.mkdirs();
+          String fileName = CFileUtils.getFileNameNoExtension(document.getFileName());
+
+          File cacheFile = new File(context.getCacheDir(),
+              CFileUtils.CACHE_FOLDER + File.separator + "widgetExportCache/" + fileName);
+          cacheFile.mkdirs();
+
+          File saveFile = new File(saveDir, fileName + "_widgets.xfdf");
+          saveFile = CFileUtils.renameNameSuffix(saveFile);
+          boolean exportResult = document.exportWidgets(saveFile.getAbsolutePath(),
+              cacheFile.getAbsolutePath());
+          if (exportResult) {
+            result.success(saveFile.getAbsolutePath());
+          } else {
+            result.success("");
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          result.success("");
+        }
+        break;
+      case FLATTEN_ALL_PAGES:
+        try {
+          String flttenSavePath = call.argument("save_path");
+          boolean fontSubset = call.argument("font_subset");
+          boolean success = document.flattenAllPages(PDFFlattenOption.FLAT_NORMALDISPLAY);
+          if (!success) {
+            result.error("FLATTEN_FAIL", "Flatten all pages failed.", "");
+            return;
+          }
+          boolean saveResult;
+          if (flttenSavePath.startsWith(CONTENT_SCHEME)) {
+            saveResult = document.saveAs(Uri.parse(flttenSavePath), false, fontSubset);
+          } else {
+            saveResult = document.saveAs(flttenSavePath, false, false, fontSubset);
+          }
+          if (document.shouleReloadDocument()) {
+            document.reload();
+          }
+          result.success(saveResult);
+        } catch (Exception e) {
+          e.printStackTrace();
+          if (e instanceof CPDFDocumentException){
+            result.error("FLATTEN_FAIL", "ErrType: " + ((CPDFDocumentException) e).getErrType().name(), e.getMessage());
+          }else {
+            result.error("FLATTEN_FAIL", "An exception occurs when saving the document.", e.getMessage());
+          }
+        }
+        break;
+      case IMPORT_DOCUMENT:{
+        String importFilePath = call.argument("file_path");
+        ArrayList<Integer> pages = call.argument("pages");
+        int insertPosition = call.argument("insert_position");
+        String password = call.argument("password");
+
+        String importDocumentPath = FileUtils.getImportFilePath(context, importFilePath);
+        CPDFDocument importDocument = new CPDFDocument(context);
+        PDFDocumentError error = importDocument.open(importDocumentPath, password);
+        if (error != PDFDocumentError.PDFDocumentErrorSuccess) {
+          result.error("IMPORT_DOCUMENT_FAIL", "open import document fail, error:" + error.name(), "");
+          return;
+        }
+        if (pages == null || pages.isEmpty()) {
+          int pageCount = importDocument.getPageCount();
+          pages = new ArrayList<>();
+          for (int i = 0; i < pageCount; i++) {
+            pages.add(i);
+          }
+        }
+        int[] pagesArray = new int[pages.size()];
+        for (int i = 0; i < pages.size(); i++) {
+          pagesArray[i] = pages.get(i);
+        }
+        if (insertPosition == -1) {
+          insertPosition = document.getPageCount();
+        }
+        boolean importResult = document.importPages(importDocument, pagesArray, insertPosition);
+        result.success(importResult);
+        if (pdfView != null) {
+          CPDFPageIndicatorView indicatorView = pdfView.indicatorView;
+          pdfView.getCPdfReaderView().reloadPages();
+          indicatorView.setTotalPage(document.getPageCount());
+          indicatorView.setCurrentPageIndex(pdfView.getCPdfReaderView().getPageNum());
+        }
+        break;
+      }
+      case INSERT_BLANK_PAGE:{
+        int pageIndex = call.argument("page_index");
+        int width = call.argument("page_width");
+        int height = call.argument("page_height");
+        CPDFPage page = document.insertBlankPage(pageIndex, width, height);
+        result.success(page != null && page.isValid());
+        if (page != null && page.isValid()){
+          pdfView.getCPdfReaderView().reloadPages();
+        }
+        break;
+      }
+      case SPLIT_DOCUMENT_PAGES:{
+        String savePath = call.argument("save_path");
+        ArrayList<Integer> pages = call.argument("pages");
+        if (pages == null || pages.isEmpty()) {
+          result.error("SPLIT_DOCUMENT_FAIL", "The number of pages must be greater than 1","");
+          return;
+        }
+        int[] pagesArray = new int[pages.size()];
+        for (int i = 0; i < pages.size(); i++) {
+          pagesArray[i] = pages.get(i);
+        }
+        CThreadPoolUtils.getInstance().executeIO(() -> {
+          try {
+            CPDFDocument newDocument = CPDFDocument.createDocument(context);
+            newDocument.importPages(document, pagesArray, 0);
+            boolean saveResult;
+            if (savePath.startsWith(CONTENT_SCHEME)) {
+              saveResult = newDocument.saveAs(Uri.parse(savePath), false, true);
+            } else {
+              saveResult = newDocument.saveAs(savePath, false, false, true);
+            }
+            result.success(saveResult);
+            newDocument.close();
+          } catch (CPDFDocumentException e) {
+            result.error("SPLIT_DOCUMENT_FAIL", "error:" + e.getErrType().name(),"");
+          }
+        });
+        break;
+      }
+      case GET_DOCUMENT_PATH:{
+        if (!TextUtils.isEmpty(document.getAbsolutePath())) {
+          result.success(document.getAbsolutePath());
+          return;
+        }
+        result.success(document.getUri().toString());
+        break;
+      }
+      case GET_ANNOTATIONS:{
+        int pageIndex = (int) call.arguments;
+
+        result.success(pageUtil.getAnnotations(pageIndex));
+        break;
+      }
+      case GET_WIDGETS:{
+        int pageIndex = (int) call.arguments;
+        result.success(pageUtil.getWidgets(pageIndex));
+        break;
+      }
+      case REMOVE_ANNOTATION:
+      case REMOVE_WIDGET:{
+        int pageIndex = call.argument("page_index");
+        String annotPtr = call.argument("uuid");
+        CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, annotPtr);
+        if (annotation == null){
+          result.error("REMOVE_FAIL", "not found this annotation", "");
+          return;
+        }
+        if (pdfView != null){
+          CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView().getChild(pageIndex);
+          if (pageView != null) {
+            CPDFBaseAnnotImpl baseAnnot = pageView.getAnnotImpl(annotation);
+            pageView.deleteAnnotation(baseAnnot);
+            result.success(true);
+          }
+        }else {
+          result.success(pageUtil.deleteAnnotation(pageIndex, annotPtr));
+        }
+        break;
+      }
       default:
         break;
     }

@@ -116,7 +116,8 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     // MARK: - CPDFViewBaseControllerDelete
         
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
-
+        baseControllerDelete.dismiss(animated: true)
+        plugin._methodChannel.invokeMethod("onIOSClickBackPressed", arguments: nil)
     }
    
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, SaveState success: Bool) {
@@ -127,6 +128,15 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, currentPageIndex index: Int) {
         plugin._methodChannel.invokeMethod("onPageChanged", arguments: ["pageIndex": index])
+    }
+    
+    func PDFViewBaseControllerPageEditBack(_ baseController: CPDFViewBaseController) {
+        plugin._methodChannel.invokeMethod("onPageEditDialogBackPress", arguments: nil)
+    }
+    
+    func PDFViewBaseController(_ baseController: CPDFViewBaseController, HiddenState state: Bool) {
+        plugin._methodChannel.invokeMethod("onFullScreenChanged", arguments: state)
+    
     }
 
 }

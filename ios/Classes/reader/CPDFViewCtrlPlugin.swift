@@ -206,7 +206,6 @@ class CPDFViewCtrlPlugin {
                 }
                 result(pdfListView.currentPageIndex)
             case CPDFConstants.set_preview_mode:
-                // TODO: 设置预览模式
                 let mode = call.arguments as! String
                 switch mode {
                 case "viewer":
@@ -259,6 +258,9 @@ class CPDFViewCtrlPlugin {
                 self.pdfViewController.enterPDFSnipImageMode()
             case CPDFConstants.exitSnipMode:
                 self.pdfViewController.exitPDFSnipImageMode()
+            case CPDFConstants.reloadPages:
+                self.pdfViewController.pdfListView?.setNeedsDisplayForVisiblePages()
+                self.pdfViewController.pdfListView?.layoutDocumentView()
             default:
                 result(FlutterMethodNotImplemented)
             }

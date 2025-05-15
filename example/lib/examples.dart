@@ -13,12 +13,14 @@ import 'dart:io';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter_example/cpdf_document_examples.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_widget_controller_example.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_widget_dark_theme_example.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_widget_security_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_controller_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_dark_theme_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_pages_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_security_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_widgets_example.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:flutter/material.dart';
-import 'cpdf_reader_widget_annotations_example.dart';
+import 'cpdf_annotations_example.dart';
 import 'cpdf_reader_widget_example.dart';
 import 'widgets/cpdf_fun_item.dart';
 
@@ -50,12 +52,25 @@ List<Widget> examples(BuildContext context) => [
             title: 'CPDFReaderWidget Dark Theme',
             description:
                 'Opens a document in night mode with a custom dark theme',
-            onTap: () => showDarkThemeCPDFReaderWidget(context))
+            onTap: () async {
+              File document = await extractAsset(context, _documentPath,
+                  shouldOverwrite: false);
+              if (context.mounted) {
+                goTo(
+                    CPDFDarkThemeExample(documentPath: document.path), context);
+              }
+            })
       ],
       FeatureItem(
           title: 'Widget Controller Examples',
           description: 'CPDFReaderWidget Controller fun example',
-          onTap: () => showCPDFReaderWidgetTest(context)),
+          onTap: () async {
+            File document = await extractAsset(context, _documentPath,
+                shouldOverwrite: false);
+            if (context.mounted) {
+              goTo(CPDFControllerExample(documentPath: document.path), context);
+            }
+          }),
       FeatureItem(
           title: 'Security feature Examples',
           description:
@@ -64,8 +79,7 @@ List<Widget> examples(BuildContext context) => [
             File document = await extractAsset(context, _documentPath,
                 shouldOverwrite: false);
             if (context.mounted) {
-              goTo(CPDFReaderWidgetSecurityExample(documentPath: document.path),
-                  context);
+              goTo(CPDFSecurityExample(documentPath: document.path), context);
             }
           }),
       FeatureItem(
@@ -73,20 +87,44 @@ List<Widget> examples(BuildContext context) => [
           description:
               'Demonstrate how to implement annotation functionality using the CPDFReaderWidget , including adding, editing, and deleting annotations.',
           onTap: () async {
-            File document = await extractAsset(context, _documentPath,
+            File document = await extractAsset(context, 'pdfs/annot_test.pdf',
                 shouldOverwrite: false);
             if (context.mounted) {
               goTo(
-                  CPDFReaderWidgetAnnotationsExample(
-                      documentPath: document.path),
-                  context);
+                  CPDFAnnotationsExample(documentPath: document.path), context);
             }
           }),
+      FeatureItem(
+          title: 'Widgets Examples',
+          description:
+              'Demonstrate form functionality in CPDFReaderWidget, including retrieving, modifying, importing, and exporting data.',
+          onTap: () async {
+            File document = await extractAsset(context, 'pdfs/annot_test.pdf',
+                shouldOverwrite: false);
+            if (context.mounted) {
+              goTo(CPDFWidgetsExample(documentPath: document.path), context);
+            }
+          }),
+      FeatureItem(
+      title: 'Pages Examples',
+      description:
+      'This example demonstrates PDF page related operations, such as inserting and splitting PDF documents.',
+      onTap: () async {
+        File document = await extractAsset(context, _documentPath,
+            shouldOverwrite: false);
+        if (context.mounted) {
+          goTo(CPDFPagesExample(documentPath: document.path), context);
+        }
+      }),
       _title(context, 'Modal View Examples'),
       FeatureItem(
           title: 'Basic Example',
           description: 'Open sample pdf document',
-          onTap: () => showDocument(context)),
+          onTap: () async {
+            File document = await extractAsset(context, _documentPath);
+            ComPDFKit.openDocument(document.path,
+                password: '', configuration: CPDFConfiguration());
+          }),
       FeatureItem(
           title: 'Select External Files',
           description: 'Select pdf document from system file manager',
@@ -107,30 +145,12 @@ List<Widget> examples(BuildContext context) => [
           }),
     ];
 
-void showDocument(context) async {
-  File document = await extractAsset(context, _documentPath);
-  ComPDFKit.openDocument(document.path,
-      password: '', configuration: CPDFConfiguration());
-}
-
 Future<String?> pickDocument() async {
   return await ComPDFKit.pickFile();
 }
 
 void showCPDFReaderWidget(context, String? path) async {
   goTo(CPDFReaderWidgetExample(documentPath: path!), context);
-}
-
-void showDarkThemeCPDFReaderWidget(context) async {
-  File document =
-      await extractAsset(context, _documentPath, shouldOverwrite: false);
-  goTo(CPDFDarkThemeExample(documentPath: document.path), context);
-}
-
-void showCPDFReaderWidgetTest(context) async {
-  File document =
-      await extractAsset(context, _documentPath, shouldOverwrite: false);
-  goTo(CPDFReaderWidgetControllerExample(documentPath: document.path), context);
 }
 
 void goTo(Widget widget, BuildContext context) =>

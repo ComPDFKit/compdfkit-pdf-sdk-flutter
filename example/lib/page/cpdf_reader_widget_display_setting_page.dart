@@ -85,29 +85,31 @@ class _CpdfReaderWidgetDisplaySettingPageState
           color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12), topRight: Radius.circular(12))),
-      child: Column(children: [
-        Container(
-          margin: const EdgeInsets.only(left: 16),
-          alignment: Alignment.centerLeft,
-          width: double.infinity,
-          height: 56,
-          child: Text(
-            'Settings',
-            style: Theme.of(context).textTheme.headlineSmall,
+      child: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.only(left: 16),
+            alignment: Alignment.centerLeft,
+            width: double.infinity,
+            height: 56,
+            child: Text(
+              'Settings',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
-        ),
-        Expanded(child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                _scrollItem(),
-                _displayModeItem(),
-                _otherItem(),
-                _themesItem()
-              ],
-            ))),
-
-      ],),
+          Expanded(
+              child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      _scrollItem(),
+                      _displayModeItem(),
+                      _otherItem(),
+                      _themesItem()
+                    ],
+                  ))),
+        ],
+      ),
     );
   }
 

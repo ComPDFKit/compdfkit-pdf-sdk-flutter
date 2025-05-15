@@ -8,7 +8,6 @@
  *
  */
 
-
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +67,8 @@ class CPDFWatermark {
       required this.pages,
       this.textContent = "",
       this.imagePath = "",
-        this.textColor = Colors.black,
-        this.fontSize = 24,
+      this.textColor = Colors.black,
+      this.fontSize = 24,
       this.scale = 1.0,
       this.rotation = 45,
       this.opacity = 1,
@@ -104,8 +103,8 @@ class CPDFWatermark {
   CPDFWatermark.text(
       {required String textContent,
       required List<int> pages,
-        Color textColor = Colors.black,
-        int fontSize = 24,
+      Color textColor = Colors.black,
+      int fontSize = 24,
       double scale = 1.0,
       double rotation = 45.0,
       double opacity = 1.0,
@@ -188,24 +187,24 @@ class CPDFWatermark {
         );
 
   Map<String, dynamic> toJson() => {
-    'type': type.name,
-    'text_content': textContent,
-    'image_path' : imagePath,
-    'text_color' : textColor.toHex(),
-    'font_size' : fontSize,
-    'scale' : scale,
-    'rotation' : rotation,
-    'opacity' : opacity,
-    'vertical_alignment' : verticalAlignment.name,
-    'horizontal_alignment' : horizontalAlignment.name,
-    'vertical_offset' : verticalOffset,
-    'horizontal_offset' : horizontalOffset,
-    'pages' : pages.join(','),
-    'is_front' : isFront,
-    'is_tile_page' : isTilePage,
-    'horizontal_spacing' : horizontalSpacing,
-    'vertical_spacing' : verticalSpacing
-  };
+        'type': type.name,
+        'text_content': textContent,
+        'image_path': imagePath,
+        'text_color': textColor.toHex(),
+        'font_size': fontSize,
+        'scale': scale,
+        'rotation': rotation,
+        'opacity': opacity,
+        'vertical_alignment': verticalAlignment.name,
+        'horizontal_alignment': horizontalAlignment.name,
+        'vertical_offset': verticalOffset,
+        'horizontal_offset': horizontalOffset,
+        'pages': pages.join(','),
+        'is_front': isFront,
+        'is_tile_page': isTilePage,
+        'horizontal_spacing': horizontalSpacing,
+        'vertical_spacing': verticalSpacing
+      };
 }
 
 enum CPDFWatermarkVerticalAlignment { top, center, bottom }

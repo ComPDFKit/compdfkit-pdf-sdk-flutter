@@ -40,12 +40,10 @@ public class CPDFDocumentPlugin {
         _methodChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: FlutterResult) -> Void in
             print("ComPDFKit-Flutter: iOS-MethodChannel: CPDFDocumentPlugin [method:\(call.method)]")
-            if(self.document == nil && self.pdfViewController != nil){
-                guard let pdfListView = self.pdfViewController?.pdfListView else {
-                    print("pdfViewController error")
-                    return
-                }
-                self.document = pdfListView.document
+            if let pdfViewController = self.pdfViewController,
+               let newDocument = pdfViewController.pdfListView?.document,
+               self.document !== newDocument {
+                self.document = newDocument
             }
             switch call.method {
             case CPDFConstants.save:
@@ -300,6 +298,152 @@ public class CPDFDocumentPlugin {
                 let url = self.document?.documentURL
                 self.document?.write(to: url, isSaveFontSubset: true)
                 self.pdfViewController?.pdfListView?.layoutDocumentView()
+            case CPDFConstants.importWidgets:
+                let importPath = call.arguments as? String ?? ""
+
+                let success = self.document?.importForm(fromXFDFPath: importPath) ?? false
+                if success {
+                    self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                }
+                result(success)
+            case CPDFConstants.exportWidgets:
+                let fileNameWithExtension = self.document?.documentURL.lastPathComponent ?? ""
+                let fileName = (fileNameWithExtension as NSString).deletingPathExtension
+                let documentFolder = NSHomeDirectory().appending("/Documents/\(fileName)_xfdf.xfdf")
+                let succes = self.document?.export(toXFDFPath: documentFolder) ?? false
+                if succes {
+                    result(documentFolder)
+                } else {
+                    result("")
+                }
+            case CPDFConstants.flattenAllPages:
+                let info = call.arguments as? [String: Any]
+    
+                let savePath : String = self.getValue(from: info, key: "save_path", defaultValue: "")
+    
+                let fontSubset : Bool = self.getValue(from: info, key: "font_subset", defaultValue: true)
+
+                let success = self.document?.writeFlatten(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubset)
+                
+                result(success)
+            case CPDFConstants.importDocument:
+                let info = call.arguments as? [String: Any]
+           
+                let filePath : String = self.getValue(from: info, key: "file_path", defaultValue: "")
+              
+                let pages : [Int] = self.getValue(from: info, key: "pages", defaultValue: [])
+                
+                var insertPosition = self.getValue(from: info, key: "insert_position", defaultValue: -1)
+                
+                let password = self.getValue(from: info, key: "password", defaultValue: "")
+                
+                let _document = CPDFDocument(url: URL(fileURLWithPath: filePath))
+
+                if _document?.isLocked == true {
+                    _document?.unlock(withPassword: password)
+                }
+             
+                var _index = insertPosition
+                if insertPosition < 0 || insertPosition > self.document?.pageCount ?? 0 {
+                    if insertPosition == -1 {
+                        _index = Int(self.document?.pageCount ?? 0)
+                    } else {
+                        result(false)
+                    }
+                }
+                
+                var indexSet = IndexSet()
+                for page in pages {
+                    indexSet.insert(IndexSet.Element(page))
+                }
+                
+                let success = self.document?.importPages(indexSet, from: _document, at: UInt(_index))
+                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                
+                result(success)
+            case CPDFConstants.insertBlankPage:
+                let info = call.arguments as? [String: Any]
+        
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+       
+                let pageWidth = self.getValue(from: info, key: "page_width", defaultValue: 0)
+  
+                let pageHeight = self.getValue(from: info, key: "page_height", defaultValue: 0)
+                
+                var _index = pageIndex
+                if pageIndex < 0 || pageIndex > self.document?.pageCount ?? 0 {
+                    if pageIndex == -1 {
+                        _index = Int(self.document?.pageCount ?? 0)
+                    } else {
+                        result(false)
+                    }
+                }
+                
+                let size = CGSize(width: pageWidth, height: pageHeight)
+                let success = self.document?.insertPage(size, at: UInt(_index))
+                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                
+                result(success)
+            case CPDFConstants.splitDocumentPages:
+                let info = call.arguments as? [String: Any]
+     
+                let savePath = self.getValue(from: info, key: "save_path", defaultValue: "")
+   
+                let pages : [Int] = self.getValue(from: info, key: "pages", defaultValue: [])
+                
+                var indexSet = IndexSet()
+                for page in pages {
+                    indexSet.insert(page)
+                }
+                
+                let document = CPDFDocument()
+                document?.importPages(indexSet, from: self.document, at: 0)
+                
+                let success = document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: true) ?? false
+                result(success)
+            case CPDFConstants.getDocumentPath:
+                let path = self.document?.documentURL.path ?? ""
+                result(path)
+            case CPDFConstants.removeAnnotation:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                
+                pageUtil.removeAnnotation(uuid: uuid)
+                
+                self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                result(true)
+            case CPDFConstants.removeWidget:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+
+                pageUtil.removeWidget(uuid: uuid)
+                
+                self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                result(true)
+            case CPDFConstants.getAnnotations:
+                let pageIndex = call.arguments as? Int ?? 0
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                let annotations = pageUtil.getAnnotations()
+                
+                result(annotations)
+            case CPDFConstants.getWidgets:
+                let pageIndex = call.arguments as? Int ?? 0
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                let widgets = pageUtil.getForms()
+                
+                result(widgets)
             default:
                 result(FlutterMethodNotImplemented)
             }

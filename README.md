@@ -6,6 +6,9 @@
 
 [ComPDFKit for Flutter](https://www.compdf.com/flutter) allows you to quickly add PDF functions to any Flutter application, elevating your Android and iOS apps to ensure seamless and efficient development.  It is available at [pub.dev](https://pub.dev/packages/compdfkit_flutter) and [GitHub.](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter)
 
+Watch the video here:
+[![image](https://img.youtube.com/vi/I0Rz11iVAbE/maxresdefault.jpg)](https://youtu.be/I0Rz11iVAbE)
+
 ## Related
 
 * [ComPDFKit PDF Library for iOS](https://github.com/ComPDFKit/PDF-SDK-iOS)
@@ -151,7 +154,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.2.3
++  compdfkit_flutter: ^2.4.0
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -197,7 +200,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.3.0
++  compdfkit_flutter: ^2.4.0
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -220,8 +223,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.3.0.podspec'
-+  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.3.0.podspec'
++  pod 'ComPDFKit_Tools', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit_tools/2.4.0.podspec'
++  pod 'ComPDFKit', podspec:'https://www.compdf.com/download/ios/cocoapods/xcframeworks/compdfkit/2.4.0.podspec'
 
  end
 ```
@@ -557,8 +560,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.3.0'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.3.0'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.0'
 
   # Enables Flipper.
   #

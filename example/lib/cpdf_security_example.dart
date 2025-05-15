@@ -7,80 +7,58 @@
 
 import 'dart:io';
 
+import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
-import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
+import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class CPDFReaderWidgetSecurityExample extends StatefulWidget {
-
+class CPDFSecurityExample extends StatelessWidget {
   final String documentPath;
 
   final String password;
 
-  const CPDFReaderWidgetSecurityExample(
+  const CPDFSecurityExample(
       {super.key, required this.documentPath, this.password = ''});
 
-  @override
-  State<CPDFReaderWidgetSecurityExample> createState() =>
-      _CPDFReaderWidgetSecurityExampleState();
-}
-
-class _CPDFReaderWidgetSecurityExampleState
-    extends State<CPDFReaderWidgetSecurityExample> {
-
-  CPDFReaderWidgetController? _controller;
+  static const _actions = [
+    'Set Password',
+    'Remove Password',
+    'Check Owner Password',
+    'Create Text Watermark',
+    'Create Image Watermark',
+    'Create Image Watermark Pick Image',
+    'Remove All Watermarks',
+    'Flatten All Pages',
+    'Document Info'
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: const Text('CPDFReaderWidget Example'),
-          leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back)),
-          actions: null == _controller ? null : _buildAppBarActions(context),
-        ),
-        body: CPDFReaderWidget(
-          document: widget.documentPath,
-          password: widget.password,
-          configuration: CPDFConfiguration(
-              toolbarConfig: const CPDFToolbarConfig(
-                  iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
-          onCreated: (controller) {
-            setState(() {
-              _controller = controller;
-            });
-          },
-        ));
+    return CPDFReaderPage(
+        title: 'Security Example',
+        documentPath: documentPath,
+        password: password,
+        configuration: CPDFConfiguration(
+            toolbarConfig: const CPDFToolbarConfig(
+                iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
+        appBarActions: (controller) => [
+              PopupMenuButton<String>(
+                onSelected: (value) =>
+                    _handleAction(context, value, controller),
+                itemBuilder: (context) => _actions.map((action) {
+                  return PopupMenuItem(value: action, child: Text(action));
+                }).toList(),
+              ),
+            ]);
   }
 
-  List<Widget> _buildAppBarActions(BuildContext context) {
-    return [
-      PopupMenuButton<String>(
-        onSelected: (value) {
-          handleClick(value, _controller!);
-        },
-        itemBuilder: (context) {
-          return actions.map((action) {
-            return PopupMenuItem(
-              value: action,
-              child: SizedBox(width: 200, child: Text(action)),
-            );
-          }).toList();
-        },
-      ),
-    ];
-  }
-
-  void handleClick(String value, CPDFReaderWidgetController controller) async {
+  void _handleAction(BuildContext context, String value,
+      CPDFReaderWidgetController controller) async {
     switch (value) {
       case 'Set Password':
         bool setPasswordResult = await controller.document.setPassword(
@@ -140,6 +118,20 @@ class _CPDFReaderWidgetSecurityExampleState
       case 'Remove All Watermarks':
         await controller.document.removeAllWatermarks();
         break;
+      case 'Flatten All Pages':
+
+        final tempDir = await ComPDFKit.getTemporaryDirectory();
+        String savePath =
+            '${tempDir.path}/${await controller.document.getFileName()}';
+
+        // var uri = await ComPDFKit.createUri('flatten_test.pdf');
+        debugPrint('ComPDFKit:Document:$savePath');
+        bool flattenResult = await controller.document.flattenAllPages(savePath, true);
+        debugPrint('ComPDFKit:flatten_all_pages:$flattenResult');
+        if (flattenResult) {
+          controller.document.open(savePath);
+        }
+        break;
       case 'Document Info':
         var document = controller.document;
         debugPrint(
@@ -156,14 +148,3 @@ class _CPDFReaderWidgetSecurityExampleState
     }
   }
 }
-
-var actions = [
-  'Set Password',
-  'Remove Password',
-  'Check Owner Password',
-  'Create Text Watermark',
-  'Create Image Watermark',
-  'Create Image Watermark Pick Image',
-  'Remove All Watermarks',
-  'Document Info'
-];

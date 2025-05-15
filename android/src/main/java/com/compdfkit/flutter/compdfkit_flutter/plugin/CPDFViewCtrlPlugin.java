@@ -25,6 +25,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_LINK_HIGHLIGHT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_PAGE_IN_SCREEN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_VERTICAL_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RELOAD_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_ADD_WATERMARK_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_BOTA_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_DISPLAY_SETTINGS_VIEW;
@@ -57,10 +58,13 @@ import androidx.annotation.NonNull;
 
 import androidx.core.content.ContextCompat;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
+import com.compdfkit.tools.common.pdf.CPDFDocumentFragment.CFillScreenChangeListener;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
 import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
 import com.compdfkit.tools.common.views.pdfview.CPreviewMode;
+import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment;
+import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment.OnBackLisener;
 import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -109,6 +113,17 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       }, e -> {
 
       });
+
+    });
+    documentFragment.setPageEditDialogOnBackListener(() -> {
+      if (methodChannel != null) {
+        methodChannel.invokeMethod("onPageEditDialogBackPress", "");
+      }
+    });
+    documentFragment.setFillScreenChangeListener(isFillScreen -> {
+      if (methodChannel != null){
+        methodChannel.invokeMethod("onFullScreenChanged", isFillScreen);
+      }
     });
   }
 
@@ -276,6 +291,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         break;
       case EXIT_SNIP_MODE:
         documentFragment.exitScreenShot();
+        break;
+      case RELOAD_PAGES:
+        documentFragment.pdfView.getCPdfReaderView().reloadPages();
         break;
       default:
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:notImplemented");

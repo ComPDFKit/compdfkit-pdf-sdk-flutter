@@ -43,9 +43,13 @@ class _CpdfReaderWidgetSwitchPreviewModePageState
                 alignment: Alignment.center,
                 children: [
                   Text('Mode', style: Theme.of(context).textTheme.titleMedium),
-                  Positioned(right: 16, child: IconButton(onPressed: (){
-                    Navigator.pop(context);
-                  }, icon: const Icon(Icons.close)))
+                  Positioned(
+                      right: 16,
+                      child: IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.close)))
                 ],
               ),
             ),

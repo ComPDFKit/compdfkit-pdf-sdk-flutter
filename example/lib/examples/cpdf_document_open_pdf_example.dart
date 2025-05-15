@@ -12,7 +12,7 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_document.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_widget_security_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_security_example.dart';
 import 'package:compdfkit_flutter_example/examples.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,8 @@ class CPDFDocumentOpenPDFExample extends StatefulWidget {
   const CPDFDocumentOpenPDFExample({super.key});
 
   @override
-  State<CPDFDocumentOpenPDFExample> createState() => _CPDFDocumentExampleState();
+  State<CPDFDocumentOpenPDFExample> createState() =>
+      _CPDFDocumentExampleState();
 }
 
 class _CPDFDocumentExampleState extends State<CPDFDocumentOpenPDFExample> {
@@ -45,12 +46,14 @@ class _CPDFDocumentExampleState extends State<CPDFDocumentOpenPDFExample> {
           TextButton(
               onPressed: () async {
                 clearLogs();
-                File encryptPDF = await extractAsset(context,shouldOverwrite: true,
+                File encryptPDF = await extractAsset(
+                    context,
+                    shouldOverwrite: true,
                     'pdfs/Password_compdfkit_Security_Sample_File.pdf');
 
                 applyLog('filePath:${encryptPDF.path}\n');
                 document = await CPDFDocument.createInstance();
-                var error = await document.open(encryptPDF.path, '');
+                var error = await document.open(encryptPDF.path, password: '');
 
                 applyLog('open result:${error.name}\n');
                 String? password = '';
@@ -62,21 +65,23 @@ class _CPDFDocumentExampleState extends State<CPDFDocumentOpenPDFExample> {
                     return;
                   }
                   applyLog('password:$password\n');
-                  error = await document.open(encryptPDF.path, password);
+                  error = await document.open(encryptPDF.path, password: password);
                 }
                 applyLog('open result:$error\n');
                 if (error == CPDFDocumentError.success) {
                   applyLog('go to CPDFReaderWidgetSecurityExample\n');
-                  if(context.mounted){
+                  if (context.mounted) {
                     goTo(
-                        CPDFReaderWidgetSecurityExample(
+                        CPDFSecurityExample(
                             documentPath: encryptPDF.path, password: password),
                         context);
                   }
                 }
               },
               child: const Text('Open Document')),
-          const Padding(padding: EdgeInsets.only(left: 12), child: Text('Password: compdfkit')),
+          const Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Text('Password: compdfkit')),
           Expanded(
               child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -105,7 +110,9 @@ class _CPDFDocumentExampleState extends State<CPDFDocumentOpenPDFExample> {
             content: TextField(
               controller: _textEditingController,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(hintText: 'compdfkit', hintStyle: TextStyle(color: Colors.black12)),
+              decoration: const InputDecoration(
+                  hintText: 'compdfkit',
+                  hintStyle: TextStyle(color: Colors.black12)),
             ),
             actions: [
               TextButton(

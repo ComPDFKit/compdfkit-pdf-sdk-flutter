@@ -65,8 +65,6 @@ class _HomePageState extends State<HomePage> {
     ComPDFKit.init(Platform.isAndroid ? androidLicenseKey : iosLicenseKey);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

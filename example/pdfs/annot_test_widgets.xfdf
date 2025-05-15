@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xfdf xmlns="http://ns.adobe.com/xfdf/" xml:space="preserve">
+    <fields>
+        <field name="Text Field_2025-03-03 10:19:08 7382">
+            <value>Hello ComPDFKit</value>
+        </field>
+        <field name="Check Box_2025-03-03 10:19:31 5393">
+            <value>Off</value>
+        </field>
+        <field name="Radio Button_2025-03-03 10:19:33 9127">
+            <value>Off</value>
+        </field>
+        <field name="Android">
+            <value>Flutter</value>
+        </field>
+        <field name="C-Android">
+            <value>C-Android</value>
+        </field>
+        <field name="Button_2025-03-03 10:19:57 5474">
+            <value>Button_2025-03-03 10:19:57 5474</value>
+        </field>
+        <field name="Signature__2025-03-07 11:11:15.564">
+            <value>Signature__2025-03-07 11:11:15.564</value>
+        </field>
+    </fields>
+    <f href=""/>
+    <ids original="C6DF1C4845C778E2E02FD2A979A55577" modified="DB0DDE0538B1DD3EEFAC5A242DE7127D"/>
+</xfdf>

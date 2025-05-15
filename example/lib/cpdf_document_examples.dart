@@ -12,6 +12,9 @@ import 'package:compdfkit_flutter_example/examples.dart';
 import 'package:compdfkit_flutter_example/examples/cpdf_document_open_pdf_example.dart';
 import 'package:flutter/material.dart';
 
+import 'examples/cpdf_document_annotation_example.dart';
+import 'examples/cpdf_document_widget_example.dart';
+
 class CPDFDocumentExamples extends StatelessWidget {
   const CPDFDocumentExamples({super.key});
 
@@ -35,9 +38,21 @@ class CPDFDocumentExamples extends StatelessWidget {
 
   List<Widget> examples(BuildContext context) => [
         ListTile(
-          title: const Text('Open Encrypt PDF'),
+          title: const Text('OpenEncryptPDFTest'),
           onTap: () {
             goTo(const CPDFDocumentOpenPDFExample(), context);
+          },
+        ),
+        ListTile(
+          title: const Text('AnnotationsTest'),
+          onTap: () {
+            goTo(const CPDFDocumentAnnotationExample(), context);
+          },
+        ),
+        ListTile(
+          title: const Text('WidgetsTest'),
+          onTap: () {
+            goTo(const CPDFDocumentWidgetExample(), context);
           },
         )
       ];

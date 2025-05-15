@@ -36,24 +36,24 @@ final ThemeData lightTheme = ThemeData(
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)),
     switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((status){
-          if(status.contains(WidgetState.selected)) {
-            return Colors.blue;
-          }
-          return Colors.grey.shade400;
-        } ),
-        trackColor: WidgetStateProperty.resolveWith((status){
-          if(status.contains(WidgetState.selected)) {
-            return Colors.blue.shade50;
-          }
-          return Colors.grey.shade100;
-        }),
-        trackOutlineColor: WidgetStateProperty.resolveWith((status){
-          if(status.contains(WidgetState.selected)) {
-            return Colors.blue.shade50;
-          }
-          return Colors.grey.shade100;
-        }),
+      thumbColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
+          return Colors.blue;
+        }
+        return Colors.grey.shade400;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
+          return Colors.blue.shade50;
+        }
+        return Colors.grey.shade100;
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
+          return Colors.blue.shade50;
+        }
+        return Colors.grey.shade100;
+      }),
     ));
 
 final ThemeData darkTheme = ThemeData(
@@ -82,20 +82,20 @@ final ThemeData darkTheme = ThemeData(
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(foregroundColor: Colors.blue)),
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith((status){
-        if(status.contains(WidgetState.selected)) {
+      thumbColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
           return Colors.blue;
         }
         return Colors.grey.shade400;
-      } ),
-      trackColor: WidgetStateProperty.resolveWith((status){
-        if(status.contains(WidgetState.selected)) {
+      }),
+      trackColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
           return Colors.blue.shade50;
         }
         return Colors.grey.shade100;
       }),
-      trackOutlineColor: WidgetStateProperty.resolveWith((status){
-        if(status.contains(WidgetState.selected)) {
+      trackOutlineColor: WidgetStateProperty.resolveWith((status) {
+        if (status.contains(WidgetState.selected)) {
           return Colors.blue.shade50;
         }
         return Colors.grey.shade100;

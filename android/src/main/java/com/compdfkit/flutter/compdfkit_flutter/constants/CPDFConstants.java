@@ -151,6 +151,21 @@ public class CPDFConstants {
     public static final String GET_ENCRYPT_ALGORITHM = "get_encrypt_algorithm";
     public static final String SET_IMPORT_FONT_DIRECTORY = "set_import_font_directory";
     public static final String CREATE_DOCUMENT_PLUGIN = "create_document_plugin";
+    public static final String IMPORT_WIDGETS = "import_widgets";
+    public static final String EXPORT_WIDGETS = "export_widgets";
+    public static final String FLATTEN_ALL_PAGES = "flatten_all_pages";
+    public static final String IMPORT_DOCUMENT = "import_document";
+    public static final String INSERT_BLANK_PAGE = "insert_blank_page";
+    public static final String SPLIT_DOCUMENT_PAGES = "split_document_pages";
+    public static final String GET_ANNOTATIONS = "get_annotations";
+    public static final String GET_WIDGETS = "get_widgets";
+
+    public static final String RELOAD_PAGES = "reload_pages";
+
+    public static final String GET_DOCUMENT_PATH = "get_document_path";
+
+    public static final String REMOVE_ANNOTATION = "remove_annotation";
+    public static final String REMOVE_WIDGET = "remove_widget";
 
   }
 

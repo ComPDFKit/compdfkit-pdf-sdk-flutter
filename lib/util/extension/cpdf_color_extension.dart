@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -14,7 +13,6 @@ import 'package:flutter/material.dart';
 /// toHex: Colors.white.toHex() => '#FFFFFFFF'
 /// formHex: '#FFFFFF' => Colors.white
 extension HexColor on Color {
-
   /// Colors.white.toHex() => '#FFFFFFFF'
   String toHex({bool leadingHashSign = true}) {
     final hexA = (a * 255).round().toRadixString(16).padLeft(2, '0');

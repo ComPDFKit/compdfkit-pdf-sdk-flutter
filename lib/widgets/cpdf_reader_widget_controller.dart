@@ -31,14 +31,16 @@ import 'cpdf_reader_widget.dart';
 ///         ));
 /// ```
 class CPDFReaderWidgetController {
-
   late MethodChannel _channel;
 
   late CPDFDocument _document;
 
-  CPDFReaderWidgetController(int id, {
-    CPDFPageChangedCallback? onPageChanged,
-    CPDFDocumentSaveCallback? saveCallback}) {
+  CPDFReaderWidgetController(int id,
+      {CPDFPageChangedCallback? onPageChanged,
+      CPDFDocumentSaveCallback? saveCallback,
+      CPDFPageEditDialogBackPressCallback? onPageEditBackPress,
+      CPDFFillScreenChangedCallback? onFillScreenChanged,
+      CPDFIOSClickBackPressedCallback? onIOSClickBackPressed}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
@@ -48,6 +50,16 @@ class CPDFReaderWidgetController {
           break;
         case 'saveDocument':
           saveCallback?.call();
+          break;
+        case 'onPageEditDialogBackPress':
+          onPageEditBackPress?.call();
+          break;
+        case 'onFullScreenChanged':
+          bool isFillScreen = call.arguments;
+          onFillScreenChanged?.call(isFillScreen);
+          break;
+        case 'onIOSClickBackPressed':
+          onIOSClickBackPressed?.call();
           break;
       }
     });
@@ -110,12 +122,9 @@ class CPDFReaderWidgetController {
   /// await _controller.setReadBackgroundColor(theme: CPDFThemes.light);
   /// ```
   Future<void> setReadBackgroundColor(CPDFThemes theme) async {
-    await _channel.invokeMethod('set_read_background_color', {
-      'displayMode': theme.name,
-      'color' : theme.color
-    });
+    await _channel.invokeMethod('set_read_background_color',
+        {'displayMode': theme.name, 'color': theme.color});
   }
-
 
   /// Get background color of reader.
   ///
@@ -203,7 +212,7 @@ class CPDFReaderWidgetController {
   /// await _controller.setMargins(const CPDFEdgeInsets.symmetric(horizontal: 10, vertical: 10));
   /// ```
   Future<void> setMargins(CPDFEdgeInsets edgeInsets) async {
-    await _channel.invokeMethod('set_margin' , edgeInsets.toJson());
+    await _channel.invokeMethod('set_margin', edgeInsets.toJson());
   }
 
   /// Sets the spacing between pages. This method is supported only on the [Android] platform.
@@ -474,4 +483,7 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('exit_snip_mode');
   }
 
+  Future<void> reloadPages() async {
+    await _channel.invokeMethod('reload_pages');
+  }
 }

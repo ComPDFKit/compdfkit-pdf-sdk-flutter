@@ -1,0 +1,263 @@
+[
+    {
+        "type": "ink",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254798816",
+        "modifyDate": "2025-03-07 11:00:04.000",
+        "createDate": "2025-03-07 11:00:04.000",
+        "rect": "[340.0, 758.9390258789062, 446.9490051269531, 716.0]",
+        "color": "#ffff9000",
+        "alpha": 255,
+        "borderWidth": 2.0
+    },
+    {
+        "type": "freetext",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254797280",
+        "modifyDate": "2025-03-03 10:17:22.000",
+        "createDate": "2025-03-03 10:17:22.000",
+        "rect": "[378.8639831542969, 664.9100341796875, 389.8639831542969, 651.9100341796875]",
+        "textAttribute": {
+            "color": "#00000000",
+            "fontName": "LucidaGrande",
+            "fontSize": 11.0,
+            "isBold": false,
+            "isItalic": false
+        },
+        "alpha": 255,
+        "alignment": "left"
+    },
+    {
+        "type": "freetext",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "FreeText Annotation",
+        "uuid": "-5476376674254796800",
+        "modifyDate": "2025-03-07 11:00:06.000",
+        "createDate": "2025-03-07 11:00:06.000",
+        "rect": "[323.0, 677.0, 523.0, 664.0]",
+        "textAttribute": {
+            "color": "#0000ffff",
+            "fontName": "LucidaGrande",
+            "fontSize": 11.0,
+            "isBold": false,
+            "isItalic": false
+        },
+        "alpha": 255,
+        "alignment": "left"
+    },
+    {
+        "type": "note",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "Note Annotation",
+        "uuid": "-5476376674254796704",
+        "modifyDate": "2025-03-07 10:57:54.000",
+        "createDate": "2025-03-07 10:57:54.000",
+        "rect": "[59.0, 769.0, 91.0, 737.0]"
+    },
+    {
+        "type": "square",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254796128",
+        "modifyDate": "2025-03-07 11:00:11.000",
+        "createDate": "2025-03-07 11:00:11.000",
+        "rect": "[78.0, 550.0, 199.0, 475.0]",
+        "borderWidth": 2.0,
+        "borderColor": "#ff00f900",
+        "borderAlpha": 255,
+        "fillColor": "#ffd7dadd",
+        "fillAlpha": 255,
+        "bordEffectType": "solid"
+    },
+    {
+        "type": "circle",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254796032",
+        "modifyDate": "2025-03-07 11:00:27.000",
+        "createDate": "2025-03-07 11:00:27.000",
+        "rect": "[240.0, 545.0, 314.0, 484.0]",
+        "borderWidth": 2.0,
+        "borderColor": "#ffff2600",
+        "borderAlpha": 255,
+        "fillColor": "#ffffefb4",
+        "fillAlpha": 255,
+        "bordEffectType": "solid"
+    },
+    {
+        "type": "arrow",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254795936",
+        "modifyDate": "2025-03-03 10:17:41.000",
+        "createDate": "2025-03-03 10:17:41.000",
+        "rect": "[423.1340026855469, 594.0, 515.0, 523.134033203125]",
+        "borderWidth": 2.0,
+        "borderColor": "#ff000000",
+        "borderAlpha": 255,
+        "fillColor": "#00000000",
+        "fillAlpha": 255,
+        "lineHeadType": "none",
+        "lineTailType": "arrow"
+    },
+    {
+        "type": "link",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254795648",
+        "modifyDate": "2025-03-03 10:18:07.000",
+        "createDate": "2025-03-03 10:18:07.000",
+        "rect": "[72.36599731445312, 424.6940002441406, 179.8330078125, 355.0060119628906]",
+        "action": {
+            "actionType": "goTo",
+            "pageIndex": 1
+        }
+    },
+    {
+        "type": "link",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254795552",
+        "modifyDate": "2025-03-03 10:18:13.000",
+        "createDate": "2025-03-03 10:18:13.000",
+        "rect": "[73.0, 312.6490173339844, 188.8470001220703, 256.0]",
+        "action": {
+            "actionType": "uri",
+            "uri": "https://www.compdf.com/"
+        }
+    },
+    {
+        "type": "link",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254795456",
+        "modifyDate": "2025-03-03 10:18:29.000",
+        "createDate": "2025-03-03 10:18:29.000",
+        "rect": "[82.0, 192.22300720214844, 175.82301330566406, 158.0]",
+        "action": {
+            "actionType": "uri",
+            "uri": "support@compdf.com"
+        }
+    },
+    {
+        "type": "stamp",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674254795360",
+        "modifyDate": "2025-03-07 11:03:29.000",
+        "createDate": "2025-03-07 11:03:29.000",
+        "rect": "[355.0, 395.0, 519.0, 345.0]"
+    },
+    {
+        "type": "underline",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "UnderLine Annotation",
+        "uuid": "-5476376674254795168",
+        "modifyDate": "2025-03-07 11:00:38.000",
+        "createDate": "2025-03-07 11:00:38.000",
+        "rect": "[134.61900329589844, 705.3409423828125, 248.8590087890625, 691.948974609375]",
+        "markedText": "UnderLine Annotation",
+        "color": "#fffc251f",
+        "alpha": 255
+    },
+    {
+        "type": "strikeout",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "Strikeout Annotation",
+        "uuid": "-5476376674254794976",
+        "modifyDate": "2025-03-07 11:00:42.000",
+        "createDate": "2025-03-07 11:00:42.000",
+        "rect": "[134.21099853515625, 651.7720336914062, 240.81900024414062, 638.3809814453125]",
+        "markedText": "Strikeout Annotation",
+        "color": "#fffc251f",
+        "alpha": 255
+    },
+    {
+        "type": "squiggly",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "Squiggly Annotation",
+        "uuid": "-5476376674284637824",
+        "modifyDate": "2025-03-07 11:00:46.000",
+        "createDate": "2025-03-07 11:00:46.000",
+        "rect": "[134.21099853515625, 678.5570068359375, 239.51100158691406, 665.1649780273438]",
+        "markedText": "Squiggly Annotation",
+        "color": "#fffc251f",
+        "alpha": 255
+    },
+    {
+        "type": "highlight",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "Highlight Annotation",
+        "uuid": "-5476376674284637728",
+        "modifyDate": "2025-03-07 11:00:51.000",
+        "createDate": "2025-03-07 11:00:51.000",
+        "rect": "[134.63101196289062, 732.125, 240.1710205078125, 718.7330322265625]",
+        "markedText": "Highlight Annotation",
+        "color": "#ffffe500",
+        "alpha": 255
+    },
+    {
+        "type": "line",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674284636480",
+        "modifyDate": "2025-03-07 11:01:08.000",
+        "createDate": "2025-03-07 11:01:08.000",
+        "rect": "[382.0, 539.0, 536.0, 461.0]",
+        "borderWidth": 2.0,
+        "borderColor": "#ff0433ff",
+        "borderAlpha": 255,
+        "fillColor": "#00000000",
+        "fillAlpha": 255,
+        "lineHeadType": "none",
+        "lineTailType": "none"
+    },
+    {
+        "type": "pictures",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674284636384",
+        "modifyDate": "2025-03-07 11:04:49.000",
+        "createDate": "2025-03-07 11:04:49.000",
+        "rect": "[365.0, 310.0, 440.0, 234.0]"
+    },
+    {
+        "type": "signature",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674284636288",
+        "modifyDate": "2025-03-07 11:05:04.000",
+        "createDate": "2025-03-07 11:05:04.000",
+        "rect": "[363.0, 189.0, 517.843994140625, 144.0]"
+    },
+    {
+        "type": "stamp",
+        "title": "kdanmobile",
+        "page": 0,
+        "content": "",
+        "uuid": "-5476376674284636192",
+        "modifyDate": "2025-03-07 11:09:17.000",
+        "createDate": "2025-03-07 11:09:17.000",
+        "rect": "[260.0, 213.0, 276.0, 197.0]"
+    }
+]

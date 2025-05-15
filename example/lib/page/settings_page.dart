@@ -33,22 +33,26 @@ class SettingsPage extends StatelessWidget {
                     trailing: FutureBuilder(
                         future: ComPDFKit.getVersionCode(),
                         builder: (context, snap) {
-                          return Text(snap.data == null ? '' : 'ComPDFKit ${snap.data} for ${Platform.operatingSystem}',
+                          return Text(
+                              snap.data == null
+                                  ? ''
+                                  : 'ComPDFKit ${snap.data} for ${Platform.operatingSystem}',
                               style: Theme.of(context).textTheme.bodyMedium);
                         })),
                 head(context, 'Company Information'),
-                item(context,
-                    'https://www.compdf.com/',
-                    onTap: () => launchUrl(Uri.parse('https://www.compdf.com/'))),
+                item(context, 'https://www.compdf.com/',
+                    onTap: () =>
+                        launchUrl(Uri.parse('https://www.compdf.com/'))),
                 item(context, 'About ComPDFKit',
-                    onTap: () => launchUrl(Uri.parse(
-                        'https://www.compdf.com/company/about'))),
+                    onTap: () => launchUrl(
+                        Uri.parse('https://www.compdf.com/company/about'))),
                 item(context, 'Technical Support',
-                    onTap: () => launchUrl(Uri.parse('https://www.compdf.com/support'))),
+                    onTap: () =>
+                        launchUrl(Uri.parse('https://www.compdf.com/support'))),
                 item(context, 'Contact Sales',
-                    onTap: () => launchUrl(Uri.parse('https://www.compdf.com/contact-sales'))),
-                item(context, 'support@compdf.com',
-                    onTap: () {
+                    onTap: () => launchUrl(
+                        Uri.parse('https://www.compdf.com/contact-sales'))),
+                item(context, 'support@compdf.com', onTap: () {
                   launchUrl(Uri.parse(
                       'mailto:support@compdf.com?subject=Technical Support'));
                 }),
@@ -77,7 +81,8 @@ class SettingsPage extends StatelessWidget {
                             fontSize: 11, color: const Color(0xFF1460F3)),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => launchUrl(
-                                Uri.parse('https://www.compdf.com/privacy-policy'),
+                                Uri.parse(
+                                    'https://www.compdf.com/privacy-policy'),
                               )),
                     const TextSpan(text: ' | '),
                     TextSpan(
@@ -86,7 +91,8 @@ class SettingsPage extends StatelessWidget {
                             fontSize: 11, color: const Color(0xFF1460F3)),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => launchUrl(
-                                Uri.parse('https://www.compdf.com/terms-of-service'),
+                                Uri.parse(
+                                    'https://www.compdf.com/terms-of-service'),
                               )),
                   ])),
                 ],
@@ -112,10 +118,6 @@ class SettingsPage extends StatelessWidget {
     return ListTile(
         onTap: onTap,
         title: Text(title, style: Theme.of(context).textTheme.bodyMedium),
-        trailing: trailing ??
-            SvgPicture.asset(
-              'images/ic_syasarrow.svg'
-            ));
+        trailing: trailing ?? SvgPicture.asset('images/ic_syasarrow.svg'));
   }
-
 }

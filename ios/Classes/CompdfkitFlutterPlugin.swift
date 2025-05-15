@@ -77,7 +77,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             }
             
         
-            let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
+            let jsonDataParse = CPDFJSONDataParse(String: jsonString as? String ?? "")
             guard let configuration = jsonDataParse.configuration else { return }
             if let rootViewControl = UIApplication.shared.keyWindow?.rootViewController {
                 var tRootViewControl = rootViewControl

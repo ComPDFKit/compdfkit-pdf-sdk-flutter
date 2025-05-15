@@ -44,7 +44,7 @@ public class FileUtils {
     }
   }
 
-  public static String getImportAnnotationsPath(Context context, String xfdf) {
+  public static String getImportFilePath(Context context, String xfdf) {
     if (xfdf.startsWith(ASSETS_SCHEME)) {
       String assetsPath = xfdf.replace(ASSETS_SCHEME + "/","");
       String[] strs = xfdf.split("/");

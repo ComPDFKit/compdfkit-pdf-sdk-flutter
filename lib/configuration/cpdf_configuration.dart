@@ -5,10 +5,11 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:compdfkit_flutter/configuration/attributes/cpdf_annot_attr.dart';
+import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
 import 'cpdf_options.dart';
 
@@ -94,7 +95,6 @@ class CPDFModeConfig {
 
 /// Configuration for top toolbar functionality.
 class CPDFToolbarConfig {
-
   /// Top toolbar actions for Android platform
   ///
   /// Default: thumbnail, search, bota, menu.
@@ -155,7 +155,7 @@ class CPDFToolbarConfig {
         'iosRightBarAvailableActions':
             iosRightBarAvailableActions.map((e) => e.name).toList(),
         'availableMenus': availableMenus.map((e) => e.name).toList(),
-        'mainToolbarVisible' : mainToolbarVisible
+        'mainToolbarVisible': mainToolbarVisible
       };
 }
 
@@ -222,7 +222,7 @@ class CPDFReaderViewConfig {
       this.pageSpacing = 10,
       this.pageScale = 1.0,
       this.pageSameWidth = true,
-      this.margins = const [0,0,0,0]});
+      this.margins = const [0, 0, 0, 0]});
 
   Map<String, dynamic> toJson() => {
         'linkHighlight': linkHighlight,
@@ -237,7 +237,7 @@ class CPDFReaderViewConfig {
         'pageSpacing': pageSpacing,
         'pageScale': pageScale,
         'pageSameWidth': pageSameWidth,
-        'margins' : margins
+        'margins': margins
       };
 }
 
@@ -324,7 +324,6 @@ class CPDFAnnotAttribute {
       };
 }
 
-
 class CPDFContentEditorConfig {
   /// Content editing mode, the editing mode displayed at the bottom of the view
   /// Default order: editorText, editorImage
@@ -348,15 +347,12 @@ class CPDFContentEditorConfig {
 }
 
 class CPDFContentEditorAttribute {
-
   final CPDFEditorTextAttr text;
 
   const CPDFContentEditorAttribute({this.text = const CPDFEditorTextAttr()});
 
   Map<String, dynamic> toJson() => {'text': text.toJson()};
 }
-
-
 
 class CPDFFormsConfig {
   /// In [CPDFViewMode.forms] mode, the list of form types at the bottom of the view.
@@ -381,7 +377,6 @@ class CPDFFormsConfig {
 }
 
 class CPDFFormAttribute {
-
   final CPDFTextFieldAttr textFieldAttr;
 
   final CPDFCheckBoxAttr checkBoxAttr;
@@ -428,26 +423,32 @@ class CPDFGlobalConfig {
 
   final CPDFWatermarkConfig watermark;
 
+  final bool enableExitSaveTips;
+
+  final CPDFFillSignatureType signatureType;
+
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
       this.fileSaveExtraFontSubset = true,
-      this.watermark = const CPDFWatermarkConfig()});
+      this.watermark = const CPDFWatermarkConfig(),
+      this.enableExitSaveTips = true,
+      this.signatureType = CPDFFillSignatureType.manual});
 
   Map<String, dynamic> toJson() => {
         "themeMode": themeMode.name,
         "fileSaveExtraFontSubset": fileSaveExtraFontSubset,
-        "watermark" : watermark.toJson()
+        "watermark": watermark.toJson(),
+        "enableExitSaveTips": enableExitSaveTips,
+        "signatureType" : signatureType.name
       };
 }
 
-class CPDFWatermarkConfig{
-
+class CPDFWatermarkConfig {
   final bool saveAsNewFile;
 
-  const CPDFWatermarkConfig({
-    this.saveAsNewFile = true});
+  final Color? outsideBackgroundColor;
 
+  const CPDFWatermarkConfig({this.saveAsNewFile = true, this.outsideBackgroundColor});
 
-  Map<String, dynamic> toJson() => {
-    "saveAsNewFile": saveAsNewFile};
+  Map<String, dynamic> toJson() => {"saveAsNewFile": saveAsNewFile, "outsideBackgroundColor": outsideBackgroundColor?.toHex()};
 }

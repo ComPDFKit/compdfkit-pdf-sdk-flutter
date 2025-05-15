@@ -113,6 +113,28 @@ class CPDFConstants {
     static let createWatermark = "create_watermark"
     
     static let removeAllWatermark = "remove_all_watermarks"
+
+    static let importWidgets = "import_widgets"
     
+    static let exportWidgets = "export_widgets"
     
+    static let flattenAllPages = "flattenAllPages"
+    
+    static let importDocument = "import_document"
+    
+    static let insertBlankPage = "insert_blank_page"
+    
+    static let splitDocumentPages = "split_document_pages"
+    
+    static let getDocumentPath = "get_document_path"
+    
+    static let removeAnnotation = "remove_annotation"
+    
+    static let removeWidget = "remove_widget"
+    
+    static let reloadPages = "reload_pages"
+    
+    static let getAnnotations = "get_annotations"
+    
+    static let getWidgets = "get_widgets"
 }
