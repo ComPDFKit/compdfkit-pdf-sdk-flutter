@@ -310,6 +310,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         if (fragmentActivity != null){
           CPDFPrintUtils.printCurrentDocument(fragmentActivity, document);
         }
+        result.success(null);
         break;
       case REMOVE_PASSWORD:
         CThreadPoolUtils.getInstance().executeIO(() -> {
@@ -413,6 +414,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         if (pdfView != null) {
           pdfView.getCPdfReaderView().reloadPages();
         }
+        result.success(null);
         break;
       case IMPORT_WIDGETS:
         try {
@@ -587,6 +589,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         String annotPtr = call.argument("uuid");
         CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, annotPtr);
         if (annotation == null){
+          Log.e("ComPDFKit-Flutter", "not found this annotation, pageIndex:" + pageIndex + ", annotPtr:" + annotPtr);
           result.error("REMOVE_FAIL", "not found this annotation", "");
           return;
         }
@@ -596,6 +599,8 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             CPDFBaseAnnotImpl baseAnnot = pageView.getAnnotImpl(annotation);
             pageView.deleteAnnotation(baseAnnot);
             result.success(true);
+          }else {
+            result.success(pageUtil.deleteAnnotation(pageIndex, annotPtr));
           }
         }else {
           result.success(pageUtil.deleteAnnotation(pageIndex, annotPtr));

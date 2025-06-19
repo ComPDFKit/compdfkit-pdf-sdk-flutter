@@ -38,11 +38,13 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             let key = initInfo?["key"] ?? ""
             let code = CPDFKit.verify(withKey: key as? String)
             print("Code \(code)")
+            result(nil)
         case "init_sdk_keys":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["iosOnlineLicense"] ?? ""
             CPDFKit.verify(withOnlineLicense: key as? String) { code, message in
                 print("Code: \(code), Message:\(String(describing: message))")
+                result(nil)
             }
         case "sdk_build_tag":
             result("iOS build tag:\(CPDFKit.sharedInstance().buildNumber)")
@@ -69,7 +71,9 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                     try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
                 }
                 
-                try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+                if !fileManager.fileExists(atPath: docsFilePath) {
+                    try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+                }
                 
                 documentPath = docsFilePath
             } else {
@@ -96,6 +100,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             if success {
                 document.stopAccessingSecurityScopedResource()
             }
+            result(nil)
         case "get_temporary_directory":
             result(self.getTemporaryDirectory())
             

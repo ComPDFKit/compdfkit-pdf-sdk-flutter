@@ -76,7 +76,9 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
                 try? FileManager.default.createDirectory(atPath: samplesFilePath, withIntermediateDirectories: true, attributes: nil)
             }
             
-            try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+            if !fileManager.fileExists(atPath: docsFilePath) {
+                try? FileManager.default.copyItem(atPath: document.path ?? "", toPath: docsFilePath)
+            }
             
             documentPath = docsFilePath
         } else {
@@ -107,10 +109,24 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         if success {
             document.stopAccessingSecurityScopedResource()
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(annotationsOperationChangeNotification(_:)), name: NSNotification.Name(NSNotification.Name("CPDFListViewAnnotationsOperationChangeNotification").rawValue), object: nil)
     }
 
     func view() -> UIView {
         return navigationController.view
+    }
+    
+    // MARK: - Notification
+    
+    @objc func annotationsOperationChangeNotification(_ notification: Notification) {
+        let canUndo = pdfViewController.pdfListView?.canUndo() ?? false
+        let canRedo = pdfViewController.pdfListView?.canRedo() ?? false
+        
+        plugin._methodChannel.invokeMethod("onAnnotationHistoryChanged", arguments: [
+            "canUndo": canUndo,
+            "canRedo": canRedo
+        ])
     }
     
     // MARK: - CPDFViewBaseControllerDelete
@@ -136,7 +152,16 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, HiddenState state: Bool) {
         plugin._methodChannel.invokeMethod("onFullScreenChanged", arguments: state)
+    }
     
+    func PDFViewBaseController(_ baseController: CPDFViewBaseController, LoadState success: Bool) {
+        if success {
+            self.plugin._methodChannel.invokeMethod("onDocumentIsReady", arguments: nil)
+        }
+    }
+    
+    func PDFViewBaseControllerTouchEnded(_ baseController: CPDFViewBaseController) {
+        self.plugin._methodChannel.invokeMethod("onTapMainDocArea", arguments: nil)
     }
 
 }

@@ -37,10 +37,12 @@ class CPDFViewCtrlPlugin {
             switch call.method {
             case CPDFConstants.setScale:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let scaleValue = call.arguments as! NSNumber
                 pdfListView.setScaleFactor(CGFloat(truncating: scaleValue), animated: true)
+                result(nil)
             case CPDFConstants.getScale:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(1.0)
@@ -49,6 +51,7 @@ class CPDFViewCtrlPlugin {
                 result(pdfListView.scaleFactor)
             case CPDFConstants.setReadBackgroundColor:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
            
@@ -69,6 +72,7 @@ class CPDFViewCtrlPlugin {
                 }
 
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.getReadBackgroundColor:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result("#FFFFFF")
@@ -78,44 +82,50 @@ class CPDFViewCtrlPlugin {
                 switch dispalyMode {
                     
                 case .normal:
-                    result("#FFFFFF")
+                    result("#FFFFFFFF")
                 case .night:
-                    result("#000000")
+                    result("#FF000000")
                 case .soft:
-                    result("#FFFFFF")
+                    result("#FFFFEFBE")
                 case .green:
-                    result("#FFEFBE")
+                    result("#FFCDE6D0")
                 case .custom:
                     result("#CDE6D0")
                 @unknown default:
-                    result("#FFFFFF")
+                    result("#FFFFFFFF")
                 }
                
             case CPDFConstants.setFromFieldHighlight:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let highlightForm = call.arguments as! Bool
                 CPDFKitConfig.sharedInstance().setEnableFormFieldHighlight(highlightForm)
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isFromFieldHighlight:
                 result(CPDFKitConfig.sharedInstance().enableFormFieldHighlight())
             case CPDFConstants.setLinkHighlight:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let linkHighlight = call.arguments as! Bool
                 CPDFKitConfig.sharedInstance().setEnableLinkFieldHighlight(linkHighlight)
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isLinkHighlight:
                 result(CPDFKitConfig.sharedInstance().enableLinkFieldHighlight())
             case CPDFConstants.setVerticalMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let verticalMode = call.arguments as! Bool
                 pdfListView.displayDirection = verticalMode ? .vertical : .horizontal
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isVerticalMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(true)
@@ -126,6 +136,7 @@ class CPDFViewCtrlPlugin {
                 result(FlutterError(code: "NOT_SUPPORT", message: "This method is not supported on iOS. Please use controller.setMargins(left,top,right,bottom)", details: ""))
             case CPDFConstants.setMargin:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let spacingInfo = call.arguments as! [String: NSNumber]
@@ -137,13 +148,16 @@ class CPDFViewCtrlPlugin {
                     right: CGFloat(truncating: (spacingInfo["right"] ?? 10))
                     )
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.setContinueMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let continueMode = call.arguments as! Bool
                 pdfListView.displaysPageBreaks = continueMode
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isContinueMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(true)
@@ -152,12 +166,14 @@ class CPDFViewCtrlPlugin {
                 result(pdfListView.displaysPageBreaks)
             case CPDFConstants.setDoublePageMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let twoUp = call.arguments as! Bool
                 pdfListView.displayTwoUp = twoUp
                 pdfListView.displaysAsBook = false
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isDoublePageMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(false)
@@ -166,12 +182,14 @@ class CPDFViewCtrlPlugin {
                 result(pdfListView.displayTwoUp)
             case CPDFConstants.setCoverPageMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let coverPageMode = call.arguments as! Bool
                 pdfListView.displaysAsBook = coverPageMode
                 pdfListView.displayTwoUp = coverPageMode
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isCoverPageMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(false)
@@ -180,11 +198,13 @@ class CPDFViewCtrlPlugin {
                 result(pdfListView.displaysAsBook)
             case CPDFConstants.setCropMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let cropMode = call.arguments as! Bool
                 pdfListView.displayCrop = cropMode
                 pdfListView.layoutDocumentView()
+                result(nil)
             case CPDFConstants.isCropMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(false)
@@ -193,12 +213,14 @@ class CPDFViewCtrlPlugin {
                 result(pdfListView.displayCrop)
             case CPDFConstants.setDisplayPageIndex:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
                     return
                 }
                 let info =  call.arguments as! [String: Any]
                 let pageIndex = info["pageIndex"] as! NSNumber
                 let animated = info["animated"] as! Bool
                 pdfListView.go(toPageIndex: Int(truncating: pageIndex), animated: animated)
+                result(nil)
             case CPDFConstants.getCurrentPageIndex:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(0)
@@ -221,6 +243,7 @@ class CPDFViewCtrlPlugin {
                     default:
                     self.pdfViewController.enterViewerMode()
                 }
+                result(nil)
             case CPDFConstants.get_preview_mode:
                 let state = self.pdfViewController.functionTypeState
                 switch state {
@@ -245,22 +268,136 @@ class CPDFViewCtrlPlugin {
                 } else {
                     self.pdfViewController.enterThumbnail()
                 }
+                result(nil)
             case CPDFConstants.showBotaView:
                 self.pdfViewController.buttonItemClicked_Bota(UIButton(frame: .zero))
+                result(nil)
             case CPDFConstants.showAddWatermarkView:
                 let isSaveAs = call.arguments as! Bool
                 self.pdfViewController.enterPDFWatermark(isSaveAs: isSaveAs)
+                result(nil)
             case CPDFConstants.showSecurityView:
                 self.pdfViewController.enterPDFSecurity()
+                result(nil)
             case CPDFConstants.showDisplaySettingsView:
                 self.pdfViewController.enterPDFSetting()
+                result(nil)
             case CPDFConstants.enterSnipMode:
                 self.pdfViewController.enterPDFSnipImageMode()
+                result(nil)
             case CPDFConstants.exitSnipMode:
                 self.pdfViewController.exitPDFSnipImageMode()
+                result(nil)
             case CPDFConstants.reloadPages:
                 self.pdfViewController.pdfListView?.setNeedsDisplayForVisiblePages()
                 self.pdfViewController.pdfListView?.layoutDocumentView()
+                result(nil)
+            case CPDFConstants.setAnnotationMode:
+                let mode = call.arguments as? String ?? "unknown"
+                var annotationMode: CPDFViewAnnotationMode = .CPDFViewAnnotationModenone
+                switch mode {
+                case "note":
+                    annotationMode = .note
+                case "highlight":
+                    annotationMode = .highlight
+                case "underline":
+                    annotationMode = .underline
+                case "strikeout":
+                    annotationMode = .strikeout
+                case "squiggly":
+                    annotationMode = .squiggly
+                case "ink":
+                    annotationMode = .ink
+                case "ink_eraser":
+                    annotationMode = .eraser
+                case "pencil":
+                    annotationMode = .pencilDrawing
+                case "circle":
+                    annotationMode = .circle
+                case "square":
+                    annotationMode = .square
+                case "arrow":
+                    annotationMode = .arrow
+                case "line":
+                    annotationMode = .line
+                case "freetext":
+                    annotationMode = .freeText
+                case "signature":
+                    annotationMode = .signature
+                case "stamp":
+                    annotationMode = .stamp
+                case "pictures":
+                    annotationMode = .image
+                case "link":
+                    annotationMode = .link
+                case "sound":
+                    annotationMode = .sound
+                case "unknown":
+                    annotationMode = .CPDFViewAnnotationModenone
+                    default:
+                    break
+                }
+                    
+                self.pdfViewController.annotationBar?.annotationToolBarSwitch(annotationMode)
+                result(nil)
+            case CPDFConstants.getAnnotationMode:
+                let annotationMode = self.pdfViewController.pdfListView?.annotationMode ?? .CPDFViewAnnotationModenone
+                var mode = "unknown"
+                switch annotationMode {
+                case .note:
+                    mode = "note"
+                case .highlight:
+                    mode = "highlight"
+                case .underline:
+                    mode = "underline"
+                case .strikeout:
+                    mode = "strikeout"
+                case .squiggly:
+                    mode = "squiggly"
+                case .ink:
+                    mode = "ink"
+                case .eraser:
+                    mode = "ink_eraser"
+                case .pencilDrawing:
+                    mode = "pencil"
+                case .circle:
+                    mode = "circle"
+                case .square:
+                    mode = "square"
+                case .arrow:
+                    mode = "arrow"
+                case .line:
+                    mode = "line"
+                case .freeText:
+                    mode = "freetext"
+                case .signature:
+                    mode = "signature"
+                case .stamp:
+                    mode = "stamp"
+                case .image:
+                    mode = "pictures"
+                case .link:
+                    mode = "link"
+                case .sound:
+                    mode = "sound"
+                case .CPDFViewAnnotationModenone:
+                    mode = "unknown"
+                    default:
+                    break
+                }
+                result(mode)
+            case CPDFConstants.annotationCanRedo:
+                let canRedo:Bool = self.pdfViewController.pdfListView?.canRedo() ?? false
+                result(canRedo)
+            case CPDFConstants.annotationCanUndo:
+                let canUndo = self.pdfViewController.pdfListView?.canUndo() ?? false
+                result(canUndo)
+            case CPDFConstants.annotationRedo:
+                self.pdfViewController.pdfListView?.undoPDFManager?.redo()
+                result(nil)
+            case CPDFConstants.annotationUndo:
+                self.pdfViewController.pdfListView?.undoPDFManager?.undo()
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }

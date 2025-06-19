@@ -5,7 +5,9 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+import 'dart:async';
 import 'dart:io';
+import 'package:compdfkit_flutter/history/cpdf_annotation_history_manager.dart';
 import 'package:flutter/services.dart';
 
 import '../configuration/cpdf_options.dart';
@@ -31,17 +33,26 @@ import 'cpdf_reader_widget.dart';
 ///         ));
 /// ```
 class CPDFReaderWidgetController {
+
   late MethodChannel _channel;
 
   late CPDFDocument _document;
+
+  late CPDFAnnotationHistoryManager _annotationHistoryManager;
+
+  final Completer<void> _readyCompleter = Completer<void>();
+
+  Future<void> get ready => _readyCompleter.future;
 
   CPDFReaderWidgetController(int id,
       {CPDFPageChangedCallback? onPageChanged,
       CPDFDocumentSaveCallback? saveCallback,
       CPDFPageEditDialogBackPressCallback? onPageEditBackPress,
       CPDFFillScreenChangedCallback? onFillScreenChanged,
-      CPDFIOSClickBackPressedCallback? onIOSClickBackPressed}) {
+      CPDFIOSClickBackPressedCallback? onIOSClickBackPressed,
+      CPDFOnTapMainDocAreaCallback? onTapMainDocArea}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
+    _annotationHistoryManager = CPDFAnnotationHistoryManager(_channel);
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'onPageChanged':
@@ -61,12 +72,29 @@ class CPDFReaderWidgetController {
         case 'onIOSClickBackPressed':
           onIOSClickBackPressed?.call();
           break;
+        case 'onDocumentIsReady':
+          _readyCompleter.complete();
+          break;
+        case 'onAnnotationHistoryChanged':
+          _annotationHistoryManager.handleMethodCall(call);
+          break;
+        case 'onTapMainDocArea':
+          onTapMainDocArea?.call();
+          break;
       }
     });
     _document = CPDFDocument.withController(id);
   }
 
   CPDFDocument get document => _document;
+
+  /// Get the annotation history manager
+  /// This manager is used to handle annotation history operations such as undo and redo.
+  /// Example:
+  /// ```dart
+  /// CPDFAnnotationHistoryManager historyManager = _controller.annotationHistoryManager;
+  /// ```
+  CPDFAnnotationHistoryManager get annotationHistoryManager => _annotationHistoryManager;
 
   /// Save document
   ///
@@ -123,7 +151,7 @@ class CPDFReaderWidgetController {
   /// ```
   Future<void> setReadBackgroundColor(CPDFThemes theme) async {
     await _channel.invokeMethod('set_read_background_color',
-        {'displayMode': theme.name, 'color': theme.color});
+        {'displayMode': theme.type.name, 'color': theme.color});
   }
 
   /// Get background color of reader.
@@ -486,4 +514,32 @@ class CPDFReaderWidgetController {
   Future<void> reloadPages() async {
     await _channel.invokeMethod('reload_pages');
   }
+
+  /// Used to add a specified annotation type when touching the page in annotation mode
+  /// This method is only available in [CPDFViewMode.annotations] mode.
+  /// Example:
+  /// ```dart
+  /// await controller.setAnnotationMode(CPDFAnnotationType.note);
+  /// ```
+  /// Throws an exception if called in a mode other than [CPDFViewMode.annotations].
+  Future<void> setAnnotationMode(CPDFAnnotationType type) async {
+    var viewMode = await getPreviewMode();
+    if(viewMode != CPDFViewMode.annotations) {
+      throw Exception(
+          'setAnnotationMode is only available in CPDFViewMode.annotations mode');
+    }
+    await _channel.invokeMethod('set_annotation_mode', type.name);
+  }
+
+  /// Get the type of annotation added to the current touch page
+  /// This method is only available in [CPDFViewMode.annotations] mode.
+  /// Example:
+  /// ```dart
+  /// CPDFAnnotationType type = await controller.getAnnotationMode();
+  /// ```
+  Future<CPDFAnnotationType> getAnnotationMode() async {
+    String typeName = await _channel.invokeMethod('get_annotation_mode');
+    return CPDFAnnotationType.values.firstWhere((e) => e.name == typeName);
+  }
+
 }

@@ -28,6 +28,10 @@ typedef CPDFFillScreenChangedCallback = void Function(bool isFillScreen);
 
 typedef CPDFIOSClickBackPressedCallback = void Function();
 
+typedef CPDFDocumentIsReadyCallback = void Function();
+
+typedef CPDFOnTapMainDocAreaCallback = void Function();
+
 class CPDFReaderWidget extends StatefulWidget {
   /// pdf file path
   final String document;
@@ -49,6 +53,8 @@ class CPDFReaderWidget extends StatefulWidget {
 
   final CPDFIOSClickBackPressedCallback? onIOSClickBackPressed;
 
+  final CPDFOnTapMainDocAreaCallback? onTapMainDocAreaCallback;
+
   /// init callback
   const CPDFReaderWidget(
       {Key? key,
@@ -60,7 +66,8 @@ class CPDFReaderWidget extends StatefulWidget {
       this.onSaveCallback,
       this.onPageEditDialogBackPress,
       this.onFillScreenChanged,
-      this.onIOSClickBackPressed})
+      this.onIOSClickBackPressed,
+      this.onTapMainDocAreaCallback})
       : super(key: key);
 
   @override
@@ -117,11 +124,15 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
 
   Future<void> _onPlatformViewCreated(int id) async {
     debugPrint('ComPDFKit-Flutter: CPDFReaderWidget created');
-    widget.onCreated(CPDFReaderWidgetController(id,
+    var controller = CPDFReaderWidgetController(id,
         onPageChanged: widget.onPageChanged,
         saveCallback: widget.onSaveCallback,
         onPageEditBackPress: widget.onPageEditDialogBackPress,
         onFillScreenChanged: widget.onFillScreenChanged,
-        onIOSClickBackPressed: widget.onIOSClickBackPressed));
+        onIOSClickBackPressed: widget.onIOSClickBackPressed,
+        onTapMainDocArea: widget.onTapMainDocAreaCallback);
+    controller.ready.then((e) {
+      widget.onCreated(controller);
+    });
   }
 }

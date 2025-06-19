@@ -23,6 +23,7 @@ class CPDFReaderPage extends StatefulWidget {
   final void Function()? onSaveCallback;
   final void Function(bool isFillScreen)? onFillScreenChanged;
   final void Function()? onIOSClickBackPressed;
+  final void Function()? onTapMainDocAreaCallback;
   final List<Widget> Function(CPDFReaderWidgetController controller)? appBarActions;
 
   const CPDFReaderPage({
@@ -36,7 +37,8 @@ class CPDFReaderPage extends StatefulWidget {
     this.onPageChanged,
     this.onSaveCallback,
     this.onFillScreenChanged,
-    this.onIOSClickBackPressed
+    this.onIOSClickBackPressed,
+    this.onTapMainDocAreaCallback
   });
 
   @override
@@ -108,6 +110,9 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
       onPageEditDialogBackPress: () {
         debugPrint('CPDFReaderWidget: onPageEditDialogBackPress');
       },
+      onTapMainDocAreaCallback: (){
+        widget.onTapMainDocAreaCallback?.call();
+      }
     );
   }
 

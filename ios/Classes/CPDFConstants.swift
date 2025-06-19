@@ -137,4 +137,13 @@ class CPDFConstants {
     static let getAnnotations = "get_annotations"
     
     static let getWidgets = "get_widgets"
+    
+    static let setAnnotationMode = "set_annotation_mode"
+    
+    static let getAnnotationMode = "get_annotation_mode"
+    
+    static let annotationCanRedo = "annotation_can_redo"
+    static let annotationCanUndo = "annotation_can_undo"
+    static let annotationRedo = "annotation_redo"
+    static let annotationUndo = "annotation_undo"
 }

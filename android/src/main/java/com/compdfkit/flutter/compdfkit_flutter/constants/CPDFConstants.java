@@ -167,6 +167,15 @@ public class CPDFConstants {
     public static final String REMOVE_ANNOTATION = "remove_annotation";
     public static final String REMOVE_WIDGET = "remove_widget";
 
+    public static final String SET_ANNOTATION_MODE = "set_annotation_mode";
+
+    public static final String GET_ANNOTATION_MODE = "get_annotation_mode";
+    public static final String ANNOTATION_CAN_UNDO = "annotation_can_undo";
+    public static final String ANNOTATION_CAN_REDO = "annotation_can_redo";
+    public static final String ANNOTATION_UNDO = "annotation_undo";
+    public static final String ANNOTATION_REDO = "annotation_redo";
+
+
   }
 
 }

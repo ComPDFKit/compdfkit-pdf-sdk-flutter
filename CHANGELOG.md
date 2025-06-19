@@ -1,4 +1,25 @@
+## 2.4.1
+
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.1.  
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.1.
+3. Added API to switch between different annotation types in annotation mode.
+4. Added Undo and Redo APIs for annotation actions.
+5. Added configuration option to hide the bottom annotation toolbar in annotation mode.
+6. Added support for context menu configuration.
+7. Introduced `CPDFReaderSliderBar`, a sidebar component for fast scrolling.
+8. Added callback for tapping on the PDF page area.
+9. Adapted Android platform to support 16KB page sizes.
+10. Optimized document saving logic on iOS.
+11. Fixed an issue where some APIs became unresponsive, causing blocking behavior.
+12. Fixed a bug where `CPDFDocument` was not immediately available after creating `CPDFReaderWidgetController`.
+13. Fixed an issue where the read-only (`readOnly`) setting had no effect on Android.
+14. Fixed a bug where the `page.removeAnnotation()` API could not delete annotations on Android.
+15. Fixed an issue where `getReadBackgroundColor()` returned the wrong color on iOS.
+
+
+
 ## 2.4.0+1
+
 1. Fixed the issue of `flattenAllPages()` not working.
 ## 2.4.0
 

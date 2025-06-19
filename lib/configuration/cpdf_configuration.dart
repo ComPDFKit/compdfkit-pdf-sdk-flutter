@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:compdfkit_flutter/configuration/attributes/cpdf_annot_attr.dart';
+import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_context_menu_config.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
 import 'cpdf_options.dart';
@@ -44,6 +45,8 @@ class CPDFConfiguration {
 
   CPDFGlobalConfig globalConfig;
 
+  CPDFContextMenuConfig contextMenuConfig;
+
   CPDFConfiguration(
       {this.modeConfig =
           const CPDFModeConfig(initialViewMode: CPDFViewMode.viewer),
@@ -52,7 +55,8 @@ class CPDFConfiguration {
       this.annotationsConfig = const CPDFAnnotationsConfig(),
       this.contentEditorConfig = const CPDFContentEditorConfig(),
       this.formsConfig = const CPDFFormsConfig(),
-      this.globalConfig = const CPDFGlobalConfig()});
+      this.globalConfig = const CPDFGlobalConfig(),
+      this.contextMenuConfig = const CPDFContextMenuConfig()});
 
   String toJson() => jsonEncode({
         'modeConfig': modeConfig.toJson(),
@@ -61,7 +65,8 @@ class CPDFConfiguration {
         'annotationsConfig': annotationsConfig.toJson(),
         'contentEditorConfig': contentEditorConfig.toJson(),
         'formsConfig': formsConfig.toJson(),
-        'global': globalConfig.toJson()
+        'global': globalConfig.toJson(),
+        'contextMenuConfig': contextMenuConfig.toJson()
       });
 }
 
@@ -117,6 +122,8 @@ class CPDFToolbarConfig {
 
   final bool mainToolbarVisible;
 
+  final bool annotationToolbarVisible;
+
   const CPDFToolbarConfig(
       {this.androidAvailableActions = const [
         CPDFToolbarAction.thumbnail,
@@ -145,7 +152,8 @@ class CPDFToolbarConfig {
         CPDFToolbarMenuAction.openDocument,
         CPDFToolbarMenuAction.snip
       ],
-      this.mainToolbarVisible = true});
+      this.mainToolbarVisible = true,
+      this.annotationToolbarVisible = true});
 
   Map<String, dynamic> toJson() => {
         'androidAvailableActions':
@@ -155,7 +163,8 @@ class CPDFToolbarConfig {
         'iosRightBarAvailableActions':
             iosRightBarAvailableActions.map((e) => e.name).toList(),
         'availableMenus': availableMenus.map((e) => e.name).toList(),
-        'mainToolbarVisible': mainToolbarVisible
+        'mainToolbarVisible': mainToolbarVisible,
+        'annotationToolbarVisible' : annotationToolbarVisible
       };
 }
 
@@ -231,7 +240,7 @@ class CPDFReaderViewConfig {
         'continueMode': continueMode,
         'verticalMode': verticalMode,
         'cropMode': cropMode,
-        'themes': themes.name,
+        'themes': themes.type.name,
         'enableSliderBar': enableSliderBar,
         'enablePageIndicator': enablePageIndicator,
         'pageSpacing': pageSpacing,
@@ -439,7 +448,7 @@ class CPDFGlobalConfig {
         "fileSaveExtraFontSubset": fileSaveExtraFontSubset,
         "watermark": watermark.toJson(),
         "enableExitSaveTips": enableExitSaveTips,
-        "signatureType" : signatureType.name
+        "signatureType": signatureType.name
       };
 }
 
@@ -448,7 +457,11 @@ class CPDFWatermarkConfig {
 
   final Color? outsideBackgroundColor;
 
-  const CPDFWatermarkConfig({this.saveAsNewFile = true, this.outsideBackgroundColor});
+  const CPDFWatermarkConfig(
+      {this.saveAsNewFile = true, this.outsideBackgroundColor});
 
-  Map<String, dynamic> toJson() => {"saveAsNewFile": saveAsNewFile, "outsideBackgroundColor": outsideBackgroundColor?.toHex()};
+  Map<String, dynamic> toJson() => {
+        "saveAsNewFile": saveAsNewFile,
+        "outsideBackgroundColor": outsideBackgroundColor?.toHex()
+      };
 }

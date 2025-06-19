@@ -74,12 +74,14 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 String key = call.argument("key");
                 CPDFSdk.init(context, key, true, (code, msg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + code + ", msg:" + msg);
+                    result.success(null);
                 });
                 break;
             case INIT_SDK_KEYS:
                 String androidLicenseKey = call.argument("androidOnlineLicense");
                 CPDFSdk.init(context, androidLicenseKey, false, (code, msg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK_KEYS: code:" + code + ", msg:" + msg);
+                    result.success(null);
                 });
                 break;
             case SDK_VERSION_CODE:
@@ -99,6 +101,7 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PASSWORD, password);
                 intent.putExtra(CPDFDocumentActivity.EXTRA_CONFIGURATION, configuration);
                 context.startActivity(intent);
+                result.success(null);
                 break;
             case GET_TEMP_DIRECTORY:
                 result.success(context.getCacheDir().getAbsolutePath());

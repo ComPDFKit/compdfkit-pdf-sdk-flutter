@@ -13,44 +13,72 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
-import 'package:compdfkit_flutter_example/page/cpdf_annotations_list_page.dart';
+import 'package:compdfkit_flutter_example/page/annotations/cpdf_annotations_list_page.dart';
+import 'package:compdfkit_flutter_example/page/annotations/tools/cpdf_annotation_tools_widget.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class CPDFAnnotationsExample extends StatelessWidget {
+const _actions = [
+  'Save',
+  'Import Annotations 1',
+  'Import Annotations 2',
+  'Export Annotations',
+  'Remove All Annotations',
+  'Get Annotations',
+  'exitAnnotationsMode',
+];
+
+class CPDFAnnotationsExample extends StatefulWidget {
   final String documentPath;
 
   const CPDFAnnotationsExample({super.key, required this.documentPath});
 
-  static const _actions = [
-    'Save',
-    'Import Annotations 1',
-    'Import Annotations 2',
-    'Export Annotations',
-    'Remove All Annotations',
-    'Get Annotations'
-  ];
+  @override
+  State<CPDFAnnotationsExample> createState() => _CpdfAnnotationsExampleState();
+}
+
+class _CpdfAnnotationsExampleState extends State<CPDFAnnotationsExample> {
+
+  CPDFReaderWidgetController? _controller;
 
   @override
   Widget build(BuildContext context) {
-    return CPDFReaderPage(
-      title: 'Annotations Example',
-      documentPath: documentPath,
-      configuration: CPDFConfiguration(
-        annotationsConfig:
-            const CPDFAnnotationsConfig(annotationAuthor: 'ComPDFKit-Flutter'),
-        toolbarConfig: const CPDFToolbarConfig(
-          iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail],
-        ),
-      ),
-      appBarActions: (controller) => [
-        PopupMenuButton<String>(
-          onSelected: (value) => _handleAction(context, value, controller),
-          itemBuilder: (context) => _actions.map((action) {
-            return PopupMenuItem(value: action, child: Text(action));
-          }).toList(),
-        ),
+    return Column(
+      children: [
+        Expanded(child: CPDFReaderPage(
+          title: 'Annotations Example',
+          documentPath: widget.documentPath,
+          configuration: CPDFConfiguration(
+            modeConfig:
+            const CPDFModeConfig(initialViewMode: CPDFViewMode.annotations),
+            annotationsConfig: const CPDFAnnotationsConfig(
+                annotationAuthor: 'ComPDFKit-Flutter'),
+            toolbarConfig: const CPDFToolbarConfig(
+              annotationToolbarVisible: false,
+              iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail],
+            ),
+          ),
+          onTapMainDocAreaCallback: (){
+            debugPrint('ComPDFKit-Flutter: onTapMainDocAreaCallback');
+          },
+          onCreated: (controller) {
+            setState(() {
+              _controller = controller;
+            });
+          },
+          appBarActions: (controller) => [
+            PopupMenuButton<String>(
+              onSelected: (value) => _handleAction(context, value, controller),
+              itemBuilder: (context) => _actions.map((action) {
+                return PopupMenuItem(value: action, child: Text(action));
+              }).toList(),
+            ),
+          ],
+        )),
+        if (_controller != null) ...{
+          CPDFAnnotationToolsWidget(controller: _controller!)
+        }
       ],
     );
   }
@@ -110,7 +138,7 @@ class CPDFAnnotationsExample extends StatelessWidget {
               context: context,
               builder: (context) =>
                   CpdfAnnotationsListPage(annotations: annotations));
-          if(data == null){
+          if (data == null) {
             return;
           }
           String type = data['type'];
@@ -123,6 +151,11 @@ class CPDFAnnotationsExample extends StatelessWidget {
             debugPrint('ComPDFKit:Document: removeAnnotation:$result');
           }
         }
+        break;
+      case 'exitAnnotationsMode':
+        await controller.setAnnotationMode(CPDFAnnotationType.unknown);
+        debugPrint(
+            'ComPDFKit-Flutter: mode:${await controller.getAnnotationMode()}');
         break;
     }
   }

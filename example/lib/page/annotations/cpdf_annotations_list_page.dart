@@ -29,7 +29,6 @@ class CpdfAnnotationsListPage extends StatelessWidget {
       }
     }
 
-    // 生成分页标题列表
     List<int> pageNumbers = groupedAnnotations.keys.toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +54,6 @@ class CpdfAnnotationsListPage extends StatelessWidget {
     );
   }
 
-  // 构建分页头部
   Widget _buildPageHeader(int pageNumber) {
     return Container(
       decoration: BoxDecoration(
@@ -71,7 +69,6 @@ class CpdfAnnotationsListPage extends StatelessWidget {
     );
   }
 
-  // 构建单页注释列表
   Widget _buildAnnotationList(List<CPDFAnnotation> annotationsForPage) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +78,6 @@ class CpdfAnnotationsListPage extends StatelessWidget {
     );
   }
 
-  // 构建单个注释项
   Widget _buildAnnotationItem(CPDFAnnotation annotation) {
     return Builder(builder: (context) {
       return Padding(

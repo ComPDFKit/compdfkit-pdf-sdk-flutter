@@ -32,37 +32,74 @@ enum CPDFToolbarMenuAction {
 
 enum CPDFDisplayMode { singlePage, doublePage, coverPage }
 
-/// readerView background themes
-enum CPDFThemes {
-  /// Bright mode, readerview background is white
-  light('#FFFFFFFF'),
+enum CPDFThemeType {
+  light,
+  dark,
+  sepia,
+  reseda,
+  custom,
+}
 
-  /// dark mode, readerview background is black
-  dark('#FF000000'),
+/// 专业的配置对象
+class CPDFThemes {
+  final CPDFThemeType type;
+  final String color; // Hex 格式，如 '#FF998822'
 
-  /// brown paper color
-  sepia('#FFFFEFBE'),
+  const CPDFThemes._(this.type, this.color);
 
-  /// Light green, eye protection mode
-  reseda('#FFCDE6D0');
+  // 预设主题
+  static const light = CPDFThemes._(CPDFThemeType.light, '#FFFFFFFF');
+  static const dark = CPDFThemes._(CPDFThemeType.dark, '#FF000000');
+  static const sepia = CPDFThemes._(CPDFThemeType.sepia, '#FFFFEFBE');
+  static const reseda = CPDFThemes._(CPDFThemeType.reseda, '#FFCDE6D0');
 
-  final String color;
-
-  const CPDFThemes(this.color);
-
-  // 根据 Color 对象获取对应的 CPDFThemes
-  static CPDFThemes of(Color color) {
-    return CPDFThemes.values.firstWhere(
-      (theme) => theme.color == color.toHex().toUpperCase(),
-      orElse: () => CPDFThemes.light,
-    );
+  /// 工厂方法：创建自定义主题
+  factory CPDFThemes.custom(Color customColor) {
+    return CPDFThemes._(CPDFThemeType.custom, customColor.toHex());
   }
 
-  // 获取颜色值
-  String getColor() {
-    return color;
+  static CPDFThemes of(Color color) {
+    final hex = color.toHex();
+    return {
+      light.color: light,
+      dark.color: dark,
+      sepia.color: sepia,
+      reseda.color: reseda,
+    }[hex.toUpperCase()] ?? CPDFThemes.custom(color);
   }
 }
+
+/// readerView background themes
+// enum CPDFThemes {
+//   /// Bright mode, readerview background is white
+//   light('#FFFFFFFF'),
+//
+//   /// dark mode, readerview background is black
+//   dark('#FF000000'),
+//
+//   /// brown paper color
+//   sepia('#FFFFEFBE'),
+//
+//   /// Light green, eye protection mode
+//   reseda('#FFCDE6D0');
+//
+//   final String color;
+//
+//   const CPDFThemes(this.color);
+//
+//   // 根据 Color 对象获取对应的 CPDFThemes
+//   static CPDFThemes of(Color color) {
+//     return CPDFThemes.values.firstWhere(
+//       (theme) => theme.color == color.toHex().toUpperCase(),
+//       orElse: () => CPDFThemes.light,
+//     );
+//   }
+//
+//   // 获取颜色值
+//   String getColor() {
+//     return color;
+//   }
+// }
 
 enum CPDFAnnotationType {
   note,
@@ -83,7 +120,8 @@ enum CPDFAnnotationType {
   stamp,
   pictures,
   link,
-  sound;
+  sound,
+  unknown;
 
   static CPDFAnnotationType fromString(String typeStr) {
     return CPDFAnnotationType.values.firstWhere(

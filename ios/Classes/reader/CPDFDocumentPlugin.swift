@@ -53,8 +53,11 @@ public class CPDFDocumentPlugin {
                     return
                 }
                 var isSuccess = false
-                if (pdfListView.isEditing() == true && pdfListView.isEdited() == true) {
-                    pdfListView.commitEditing()
+                if (pdfListView.isEditing() == true) {
+                    if pdfListView.isEdited() == true {
+                        pdfListView.commitEditing()
+                    }
+                    pdfListView.endOfEditing()
                     if pdfListView.document.isModified() == true {
                         isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL)
                     }
@@ -230,6 +233,7 @@ public class CPDFDocumentPlugin {
                 result(success)
             case CPDFConstants.print:
                 self.pdfViewController?.enterPrintState()
+                result(nil)
             case CPDFConstants.removePassword:
                 let url = self.document?.documentURL
                 let success = self.document?.writeDecrypt(to: url, isSaveFontSubset: true) ?? false
@@ -298,6 +302,7 @@ public class CPDFDocumentPlugin {
                 let url = self.document?.documentURL
                 self.document?.write(to: url, isSaveFontSubset: true)
                 self.pdfViewController?.pdfListView?.layoutDocumentView()
+                result(nil)
             case CPDFConstants.importWidgets:
                 let importPath = call.arguments as? String ?? ""
 
