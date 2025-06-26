@@ -51,6 +51,32 @@ class ComPDFKit {
     });
   }
 
+  /// Initializes the ComPDFKit SDK using a specified license file path.
+  ///
+  /// **Since v2.4.3**, this method supports automatic detection of the license file type
+  /// (online or offline) based on its contents and performs the appropriate verification.
+  ///
+  /// ### License File Placement
+  /// - **Android:** Place the license file in the project's `assets` directory.
+  /// - **iOS:** Place the license file in the Xcode project's main bundle.
+  /// - Alternatively, copy the license file from Flutter assets to device storage at runtime.
+  ///
+  /// ### Usage Examples:
+  /// ```dart
+  /// // Android: Load from assets folder
+  /// ComPDFKit.initWithPath('assets://compdfkit_license.xml');
+  ///
+  /// // iOS: Load from the main bundle
+  /// ComPDFKit.initWithPath('compdfkit_license.xml');
+  ///
+  /// // Cross-platform: Copy from Flutter assets to local file path
+  /// final licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+  /// ComPDFKit.initWithPath(licenseFile.path);
+  /// ```
+  static void initWithPath(String licenseFilePath) async {
+    _methodChannel.invokeMethod('init_sdk_with_path', licenseFilePath);
+  }
+
   /// Get the version code of the ComPDFKit SDK.
   static Future<String> getVersionCode() async {
     String versionCode = await _methodChannel.invokeMethod('sdk_version_code');

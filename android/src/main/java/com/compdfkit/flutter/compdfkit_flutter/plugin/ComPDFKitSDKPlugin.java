@@ -14,6 +14,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_WITH_PATH;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPEN_DOCUMENT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.PICK_FILE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_SIGN_FILE_LIST;
@@ -81,6 +82,13 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 String androidLicenseKey = call.argument("androidOnlineLicense");
                 CPDFSdk.init(context, androidLicenseKey, false, (code, msg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK_KEYS: code:" + code + ", msg:" + msg);
+                    result.success(null);
+                });
+                break;
+            case INIT_SDK_WITH_PATH:
+                String xmlPath = (String) call.arguments;
+                CPDFSdk.initWithPath(context, xmlPath, (verifyCode, verifyMsg) -> {
+                    Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + verifyCode + ", msg:" + verifyMsg);
                     result.success(null);
                 });
                 break;

@@ -25,6 +25,8 @@ public class CPDFConstants {
      */
     public static final String INIT_SDK_KEYS = "init_sdk_keys";
 
+    public static final String INIT_SDK_WITH_PATH = "init_sdk_with_path";
+
     /**
      * Get ComPDFKit SDK Version Code
      * Example: 2.0.0

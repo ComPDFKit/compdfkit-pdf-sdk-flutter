@@ -39,27 +39,23 @@ class CPDFAnnotationsExample extends StatefulWidget {
 }
 
 class _CpdfAnnotationsExampleState extends State<CPDFAnnotationsExample> {
-
   CPDFReaderWidgetController? _controller;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Expanded(child: CPDFReaderPage(
+        Expanded(
+            child: CPDFReaderPage(
           title: 'Annotations Example',
           documentPath: widget.documentPath,
           configuration: CPDFConfiguration(
-            modeConfig:
-            const CPDFModeConfig(initialViewMode: CPDFViewMode.annotations),
-            annotationsConfig: const CPDFAnnotationsConfig(
-                annotationAuthor: 'ComPDFKit-Flutter'),
+            modeConfig: const CPDFModeConfig(readerOnly: true),
             toolbarConfig: const CPDFToolbarConfig(
-              annotationToolbarVisible: false,
-              iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail],
+              mainToolbarVisible: false
             ),
           ),
-          onTapMainDocAreaCallback: (){
+          onTapMainDocAreaCallback: () {
             debugPrint('ComPDFKit-Flutter: onTapMainDocAreaCallback');
           },
           onCreated: (controller) {

@@ -154,7 +154,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.1
++  compdfkit_flutter: ^2.4.3
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -200,7 +200,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.1
++  compdfkit_flutter: ^2.4.3
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -223,8 +223,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.1/ComPDFKit.podspec'
-+  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.1/ComPDFKit_Tools.podspec'
++  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.3/ComPDFKit.podspec'
++  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.3/ComPDFKit_Tools.podspec'
  end
 ```
 
@@ -301,9 +301,26 @@ ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicen
 ComPDFKit.init('your compdfkit key');
 ```
 
+* **Initialize Using License XML File**:
+
+```dart
+// Android
+// Copy the license_key_flutter.xml file into the assets directory of your Android project:
+ComPDFKit.initWithPath('assets://license_key_flutter.xml');
+
+// iOS
+// Copy the license_key_flutter.xml file into your iOS project directory (or a readable location):
+ComPDFKit.initWithPath('license_key_flutter.xml');
+
+// Include the license in Flutter assets and copy to device storage
+// Add `license_key_flutter.xml` to your Flutter project’s assets directory;
+File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+ComPDFKit.initWithPath(licenseFile.path);
+```
+
 **Example:**
 
-```diff
+```dart
 import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
@@ -333,11 +350,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    /// Please replace it with your ComPDFKit license
-+    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-  
-    /// If you are using an offline certified license, please use init() method
-+    /// ComPDFKit.init('your compdfkit key')
+    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+    ComPDFKit.initWithPath(licenseFile.path);
   }
 
   @override
@@ -387,11 +401,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    /// Please replace it with your ComPDFKit license
-    ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-
     /// If you are using an offline certified license, please use init() method
-    // ComPDFKit.init('your compdfkit key');
+    ComPDFKit.init('your compdfkit key');
   }
 
   @override
@@ -474,13 +485,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    /// Please replace it with your ComPDFKit license
-    ComPDFKit.initialize(
-         androidOnlineLicense: 'your compdfkit key',
-         iosOnlineLicense: 'your compdfkit key');
-
     /// If you are using an offline certified license, please use init() method
-    // ComPDFKit.init('your compdfkit key');
+    ComPDFKit.init('your compdfkit key');
   }
 
   @override
@@ -559,8 +565,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.1'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.1'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.3'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.3'
 
   # Enables Flipper.
   #

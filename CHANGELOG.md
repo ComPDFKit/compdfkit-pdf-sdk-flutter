@@ -1,3 +1,13 @@
+## 2.4.3
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.3.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.3.
+3. Fixed a crash issue when exporting annotation files in certain documents
+4. Fixed an issue where selecting an annotation would unexpectedly switch the current drawing annotation type
+5. Fixed an issue where deleted text content in some documents was not saved properly
+6. Optimized the flickering issue when jumping to a specific page
+7. Improved the page navigation logic during annotation undo and redo operations
+
+
 ## 2.4.1
 
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.1.  

@@ -53,6 +53,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
 import com.compdfkit.core.annotation.CPDFAnnotation;
 import com.compdfkit.core.common.CPDFDocumentException;
@@ -71,7 +72,6 @@ import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFPageUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.annotation.pdfannotationlist.data.CPDFAnnotDatas;
 import com.compdfkit.tools.common.utils.CFileUtils;
-import com.compdfkit.tools.common.utils.glide.GlideApp;
 import com.compdfkit.tools.common.utils.print.CPDFPrintUtils;
 import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import com.compdfkit.tools.common.utils.threadpools.SimpleBackgroundTask;
@@ -659,7 +659,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             return null;
           }else {
             try {
-              Bitmap bitmap = GlideApp.with(context).asBitmap().load(imagePath).submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).get();
+              Bitmap bitmap = Glide.with(context).asBitmap().load(imagePath).submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).get();
               return bitmap;
             }catch (Exception e){
               return null;

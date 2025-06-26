@@ -46,6 +46,27 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 print("Code: \(code), Message:\(String(describing: message))")
                 result(nil)
             }
+        case "init_sdk_with_path":
+            let licensePathArg = call.arguments as? String ?? ""
+            var licensePathToUse: String? = nil
+
+            if FileManager.default.fileExists(atPath: licensePathArg) {
+                licensePathToUse = licensePathArg
+            } else {
+                let fileName = (licensePathArg as NSString).deletingPathExtension
+                let fileExtension = (licensePathArg as NSString).pathExtension
+                licensePathToUse = Bundle.main.path(forResource: fileName, ofType: fileExtension)
+            }
+
+            guard let validLicensePath = licensePathToUse else {
+                print("License file not found.")
+                result(FlutterError(code: "LICENSE_NOT_FOUND", message: "License file path is invalid.", details: nil))
+                return
+            }
+            CPDFKit.verify(withPath: validLicensePath) { code, message in
+                print("Code: \(code), Message: \(String(describing: message))")
+                result(nil)
+            }
         case "sdk_build_tag":
             result("iOS build tag:\(CPDFKit.sharedInstance().buildNumber)")
         case "open_document":
