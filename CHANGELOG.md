@@ -1,3 +1,12 @@
+## 2.4.4
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.4.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.4.
+3. Added configuration option to disable page editing in the thumbnail list.
+4. Added support for customizing the background color of the thumbnail list.
+5. Added iOS configuration to disable the save prompt on exit.
+6. Fixed incorrect default color value for global annotation properties.
+
+
 ## 2.4.3
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.3.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.4.3.

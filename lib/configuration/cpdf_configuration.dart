@@ -164,7 +164,7 @@ class CPDFToolbarConfig {
             iosRightBarAvailableActions.map((e) => e.name).toList(),
         'availableMenus': availableMenus.map((e) => e.name).toList(),
         'mainToolbarVisible': mainToolbarVisible,
-        'annotationToolbarVisible' : annotationToolbarVisible
+        'annotationToolbarVisible': annotationToolbarVisible
       };
 }
 
@@ -436,19 +436,23 @@ class CPDFGlobalConfig {
 
   final CPDFFillSignatureType signatureType;
 
+  final CPDFThumbnailConfig thumbnail;
+
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
       this.fileSaveExtraFontSubset = true,
       this.watermark = const CPDFWatermarkConfig(),
       this.enableExitSaveTips = true,
-      this.signatureType = CPDFFillSignatureType.manual});
+      this.signatureType = CPDFFillSignatureType.manual,
+      this.thumbnail = const CPDFThumbnailConfig()});
 
   Map<String, dynamic> toJson() => {
         "themeMode": themeMode.name,
         "fileSaveExtraFontSubset": fileSaveExtraFontSubset,
         "watermark": watermark.toJson(),
         "enableExitSaveTips": enableExitSaveTips,
-        "signatureType": signatureType.name
+        "signatureType": signatureType.name,
+        "thumbnail": thumbnail.toJson()
       };
 }
 
@@ -463,5 +467,25 @@ class CPDFWatermarkConfig {
   Map<String, dynamic> toJson() => {
         "saveAsNewFile": saveAsNewFile,
         "outsideBackgroundColor": outsideBackgroundColor?.toHex()
+      };
+}
+
+class CPDFThumbnailConfig {
+  final String? title;
+
+  final Color? backgroundColor;
+
+  final bool editMode;
+
+  const CPDFThumbnailConfig({
+    this.title,
+    this.backgroundColor,
+    this.editMode = true,
+  });
+
+  Map<String, dynamic> toJson() => {
+        "title": title,
+        "backgroundColor": backgroundColor?.toHex(),
+        "editMode": editMode
       };
 }

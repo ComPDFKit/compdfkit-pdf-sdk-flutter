@@ -264,9 +264,9 @@ class CPDFViewCtrlPlugin {
                 let editMode = call.arguments as! Bool
                 
                 if editMode {
-                    self.pdfViewController.enterPDFPageEdit()
+                    self.pdfViewController.enterThumbnail(false)
                 } else {
-                    self.pdfViewController.enterThumbnail()
+                    self.pdfViewController.enterThumbnail(true)
                 }
                 result(nil)
             case CPDFConstants.showBotaView:

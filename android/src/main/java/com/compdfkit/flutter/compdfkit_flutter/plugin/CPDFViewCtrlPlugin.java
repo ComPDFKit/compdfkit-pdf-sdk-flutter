@@ -317,8 +317,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         result.success(documentFragment.pdfToolBar.getMode().alias);
         break;
       case SHOW_THUMBNAIL_VIEW:
-        boolean enterEditMode = (boolean) call.arguments;
-        documentFragment.showPageEdit(enterEditMode);
+        boolean enableEditMode = (boolean) call.arguments;
+        documentFragment.showPageEdit(false, enableEditMode);
         result.success(null);
         break;
       case SHOW_BOTA_VIEW:
