@@ -1,3 +1,13 @@
+## 2.4.5+1
+1. Fixed the issue that calling the save() function did not save the text field form being edited.
+
+## 2.4.5
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.5.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.5.
+3. Fixed the issue where the PDF page was not rendered in some scenarios after calling the save() method.
+4. Unified setting of background color of blank area in theme.
+5. Added API for setting component background color.
+
 ## 2.4.4
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.4.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.4.4.

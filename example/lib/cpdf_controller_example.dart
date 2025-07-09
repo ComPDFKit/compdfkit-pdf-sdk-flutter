@@ -42,7 +42,8 @@ class _CPDFControllerExampleState extends State<CPDFControllerExample> {
     'isChanged',
     'documentInfo',
     'removeSignFileList',
-    'print'
+    'print',
+    'setWidgetBackgroundColor',
   ];
 
   static const actions1 = [
@@ -195,7 +196,7 @@ class _CPDFControllerExampleState extends State<CPDFControllerExample> {
         await controller.showSecurityView();
         break;
       case 'Thumbnail':
-        await controller.showThumbnailView(true);
+        await controller.showThumbnailView(false);
         break;
       case 'BOTA':
         await controller.showBotaView();
@@ -216,6 +217,11 @@ class _CPDFControllerExampleState extends State<CPDFControllerExample> {
             builder: (context) {
               return CpdfReaderWidgetDisplaySettingPage(controller: controller);
             });
+        break;
+      case 'setWidgetBackgroundColor':
+        Color color = Colors.primaries[Random().nextInt(Colors.primaries.length)];
+        await controller.setWidgetBackgroundColor(color);
+        debugPrint('ComPDFKit:setWidgetBackgroundColor:$color');
         break;
     }
   }

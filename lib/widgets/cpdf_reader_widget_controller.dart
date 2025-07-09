@@ -154,6 +154,10 @@ class CPDFReaderWidgetController {
         {'displayMode': theme.type.name, 'color': theme.color});
   }
 
+  Future<void> setWidgetBackgroundColor(Color color) async {
+    return await _channel.invokeMethod('set_widget_background_color', color.toHex());
+  }
+
   /// Get background color of reader.
   ///
   /// example:

@@ -32,6 +32,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_VERTICAL_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RELOAD_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_ANNOTATION_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_WIDGET_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_ADD_WATERMARK_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_BOTA_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_DISPLAY_SETTINGS_VIEW;
@@ -103,9 +104,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
 
   public void setDocumentFragment(CPDFDocumentFragment documentFragment) {
     this.documentFragment = documentFragment;
-    this.documentFragment.setInitListener((pdfView)->{
+    this.documentFragment.setInitListener((pdfView) -> {
       documentPlugin.setReaderView(pdfView);
-      if (methodChannel != null){
+      if (methodChannel != null) {
         methodChannel.invokeMethod("onDocumentIsReady", null);
       }
       pdfView.addReaderViewCallback(new CPDFIReaderViewCallback() {
@@ -140,8 +141,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
             Map<String, Object> map = new HashMap<>();
             map.put("canUndo", cpdfUndoManager.canUndo());
             map.put("canRedo", cpdfUndoManager.canRedo());
-            if (methodChannel != null){
-              methodChannel.invokeMethod("onAnnotationHistoryChanged" , map);
+            if (methodChannel != null) {
+              methodChannel.invokeMethod("onAnnotationHistoryChanged", map);
             }
           });
 
@@ -152,7 +153,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       }
     });
     documentFragment.setFillScreenChangeListener(isFillScreen -> {
-      if (methodChannel != null){
+      if (methodChannel != null) {
         methodChannel.invokeMethod("onFullScreenChanged", isFillScreen);
       }
     });
@@ -190,12 +191,33 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         break;
       case SET_READ_BACKGROUND_COLOR:
         String colorHex = call.argument("color");
+        String displayMode = call.argument("displayMode");
         readerView.setReadBackgroundColor(Color.parseColor(colorHex));
-        if ("#FFFFFFFF".equals(colorHex)){
-          pdfView.setBackgroundColor(ContextCompat.getColor(context, com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color));
-        } else {
-          pdfView.setBackgroundColor(
-              CViewUtils.getColor(Color.parseColor(colorHex), 190));
+        switch (displayMode) {
+          case "light":
+            pdfView.setBackgroundColor(ContextCompat.getColor(context,
+                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color));
+            break;
+          case "dark":
+            pdfView.setBackgroundColor(ContextCompat.getColor(context,
+                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_dark));
+            break;
+          case "sepia":
+            pdfView.setBackgroundColor(ContextCompat.getColor(context,
+                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_sepia));
+            break;
+          case "reseda":
+            pdfView.setBackgroundColor(ContextCompat.getColor(context,
+                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_reseda));
+            break;
+        }
+        result.success(null);
+        break;
+      case SET_WIDGET_BACKGROUND_COLOR:
+        String widgetColorHex = (String) call.arguments;
+        try {
+          pdfView.setBackgroundColor(Color.parseColor(widgetColorHex));
+        } catch (Exception e) {
         }
         result.success(null);
         break;
@@ -297,9 +319,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         boolean noZoomPage = call.argument("noZoom");
         int page = call.argument("pageIndex");
         RectF rectF;
-        if (noZoomPage){
+        if (noZoomPage) {
           rectF = readerView.getPageNoZoomSize(page);
-        }else {
+        } else {
           rectF = readerView.getPageSize(page);
         }
         Map<String, Float> pageSizeMap = new HashMap<>();
@@ -354,8 +376,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         String typeStr = call.arguments();
 
         CAnnotationType type;
-        try{
-          switch (typeStr){
+        try {
+          switch (typeStr) {
             case "note":
               type = CAnnotationType.TEXT;
               break;
@@ -373,18 +395,18 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         result.success(null);
         break;
       case GET_ANNOTATION_MODE:
-          CAnnotationType annotationType = documentFragment.annotationToolbar.toolListAdapter.getCurrentAnnotType();
-          switch (annotationType){
-            case TEXT:
-              result.success("note");
-              break;
-            case PIC:
-              result.success("pictures");
-              break;
-            default:
-              result.success(annotationType.name().toLowerCase());
-              break;
-          }
+        CAnnotationType annotationType = documentFragment.annotationToolbar.toolListAdapter.getCurrentAnnotType();
+        switch (annotationType) {
+          case TEXT:
+            result.success("note");
+            break;
+          case PIC:
+            result.success("pictures");
+            break;
+          default:
+            result.success(annotationType.name().toLowerCase());
+            break;
+        }
         break;
       case ANNOTATION_CAN_UNDO: {
         CPDFUndoManager annotationUndoManager = documentFragment.pdfView.getCPdfReaderView()
@@ -398,12 +420,12 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         result.success(annotationUndoManager.canRedo());
         break;
       }
-      case ANNOTATION_UNDO:{
+      case ANNOTATION_UNDO: {
         documentFragment.annotationToolbar.annotUndo();
         result.success(null);
         break;
       }
-      case ANNOTATION_REDO:{
+      case ANNOTATION_REDO: {
         documentFragment.annotationToolbar.annotRedo();
         result.success(null);
         break;

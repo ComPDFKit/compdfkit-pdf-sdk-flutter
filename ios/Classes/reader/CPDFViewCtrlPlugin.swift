@@ -73,6 +73,16 @@ class CPDFViewCtrlPlugin {
 
                 pdfListView.layoutDocumentView()
                 result(nil)
+            case CPDFConstants.setWidgetBackgroundColor:
+                let hexColor = call.arguments as? String ?? ""
+                guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
+                    return
+                }
+                
+                pdfListView.backgroundColor = ColorHelper.colorWithHexString(hex: hexColor)
+                result(nil)
+                
             case CPDFConstants.getReadBackgroundColor:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result("#FFFFFF")
@@ -262,7 +272,6 @@ class CPDFViewCtrlPlugin {
                 }
             case CPDFConstants.showThumbnailView:
                 let editMode = call.arguments as! Bool
-                
                 if editMode {
                     self.pdfViewController.enterThumbnail(false)
                 } else {

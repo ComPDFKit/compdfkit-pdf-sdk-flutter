@@ -154,7 +154,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.4
++  compdfkit_flutter: ^2.4.5+1
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -200,7 +200,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.4
++  compdfkit_flutter: ^2.4.5+1
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -223,8 +223,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.4/ComPDFKit.podspec'
-+  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.4/ComPDFKit_Tools.podspec'
++  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.5/ComPDFKit.podspec'
++  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.5/ComPDFKit_Tools.podspec'
  end
 ```
 
@@ -565,8 +565,8 @@ target 'PDFView_RN' do
     # Pods for testing
   end
 
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.3'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.3'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.5'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.5'
 
   # Enables Flipper.
   #

@@ -176,6 +176,7 @@ public class CPDFConstants {
     public static final String ANNOTATION_CAN_REDO = "annotation_can_redo";
     public static final String ANNOTATION_UNDO = "annotation_undo";
     public static final String ANNOTATION_REDO = "annotation_redo";
+    public static final String SET_WIDGET_BACKGROUND_COLOR = "set_widget_background_color";
 
 
   }

@@ -52,6 +52,7 @@ public class CPDFDocumentPlugin {
                     result(true)
                     return
                 }
+                pdfListView.becomeFirstResponder()
                 var isSuccess = false
                 if (pdfListView.isEditing() == true) {
                     if pdfListView.isEdited() == true {

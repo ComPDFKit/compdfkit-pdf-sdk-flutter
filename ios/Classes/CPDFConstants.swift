@@ -146,4 +146,5 @@ class CPDFConstants {
     static let annotationCanUndo = "annotation_can_undo"
     static let annotationRedo = "annotation_redo"
     static let annotationUndo = "annotation_undo"
+    static let setWidgetBackgroundColor = "set_widget_background_color"
 }
