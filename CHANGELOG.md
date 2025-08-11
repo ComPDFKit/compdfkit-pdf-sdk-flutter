@@ -1,3 +1,8 @@
+## 2.4.5+2
+1. Added support for filling out forms in annotation mode on Android.
+2. Fixed an issue where the toolbar would reappear after setting mainToolbarVisible=false on Android.
+3. Fixed an issue where FreeText annotations were not fully displayed after text input was completed.
+
 ## 2.4.5+1
 1. Fixed the issue that calling the save() function did not save the text field form being edited.
 

@@ -154,7 +154,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.5+1
++  compdfkit_flutter: ^2.4.5+2
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -200,7 +200,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.5+1
++  compdfkit_flutter: ^2.4.5+2
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -288,18 +288,6 @@ flutter pub get
 ComPDFKit PDF SDK is a commercial SDK, which requires a license to grant developer permission to release their apps. Each license is only valid for one `bundle ID` or `applicationId` in development mode. Other flexible licensing options are also supported, please contact [our marketing team](mailto:support@compdf.com) to know more.
 
 To initialize ComPDFKit using a license key, call either of the following before using any other ComPDFKit APIs or features:
-
-* **Online license:**
-
-```dart
-ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-```
-
-* **Offline license:**
-
-```dart
-ComPDFKit.init('your compdfkit key');
-```
 
 * **Initialize Using License XML File**:
 
@@ -401,8 +389,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    /// If you are using an offline certified license, please use init() method
-    ComPDFKit.init('your compdfkit key');
+    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+    ComPDFKit.initWithPath(licenseFile.path);
   }
 
   @override
@@ -485,8 +473,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    /// If you are using an offline certified license, please use init() method
-    ComPDFKit.init('your compdfkit key');
+    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+    ComPDFKit.initWithPath(licenseFile.path);
   }
 
   @override

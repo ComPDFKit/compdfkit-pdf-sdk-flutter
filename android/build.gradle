@@ -5,7 +5,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
+
 
     }
 
@@ -39,7 +40,7 @@ android {
         compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:2.4.5'
+        api 'com.compdf:compdfkit-tools:2.4.5.2'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'
@@ -59,5 +60,5 @@ android {
     }
 }
 // refresh snapshot implementation
-//configurations.all { resolutionStrategy.cacheChangingModulesFor 0, 'seconds' }
+configurations.all { resolutionStrategy.cacheChangingModulesFor 0, 'seconds' }
 

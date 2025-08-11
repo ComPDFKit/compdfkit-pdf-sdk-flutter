@@ -50,7 +50,7 @@ class _CpdfAnnotationsExampleState extends State<CPDFAnnotationsExample> {
           title: 'Annotations Example',
           documentPath: widget.documentPath,
           configuration: CPDFConfiguration(
-            modeConfig: const CPDFModeConfig(readerOnly: true),
+            modeConfig: const CPDFModeConfig(readerOnly: true, initialViewMode: CPDFViewMode.annotations),
             toolbarConfig: const CPDFToolbarConfig(
               mainToolbarVisible: false
             ),
