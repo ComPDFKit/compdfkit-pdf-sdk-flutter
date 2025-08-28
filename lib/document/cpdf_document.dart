@@ -5,9 +5,13 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+import 'dart:io';
+
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
+import 'package:compdfkit_flutter/page/cpdf_text_searcher.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -35,6 +39,8 @@ class CPDFDocument {
   bool _isValid = false;
 
   get isValid => _isValid;
+
+  CPDFTextSearcher? _textSearcher;
 
   static Future<CPDFDocument> createInstance() async {
     var id = CpdfUuidUtil.generateShortUniqueId();
@@ -352,6 +358,9 @@ class CPDFDocument {
 
   Future<void> close() async {
     if (!_isValid) return;
+    if (Platform.isIOS) {
+      return;
+    }
     await _channel.invokeMethod('close');
     debugPrint('ComPDFKit:CPDFDocument.close');
     _isValid = false;
@@ -505,7 +514,7 @@ class CPDFDocument {
   /// ```dart
   /// var path = await controller.document.getDocumentPath();
   /// ```
-  Future<String> getDocumentPath() async{
+  Future<String> getDocumentPath() async {
     return await _channel.invokeMethod('get_document_path');
   }
 
@@ -547,4 +556,9 @@ class CPDFDocument {
   }
 
 
+  CPDFTextSearcher getTextSearcher() {
+    return _textSearcher ??= CPDFTextSearcher(
+      int.parse(_channel.name.split('_').last),
+    );
+  }
 }

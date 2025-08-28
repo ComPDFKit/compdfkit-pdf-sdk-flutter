@@ -46,6 +46,9 @@ class CPDFSecurityExample extends StatelessWidget {
         configuration: CPDFConfiguration(
             toolbarConfig: const CPDFToolbarConfig(
                 iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
+        onIOSClickBackPressed: (){
+          Navigator.pop(context);
+        },
         appBarActions: (controller) => [
               PopupMenuButton<String>(
                 onSelected: (value) =>

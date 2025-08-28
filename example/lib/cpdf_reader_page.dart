@@ -93,27 +93,27 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
   }
 
   Widget _buildPDFReader(){
-    return CPDFReaderWidget(
-      document: widget.documentPath,
-      password: widget.password,
-      configuration: widget.configuration,
-      onCreated: (controller) {
-        setState(() {
-          _controller = controller;
-        });
-        widget.onCreated?.call(controller);
-      },
-      onPageChanged: widget.onPageChanged,
-      onSaveCallback: widget.onSaveCallback,
-      onFillScreenChanged: widget.onFillScreenChanged,
-      onIOSClickBackPressed: widget.onIOSClickBackPressed,
-      onPageEditDialogBackPress: () {
-        debugPrint('CPDFReaderWidget: onPageEditDialogBackPress');
-      },
-      onTapMainDocAreaCallback: (){
-        widget.onTapMainDocAreaCallback?.call();
-      }
-    );
+    return SafeArea(bottom: true,child: CPDFReaderWidget(
+        document: widget.documentPath,
+        password: widget.password,
+        configuration: widget.configuration,
+        onCreated: (controller) {
+          setState(() {
+            _controller = controller;
+          });
+          widget.onCreated?.call(controller);
+        },
+        onPageChanged: widget.onPageChanged,
+        onSaveCallback: widget.onSaveCallback,
+        onFillScreenChanged: widget.onFillScreenChanged,
+        onIOSClickBackPressed: widget.onIOSClickBackPressed,
+        onPageEditDialogBackPress: () {
+          debugPrint('CPDFReaderWidget: onPageEditDialogBackPress');
+        },
+        onTapMainDocAreaCallback: (){
+          widget.onTapMainDocAreaCallback?.call();
+        }
+    ),);
   }
 
   Widget _buildPlaceholder(){

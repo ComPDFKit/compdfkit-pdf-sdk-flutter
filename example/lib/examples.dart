@@ -12,10 +12,11 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
-import 'package:compdfkit_flutter_example/cpdf_document_examples.dart';
+import 'package:compdfkit_flutter_example/cpdf_document_example_list_screen.dart';
 import 'package:compdfkit_flutter_example/cpdf_controller_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_dark_theme_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_pages_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_search_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_security_example.dart';
 import 'package:compdfkit_flutter_example/cpdf_widgets_example.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
@@ -106,16 +107,27 @@ List<Widget> examples(BuildContext context) => [
             }
           }),
       FeatureItem(
-      title: 'Pages Examples',
-      description:
-      'This example demonstrates PDF page related operations, such as inserting and splitting PDF documents.',
-      onTap: () async {
-        File document = await extractAsset(context, _documentPath,
-            shouldOverwrite: false);
-        if (context.mounted) {
-          goTo(CPDFPagesExample(documentPath: document.path), context);
-        }
-      }),
+          title: 'Pages Examples',
+          description:
+              'This example demonstrates PDF page related operations, such as inserting and splitting PDF documents.',
+          onTap: () async {
+            File document = await extractAsset(context, _documentPath,
+                shouldOverwrite: false);
+            if (context.mounted) {
+              goTo(CPDFPagesExample(documentPath: document.path), context);
+            }
+          }),
+      FeatureItem(
+          title: 'Search Text Examples',
+          description:
+              'This example shows how to call search-related APIs to perform text search.',
+          onTap: () async {
+            File document = await extractAsset(context, _documentPath,
+                shouldOverwrite: false);
+            if (context.mounted) {
+              goTo(CpdfSearchExample(documentPath: document.path), context);
+            }
+          }),
       _title(context, 'Modal View Examples'),
       FeatureItem(
           title: 'Basic Example',
@@ -141,7 +153,7 @@ List<Widget> examples(BuildContext context) => [
           description:
               'This example demonstrates how to use CPDFDocument independently for PDF document operations, including opening documents, importing and exporting XFDF annotation files, setting passwords, and more.',
           onTap: () async {
-            goTo(const CPDFDocumentExamples(), context);
+            goTo(const CPDFDocumentExampleListScreen(), context);
           }),
     ];
 

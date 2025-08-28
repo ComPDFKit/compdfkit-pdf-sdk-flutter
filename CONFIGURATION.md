@@ -140,6 +140,7 @@ Configure functions for the top toolbar in the PDF view.
 | availableMenus              | Array   | A list of more functions popped up by the `menu` option on the top toolbar. |
 | mainToolbarVisible          | boolean | Whether to display the toolbar at the top of the main interface view. |
 | annotationToolbarVisible    | boolean | Shows or hides the annotation toolbar that appears at the bottom of the view when in annotation mode. |
+| showInkToggleButton         | boolean | Whether to display the toggle/slide and drawing state buttons in the upper-left corner when drawing ink annotations. |
 
 ##### **Constants**
 
@@ -791,6 +792,8 @@ This section is used to configure the types of forms enabled in the view's botto
 | fileSaveExtraFontSubset | boolean             | true                                                         | When saving a document, whether to save the used font set together with the document. |
 | watermark               | CPDFWatermarkConfig | {   "saveAsNewFile" : true }                                 | The user can configure the watermark addition popup, allowing them to choose whether to save the watermark directly to the current document or save it to a different directory.<br>**true**: Save to a different directory<br>**false**: Add to the current document directly |
 | thumbnail               | CPDFThumbnail       | {   "title" : "",   <br />"backgroundColor": "",  <br /> "editMode" : true <br />} |                                                              |
+| enableErrorTips         | boolean             | true \| false                                                | Whether to enable error prompts. For example, if a page cannot add a highlight annotation, setting this to false will prevent the prompt message from appearing. |
+| signatureType           | String              | manual                                                       | Used to configure the default signing method when signing in the form field of CPDFReaderView.<br />Type:<br />* manual<br />* digital<br />* electronic |
 
 ##### themeMode Constants
 
@@ -1053,6 +1056,7 @@ The context menu configuration in form mode displays different context menu opti
   "toolbarConfig": {
     "mainToolbarVisible" : true,
     "annotationToolbarVisible" : true,
+    "showInkToggleButton": true,
     "androidAvailableActions": [
       "thumbnail",
       "search",
@@ -1312,7 +1316,13 @@ The context menu configuration in form mode displays different context menu opti
       "outsideBackgroundColor" : ""
     },
     "signatureType": "manual",
-    "enableExitSaveTips" : true
+    "enableExitSaveTips" : true,
+    "thumbnail": {
+      "title" : "",
+      "backgroundColor": "",
+      "editMode" : true
+    },
+    "enableErrorTips" : true
   },
   "contextMenuConfig" : {
     "global": {

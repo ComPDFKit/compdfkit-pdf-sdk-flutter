@@ -1,40 +1,33 @@
 # ComPDFKit Flutter PDF Library
 
-## Overview
+## About
 
-[ComPDFKit PDF SDK](https://www.compdf.com) is a robust PDF library, which offers comprehensive functions for quickly viewing, annotating, editing, and signing PDFs. It is feature-rich and battle-tested, making PDF files process and manipulation easier and faster.
+[ComPDFKit for Flutter](https://www.compdf.com/guides/pdf-sdk/flutter/overview), developed and managed by [ComPDF](https://www.compdf.com/), is a powerful PDF library that enables developers to seamlessly integrate PDF viewing, a nnotation, editing, form filling, redaction, and signing into any iOS or Android application. It is available at [pub.dev](https://pub.dev/packages/compdfkit_flutter) and [GitHub.](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter)
 
-[ComPDFKit for Flutter](https://www.compdf.com/flutter) allows you to quickly add PDF functions to any Flutter application, elevating your Android and iOS apps to ensure seamless and efficient development.  It is available at [pub.dev](https://pub.dev/packages/compdfkit_flutter) and [GitHub.](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter)
+For more information, please check our [developer guides](https://www.compdf.com/guides/pdf-sdk/flutter/overview).
 
-Watch the video here:
-[![image](https://img.youtube.com/vi/I0Rz11iVAbE/maxresdefault.jpg)](https://youtu.be/I0Rz11iVAbE)
+## Contents
 
-## Related
+* [Requirements](#requirements)
+* [Steps to Build the Flutter PDF Editor by Integrating ComPDFKit PDF SDK](#steps-to-build-the-flutter-pdf-editor-by-integrating-compdfkit-pdf-sdk)
+* [Example App](#example-app)
+* [Support](#support)
 
-* [ComPDFKit PDF Library for iOS](https://github.com/ComPDFKit/PDF-SDK-iOS)
-* [ComPDFKit PDF Library for Android](https://github.com/ComPDFKit/PDF-SDK-Android)
-* ComPDFKit PDF SDK - [React Native Library](https://www.compdf.com/react-native)
-* [What Is Flutter and What Can It Do](https://www.compdf.com/blog/what-is-flutter)
-* [How to Build a Flutter PDF Viewer?](https://www.compdf.com/blog/build-a-flutter-pdf-viewer)
-* [How to Use ComPDFKit Flutter SDK to Build a New Application](https://www.compdf.com/blog/use-compdfkit-flutter-sdk-to-build-new-app)
-* [ComPDFKit API](https://api.compdf.com/api/pricing) allows you to get 1000 files processing monthly now! Just [sign up](https://api.compdf.com/signup) for a free trial and enjoy comprehensive PDF functions.
+## Requirements
 
-## Key Features
+Before starting, please make sure that you have already met the following prerequisites:
 
-- [**Viewer**](https://www.compdf.com/pdf-sdk/viewer) component offers Standard page display modes, Navigation, Text search & selection, Zoom in and out & Fit-page, Text reflow, and more.
-- [**Annotations**](https://www.compdf.com/pdf-sdk/annotations) component offers Note, Link, Free Text, Line, Square, Circle, Highlight, Underline, Squiggly, Strikeout, Stamp, Ink, Sound, and more.
-- [**Forms**](https://www.compdf.com/pdf-sdk/forms) component offers Push Button, Check Box, Radio Button, Text Field, Combo Box, List Box, Signature, and more.
-- [**Document Editor**](https://www.compdf.com/pdf-sdk/document-editor) component offers Split, Extract, Merge, Delete, Insert, Crop, Move, Rotate, Replace, and Exchange pages, etc.
-- [**Content Editor**](https://www.compdf.com/pdf-sdk/edit-pdf) component offers Copy, Resize, Change Colors, Text Alignment, Find and Replace, etc.
-- [**Security**](https://www.compdf.com/pdf-sdk/security) component offers Encrypt and Decrypt PDFs, Watermark, etc.
+### Get ComPDFKit License Key
 
-If you want to know all the features that ComPDFKit SDK can offer, please see our [Feature List](https://www.compdf.com/pdf-sdk/features-list).
+ComPDF offers two types of license keys: a free 30-day trial license and a commercial license.
 
-## Get Started
+- **Trial License** – You can request a [30-day free trial](https://www.compdf.com/pricing) online.  
+- **Commercial License** – For advanced features, custom requirements, or quote inquiries, feel free to [contact our sales](https://www.compdf.com/contact-sales).  
 
-It's easy to embed [ComPDFKit Flutter SDK](https://www.compdf.com/guides/pdf-sdk/flutter/overview) into Flutter applications with a few lines of code. The following sections describe the optimal systems and environments to support, as well as quick integration steps. Let's take a few minutes to get started.
+For the Flutter PDF SDK, the commercial license must be bound to your application’s ApplicationId and iOS BundleId.
 
-### Requirements
+
+### System Requirements
 
 **Android**
 
@@ -65,7 +58,11 @@ Operating Environment Requirements:
 * The iOS 12.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.
 
-### Integrate into a New Flutter APP
+## How to Build the Flutter PDF Editor by Integrating ComPDFKit PDF SDK 
+
+[![image](https://img.youtube.com/vi/I0Rz11iVAbE/maxresdefault.jpg)](https://youtu.be/I0Rz11iVAbE)
+
+### Create a new project
 
 #### Android
 
@@ -154,7 +151,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.5+2
++  compdfkit_flutter: ^2.4.6
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -200,7 +197,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.4.5+2
++  compdfkit_flutter: ^2.4.6
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -223,8 +220,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.5/ComPDFKit.podspec'
-+  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.5/ComPDFKit_Tools.podspec'
++  pod "ComPDFKit", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.6/ComPDFKit.podspec'
++  pod "ComPDFKit_Tools", podspec:'https://file.compdf.com/cocoapods/ios/compdfkit_pdf_sdk/2.4.6/ComPDFKit_Tools.podspec'
  end
 ```
 
@@ -283,80 +280,58 @@ flutter pub get
 
 
 
-#### Apply the License Key
+### Apply the License Key
 
-ComPDFKit PDF SDK is a commercial SDK, which requires a license to grant developer permission to release their apps. Each license is only valid for one `bundle ID` or `applicationId` in development mode. Other flexible licensing options are also supported, please contact [our marketing team](mailto:support@compdf.com) to know more.
+ComPDFKit PDF SDK currently supports two authentication methods to verify license keys: online authentication and offline authentication.
 
-To initialize ComPDFKit using a license key, call either of the following before using any other ComPDFKit APIs or features:
+Learn about:
 
-* **Initialize Using License XML File**:
+* [What is the authentication mechanism of ComPDFKit's license?](https://www.compdf.com/faq/authentication-mechanism-of-compdfkit-license)
+
+* [What are the differences between Online Authentication and Offline Authentication?](https://www.compdf.com/faq/the-differences-between-online-authentication-and-offline-authentication)
+
+Accurately obtaining the license key is crucial for the application of the license.
+
+1. In the email you received, locate the `XML` file containing the license key.
+2. Copy the License.xml file into the **assets directory** of your Flutter project.
+
+<img src="./screenshots/guides_flutter_2.3_1.png" alt="guides_flutter_2.3_1" style="zoom: 50%;" />
+
+3. Open the pubspec.yaml file of your project and configure the flutter: section to enable the assets directory.
+
+<img src="./screenshots/guides_flutter_2.3_2.png" alt="guides_flutter_2.3_2" style="zoom: 50%;" />
+
+4. Initialize the SDK:
+
+```dart
+// Include the license in Flutter assets and copy to device storage
+// Add `license_key_flutter.xml` to your Flutter project’s assets directory;
+File licenseFile = await CPDFFileUtil.extractAsset(context, 'assets/license_key_flutter.xml');
+ComPDFKit.initWithPath(licenseFile.path);
+```
+
+**Alternative methods (optional)**
 
 ```dart
 // Android
-// Copy the license_key_flutter.xml file into the assets directory of your Android project:
+// Copy the license_key_flutter.xml file into the `android/app/src/main/assets` directory of your Android project:
 ComPDFKit.initWithPath('assets://license_key_flutter.xml');
 
 // iOS
 // Copy the license_key_flutter.xml file into your iOS project directory (or a readable location):
 ComPDFKit.initWithPath('license_key_flutter.xml');
-
-// Include the license in Flutter assets and copy to device storage
-// Add `license_key_flutter.xml` to your Flutter project’s assets directory;
-File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
-ComPDFKit.initWithPath(licenseFile.path);
 ```
 
-**Example:**
 
-```dart
-import 'dart:io';
 
-import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/cpdf_configuration.dart';
-
-import 'package:flutter/material.dart';
-
-const String _documentPath = 'pdfs/PDF_Document.pdf';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  void _init() async {
-    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
-    ComPDFKit.initWithPath(licenseFile.path);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp();
-  }
-}
-```
-
-#### Usage
+### Run Project
 
 There are 2 different ways to use ComPDFKit Flutter API:
 
 * Present a document via a plugin.
 * Show a ComPDFKit document view via a Widget.
 
-##### Usage Plugin
+#### Usage Plugin
 
 Open `lib/main.dart`,replace the entire file with the following:
 
@@ -365,7 +340,7 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
-
+import 'package:compdfkit_flutter/util/cpdf_file_util.dart';
 import 'package:flutter/material.dart';
 
 const String _documentPath = 'pdfs/PDF_Document.pdf';
@@ -389,7 +364,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+    File licenseFile = await CPDFFileUtil.extractAsset(context, 'assets/license_key_flutter.xml');
     ComPDFKit.initWithPath(licenseFile.path);
   }
 
@@ -397,42 +372,30 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-          body: SafeArea(
-              child: Center(
-                child: ElevatedButton(
-                    onPressed: () async {
-                      showDocument(context);
-                    },
-                    child: const Text(
-                      'Open Document',
-                      style: TextStyle(color: Colors.white),
-                    )),
-              ))),
+        body: SafeArea(
+          child: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                showDocument(context);
+              },
+              child: const Text(
+                'Open Document',
+              )),
+          ))),
     );
   }
 
   void showDocument(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
-    final list = bytes.buffer.asUint8List();
-    final tempDir = await ComPDFKit.getTemporaryDirectory();
-    var pdfsDir = Directory('${tempDir.path}/pdfs');
-    pdfsDir.createSync(recursive: true);
-
-    final tempDocumentPath = '${tempDir.path}/$_documentPath';
-    final file = File(tempDocumentPath);
-    if (!file.existsSync()) {
-      file.create(recursive: true);
-      file.writeAsBytesSync(list);
-    }
+    var pdfFile = await CPDFFileUtil.extractAsset(_documentPath);
     var configuration = CPDFConfiguration();
     // Present a document via a plugin.
-    ComPDFKit.openDocument(tempDocumentPath,
-        password: '', configuration: configuration);
+    ComPDFKit.openDocument(pdfFile.path,
+                           password: '', configuration: configuration);
   }
 }
 ```
 
-##### Usage Widget
+#### Usage Widget
 
 Open `lib/main.dart`,replace the entire file with the following:
 
@@ -442,7 +405,7 @@ import 'dart:io';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
-
+import 'package:compdfkit_flutter/util/cpdf_file_util.dart';
 import 'package:flutter/material.dart';
 
 const String _documentPath = 'pdfs/PDF_Document.pdf';
@@ -465,7 +428,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _init();
-    _getDocumentPath(context).then((value) {
+    _getDocumentPath().then((value) {
       setState(() {
         _document = value;
       });
@@ -473,8 +436,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _init() async {
-    File licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
+    /// Please replace it with your ComPDFKit license
+    File licenseFile = await CPDFFileUtil.extractAsset(context, 'assets/license_key_flutter.xml');
     ComPDFKit.initWithPath(licenseFile.path);
+  }
+
+  Future<String> _getDocumentPath() async {
+    var file = await CPDFFileUtil.extractAsset('pdfs/PDF_Document.pdf');
+    return file.path;
   }
 
   @override
@@ -483,7 +452,7 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: const Text('Dark Theme Example'),
+          title: const Text('CPDFReaderWidget Example'),
         ),
         body: _document == null
         ? Container()
@@ -491,22 +460,6 @@ class _MyAppState extends State<MyApp> {
           document: _document!,
           configuration: CPDFConfiguration(),
           onCreated: (_create) => {})));
-  }
-
-  Future<String> _getDocumentPath(BuildContext context) async {
-    final bytes = await DefaultAssetBundle.of(context).load(_documentPath);
-    final list = bytes.buffer.asUint8List();
-    final tempDir = await ComPDFKit.getTemporaryDirectory();
-    var pdfsDir = Directory('${tempDir.path}/pdfs');
-    pdfsDir.createSync(recursive: true);
-
-    final tempDocumentPath = '${tempDir.path}/$_documentPath';
-    final file = File(tempDocumentPath);
-    if (!file.existsSync()) {
-      file.create(recursive: true);
-      file.writeAsBytesSync(list);
-    }
-    return tempDocumentPath;
   }
 }
 ```
@@ -517,103 +470,7 @@ Start your Android emulator, or connect a device, Run the app with:
 flutter run
 ```
 
-
-
-#### Troubleshooting
-
-1.SSL network request to download 'ComPDFKit' library failed when cocopods downloaded iOS third-party library
-
-If SSL network requests fail to download the `ComPDFKit` library when you run `pod install`, replace the third-party platform download address link of the ComPDFKit library and execute `pod install`
-
-````diff
-require_relative '../node_modules/react-native/scripts/react_native_pods'
-require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
-
-- platform :ios, '10.0'
-+ platform :ios, '12.0'
-install! 'cocoapods', :deterministic_uuids => false
-
-target 'PDFView_RN' do
-  config = use_native_modules!
-
-  # Flags change depending on the env values.
-  flags = get_default_flags()
-
-  use_react_native!(
-    :path => config[:reactNativePath],
-    # to enable hermes on iOS, change `false` to `true` and then install pods
-    :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
-
-  target 'PDFView_RNTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.5'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.4.5'
-
-  # Enables Flipper.
-  #
-  # Note that if you have use_frameworks! enabled, Flipper will not work and
-  # you should disable the next line.
-  use_flipper!()
-
-  post_install do |installer|
-    react_native_post_install(installer)
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
-  end
-end
-````
-
-## UI Customization
-
-In the **1.12.0** version, we have expanded the options that can be defined in the [CPDFConfiguration](./lib/configuration/cpdf_configuration.dart) class. When using the `ComPDFKit.openDocument` method to open a PDF View or use `CPDFReaderWidget`, you can define this object to meet your product needs. We will continue to enrich the configuration options in the future to further enhance the flexibility of the product. The following are some examples of commonly used configuration options:
-
-1. Set the initial display mode and the list of available modes. The following code shows enabling only the viewer mode and annotations mode:
-
-```dart
-var configuration = CPDFConfiguration(modeConfig: const ModeConfig(
-  initialViewMode: CPreviewMode.viewer,
-  availableViewModes: [
-    CPreviewMode.viewer,
-    CPreviewMode.annotations
-  ]
-));
-ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
-```
-
-2. Set the list of enabled annotation types and default annotation attribute values. For example, enable only highlight annotations and set the color and transparency for highlight annotations:
-
-```dart
-var configuration = CPDFConfiguration(
-  annotationsConfig: const CPDFAnnotationsConfig(
-    availableTypes: [CPDFAnnotationType.highlight],
-    initAttribute: CPDFAnnotationAttribute(
-      highlight: CPDFAnnotAttr.highlight(color: Colors.blue, alpha: 255))));
-
-ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
-```
-
-3. Set the display mode and page flipping direction:
-
-```dart
-var configuration = CPDFConfiguration(
-  readerViewConfig: const ReaderViewConfig(
-    displayMode: CPDFDisplayMode.doublePage,
-    verticalMode: false
-  )
-);
-
-ComPDFKit.openDocument(documentPath, password: '', configuration: configuration);
-```
-
-> Note: For more information, please refer to the options defined in the [CONFIGURATION.md](./CONFIGURATION.md) class
-
-## Example APP
+### Example APP
 
 To see [ComPDFKit for Flutter](https://www.compdf.com/contact-sales) in action, check out our [Flutter example app](example/) and [API reference](https://pub.dev/documentation/compdfkit_flutter/latest/compdfkit/compdfkit-library.html)
 
@@ -622,41 +479,32 @@ Showing a PDF document inside your Flutter app is as simple as this:
 ```dart
 /// First. Please replace it with your ComPDFKit license
 
-/// online authentication
-ComPDFKit.initialize(androidOnlineLicense : 'your compdfkit key', iosOnlineLicense : 'your compdfkit key');
-
-/// offline authentication
-ComPDFKit.init('your compdfkit key')
+// Include the license in Flutter assets and copy to device storage
+// Add `license_key_flutter.xml` to your Flutter project’s assets directory;
+File licenseFile = await CPDFFileUtil.extractAsset('assets/license_key_flutter.xml');
+ComPDFKit.initWithPath(licenseFile.path);
 
 /// open pdf document
 ComPDFKit.openDocument(tempDocumentPath, password: '', configuration:  CPDFConfiguration());
 
 /// Here’s how you can open a PDF document using CPDFReaderWidget:
 Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(title: const Text('CPDFReaderWidget Example'),),
-        body: CPDFReaderWidget(
-          document: widget.documentPath,
-          configuration: CPDFConfiguration()
-        ));
+  resizeToAvoidBottomInset: false,
+  appBar: AppBar(title: const Text('CPDFReaderWidget Example'),),
+  body: CPDFReaderWidget(
+    document: widget.documentPath,
+    configuration: CPDFConfiguration()
+  ));
 ```
 
 ## Support
 
-[ComPDFKit](https://www.compdf.com/) has a professional R&D team that produces comprehensive technical documentation and guides to help developers. Also, you can get an immediate response when reporting your problems to our support team.
+[ComPDF](https://www.compdf.com/) has a professional R&D team that produces comprehensive technical documentation and guides to help developers. Also, you can get an immediate response when reporting your problems to our support team.
 
 - For detailed information, please visit our [Guides](https://www.compdf.com/guides/pdf-sdk/flutter/overview) page.
 - Stay updated with the latest improvements through our [Changelog](https://www.compdf.com/pdf-sdk/changelog-flutter).
 - For technical assistance, please reach out to our [Technical Support](https://www.compdf.com/support).
-- To get more details and an accurate quote, please contact our [Sales Team](https://compdf.com/contact-us).
+- To get more details and an accurate quote, please [contact our Sales Team](https://compdf.com/contact-us).
 
-## License
-
-ComPDFKit PDF SDK supports flexible licensing options, please contact [our sales team](mailto:support@compdf.com) to know more. Each license is only valid for one application ID in development mode. However, any documents, sample code, or source code distribution from the released package of ComPDFKit PDF SDK to any third party is prohibited.
-
-## Note
-
-We are glad to announce that you can register a ComPDFKit API account for a [free trial](https://api.compdf.com/api/pricing) to process 1000 documents per month for free.
-
-Thanks,
-The ComPDFKit Team
+Thanks for reading,
+The [ComPDF](https://www.compdf.com/) Team

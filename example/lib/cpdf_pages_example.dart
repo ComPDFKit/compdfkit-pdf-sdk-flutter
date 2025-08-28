@@ -7,7 +7,6 @@
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
-import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
@@ -31,8 +30,11 @@ class CPDFPagesExample extends StatelessWidget {
         title: 'Pages Example',
         documentPath: documentPath,
         configuration: CPDFConfiguration(
-            toolbarConfig: const CPDFToolbarConfig(
-                iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
+            toolbarConfig: const CPDFToolbarConfig(),
+        ),
+        onIOSClickBackPressed: () {
+          Navigator.pop(context);
+        },
         appBarActions: (controller) => [
               PopupMenuButton<String>(
                 onSelected: (value) =>

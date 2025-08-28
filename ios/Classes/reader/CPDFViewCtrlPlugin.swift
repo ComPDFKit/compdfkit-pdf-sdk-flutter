@@ -165,7 +165,7 @@ class CPDFViewCtrlPlugin {
                     return
                 }
                 let continueMode = call.arguments as! Bool
-                pdfListView.displaysPageBreaks = continueMode
+                pdfListView.isContinueMode = continueMode
                 pdfListView.layoutDocumentView()
                 result(nil)
             case CPDFConstants.isContinueMode:
@@ -173,7 +173,7 @@ class CPDFViewCtrlPlugin {
                     result(true)
                     return
                 }
-                result(pdfListView.displaysPageBreaks)
+                result(pdfListView.isContinueMode)
             case CPDFConstants.setDoublePageMode:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(nil)
@@ -182,6 +182,9 @@ class CPDFViewCtrlPlugin {
                 let twoUp = call.arguments as! Bool
                 pdfListView.displayTwoUp = twoUp
                 pdfListView.displaysAsBook = false
+                if pdfListView.displayDirection == .horizontal {
+                    pdfListView.isContinueMode = false
+                }
                 pdfListView.layoutDocumentView()
                 result(nil)
             case CPDFConstants.isDoublePageMode:
@@ -198,6 +201,9 @@ class CPDFViewCtrlPlugin {
                 let coverPageMode = call.arguments as! Bool
                 pdfListView.displaysAsBook = coverPageMode
                 pdfListView.displayTwoUp = coverPageMode
+                if pdfListView.displayDirection == .horizontal {
+                    pdfListView.isContinueMode = false
+                }
                 pdfListView.layoutDocumentView()
                 result(nil)
             case CPDFConstants.isCoverPageMode:

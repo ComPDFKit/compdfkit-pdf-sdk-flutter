@@ -18,12 +18,15 @@ class CPDFDarkThemeExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CPDFReaderPage(
-        title: 'Dark Theme Example',
-        documentPath: documentPath,
-        configuration: CPDFConfiguration(
-            toolbarConfig: const CPDFToolbarConfig(
-                iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail]),
-            globalConfig:
-                const CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)));
+      title: 'Dark Theme Example',
+      documentPath: documentPath,
+      configuration: CPDFConfiguration(
+          toolbarConfig: const CPDFToolbarConfig(
+              iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail]),
+          globalConfig: const CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)),
+      onIOSClickBackPressed: () {
+        Navigator.pop(context);
+      },
+    );
   }
 }

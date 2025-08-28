@@ -42,6 +42,9 @@ class CPDFWidgetsExample extends StatelessWidget {
             ]
           )
         ),
+        onIOSClickBackPressed: (){
+          Navigator.pop(context);
+        },
         appBarActions: (controller) => [
               PopupMenuButton<String>(
                 onSelected: (value) =>

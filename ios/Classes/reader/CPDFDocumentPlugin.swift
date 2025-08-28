@@ -27,6 +27,12 @@ public class CPDFDocumentPlugin {
         registeryMethodChannel()
     }
     
+    init(document: CPDFDocument, uid : String, binaryMessager : FlutterBinaryMessenger) {
+        self.document = document
+        _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
+        registeryMethodChannel()
+    }
+    
     init(pdfViewController : CPDFViewController, uid : String, binaryMessager : FlutterBinaryMessenger){
         self.pdfViewController = pdfViewController
         _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
@@ -34,17 +40,17 @@ public class CPDFDocumentPlugin {
     }
 
     
-    
     private func registeryMethodChannel(){
 
         _methodChannel.setMethodCallHandler({
-            (call: FlutterMethodCall, result: FlutterResult) -> Void in
+            (call: FlutterMethodCall, result:  @escaping FlutterResult) -> Void in
             print("ComPDFKit-Flutter: iOS-MethodChannel: CPDFDocumentPlugin [method:\(call.method)]")
             if let pdfViewController = self.pdfViewController,
                let newDocument = pdfViewController.pdfListView?.document,
                self.document !== newDocument {
                 self.document = newDocument
             }
+            
             switch call.method {
             case CPDFConstants.save:
                 // save pdf
@@ -52,6 +58,8 @@ public class CPDFDocumentPlugin {
                     result(true)
                     return
                 }
+                
+                pdfListView.exitDrawing()
                 pdfListView.becomeFirstResponder()
                 var isSuccess = false
                 if (pdfListView.isEditing() == true) {
@@ -387,8 +395,8 @@ public class CPDFDocumentPlugin {
                 
                 let size = CGSize(width: pageWidth, height: pageHeight)
                 let success = self.document?.insertPage(size, at: UInt(_index))
-                self.pdfViewController?.pdfListView?.layoutDocumentView()
-                
+//                self.pdfViewController?.pdfListView?.layoutDocumentView()
+
                 result(success)
             case CPDFConstants.splitDocumentPages:
                 let info = call.arguments as? [String: Any]
@@ -448,14 +456,33 @@ public class CPDFDocumentPlugin {
                 let pageUtil = CPDFPageUtil(page: page)
                 pageUtil.pageIndex = pageIndex
                 let widgets = pageUtil.getForms()
-                
                 result(widgets)
+                        case CPDFConstants.searchText:
+                            let info = call.arguments as? [String: Any]
+                            let keywords = self.getValue(from: info, key: "keywords", defaultValue: "")
+                            let options = self.getValue(from: info, key: "search_options", defaultValue: CPDFSearchOptions(rawValue: 0))
+                            let searchResults = CPDFSearchUtil.searchText(from: self.document, keywords: keywords, options: options)
+                            result(searchResults)
+                        case CPDFConstants.searchTextSelection:
+                            let info = call.arguments as? [String: Any]
+                            let selection = CPDFSearchUtil.selection(from: self.document, info: info!)
+                            if let selection = selection {
+                                self.pdfViewController?.pdfListView?.go(to: selection.bounds, on: selection.page, offsetY: CGFloat(88), animated: false)
+                                self.pdfViewController?.pdfListView?.setHighlightedSelection(selection, animated: true)
+                            }
+                            result(nil)
+                        case CPDFConstants.searchTextClear:
+                            self.pdfViewController?.pdfListView?.setHighlightedSelection(nil, animated: false)
+                            result(nil)
+                        case CPDFConstants.getSearchText:
+                            let info = call.arguments as? [String: Any]
+                            result(CPDFSearchUtil.getSearchText(from: self.document, info: info!))
             default:
                 result(FlutterMethodNotImplemented)
             }
         });
     }
-    
+
     private func createWatermark(call: FlutterMethodCall, result: FlutterResult) {
         let info = call.arguments as? [String: Any]
         // text, image

@@ -124,36 +124,43 @@ class CPDFToolbarConfig {
 
   final bool annotationToolbarVisible;
 
-  const CPDFToolbarConfig(
-      {this.androidAvailableActions = const [
-        CPDFToolbarAction.thumbnail,
-        CPDFToolbarAction.search,
-        CPDFToolbarAction.bota,
-        CPDFToolbarAction.menu,
-      ],
-      this.iosLeftBarAvailableActions = const [
-        CPDFToolbarAction.back,
-        CPDFToolbarAction.thumbnail,
-      ],
-      this.iosRightBarAvailableActions = const [
-        CPDFToolbarAction.search,
-        CPDFToolbarAction.bota,
-        CPDFToolbarAction.menu
-      ],
-      this.availableMenus = const [
-        CPDFToolbarMenuAction.viewSettings,
-        CPDFToolbarMenuAction.documentEditor,
-        CPDFToolbarMenuAction.security,
-        CPDFToolbarMenuAction.watermark,
-        CPDFToolbarMenuAction.flattened,
-        CPDFToolbarMenuAction.documentInfo,
-        CPDFToolbarMenuAction.save,
-        CPDFToolbarMenuAction.share,
-        CPDFToolbarMenuAction.openDocument,
-        CPDFToolbarMenuAction.snip
-      ],
-      this.mainToolbarVisible = true,
-      this.annotationToolbarVisible = true});
+  final bool showInkToggleButton;
+
+  // final bool showFormModeToggleButton;
+
+  const CPDFToolbarConfig({
+    this.androidAvailableActions = const [
+      CPDFToolbarAction.thumbnail,
+      CPDFToolbarAction.search,
+      CPDFToolbarAction.bota,
+      CPDFToolbarAction.menu,
+    ],
+    this.iosLeftBarAvailableActions = const [
+      CPDFToolbarAction.back,
+      CPDFToolbarAction.thumbnail,
+    ],
+    this.iosRightBarAvailableActions = const [
+      CPDFToolbarAction.search,
+      CPDFToolbarAction.bota,
+      CPDFToolbarAction.menu
+    ],
+    this.availableMenus = const [
+      CPDFToolbarMenuAction.viewSettings,
+      CPDFToolbarMenuAction.documentEditor,
+      CPDFToolbarMenuAction.security,
+      CPDFToolbarMenuAction.watermark,
+      CPDFToolbarMenuAction.flattened,
+      CPDFToolbarMenuAction.documentInfo,
+      CPDFToolbarMenuAction.save,
+      CPDFToolbarMenuAction.share,
+      CPDFToolbarMenuAction.openDocument,
+      CPDFToolbarMenuAction.snip
+    ],
+    this.mainToolbarVisible = true,
+    this.annotationToolbarVisible = true,
+    this.showInkToggleButton = true,
+    // this.showFormModeToggleButton = true
+  });
 
   Map<String, dynamic> toJson() => {
         'androidAvailableActions':
@@ -164,7 +171,9 @@ class CPDFToolbarConfig {
             iosRightBarAvailableActions.map((e) => e.name).toList(),
         'availableMenus': availableMenus.map((e) => e.name).toList(),
         'mainToolbarVisible': mainToolbarVisible,
-        'annotationToolbarVisible': annotationToolbarVisible
+        'annotationToolbarVisible': annotationToolbarVisible,
+        'showInkToggleButton': showInkToggleButton,
+        // 'showFormModeToggleButton': showFormModeToggleButton
       };
 }
 
@@ -218,6 +227,8 @@ class CPDFReaderViewConfig {
 
   final List<int> margins;
 
+  final bool enableMinScale;
+
   const CPDFReaderViewConfig(
       {this.linkHighlight = true,
       this.formFieldHighlight = true,
@@ -231,7 +242,8 @@ class CPDFReaderViewConfig {
       this.pageSpacing = 10,
       this.pageScale = 1.0,
       this.pageSameWidth = true,
-      this.margins = const [0, 0, 0, 0]});
+      this.margins = const [0, 0, 0, 0],
+      this.enableMinScale = true});
 
   Map<String, dynamic> toJson() => {
         'linkHighlight': linkHighlight,
@@ -246,7 +258,8 @@ class CPDFReaderViewConfig {
         'pageSpacing': pageSpacing,
         'pageScale': pageScale,
         'pageSameWidth': pageSameWidth,
-        'margins': margins
+        'margins': margins,
+        'enableMinScale': enableMinScale
       };
 }
 
@@ -438,13 +451,16 @@ class CPDFGlobalConfig {
 
   final CPDFThumbnailConfig thumbnail;
 
+  final bool enableErrorTips;
+
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
       this.fileSaveExtraFontSubset = true,
       this.watermark = const CPDFWatermarkConfig(),
       this.enableExitSaveTips = true,
       this.signatureType = CPDFFillSignatureType.manual,
-      this.thumbnail = const CPDFThumbnailConfig()});
+      this.thumbnail = const CPDFThumbnailConfig(),
+      this.enableErrorTips = true});
 
   Map<String, dynamic> toJson() => {
         "themeMode": themeMode.name,
@@ -452,7 +468,8 @@ class CPDFGlobalConfig {
         "watermark": watermark.toJson(),
         "enableExitSaveTips": enableExitSaveTips,
         "signatureType": signatureType.name,
-        "thumbnail": thumbnail.toJson()
+        "thumbnail": thumbnail.toJson(),
+        "enableErrorTips": enableErrorTips
       };
 }
 

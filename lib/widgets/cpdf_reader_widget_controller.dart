@@ -530,7 +530,7 @@ class CPDFReaderWidgetController {
     var viewMode = await getPreviewMode();
     if(viewMode != CPDFViewMode.annotations) {
       throw Exception(
-          'setAnnotationMode is only available in CPDFViewMode.annotations mode');
+          'setAnnotationMode is only available in CPDFViewMode.annotations mode, current mode is $viewMode');
     }
     await _channel.invokeMethod('set_annotation_mode', type.name);
   }

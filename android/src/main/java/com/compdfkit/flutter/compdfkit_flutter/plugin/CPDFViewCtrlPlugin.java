@@ -259,6 +259,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         break;
       case SET_VERTICAL_MODE:
         readerView.setVerticalMode((Boolean) call.arguments);
+        pdfView.updateScaleForLayout();
         result.success(null);
         break;
       case IS_VERTICAL_MODE:
@@ -266,6 +267,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         break;
       case SET_CONTINUE_MODE:
         readerView.setContinueMode((Boolean) call.arguments);
+        pdfView.updateScaleForLayout();
         result.success(null);
         break;
       case IS_CONTINUE_MODE:
@@ -274,6 +276,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case SET_DOUBLE_PAGE_MODE:
         readerView.setDoublePageMode((boolean) call.arguments);
         readerView.setCoverPageMode(false);
+        pdfView.updateScaleForLayout();
         result.success(null);
         break;
       case IS_DOUBLE_PAGE_MODE:
@@ -302,6 +305,7 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case SET_COVER_PAGE_MODE:
         readerView.setDoublePageMode((Boolean) call.arguments);
         readerView.setCoverPageMode((Boolean) call.arguments);
+        pdfView.updateScaleForLayout();
         result.success(null);
         break;
       case IS_COVER_PAGE_MODE:

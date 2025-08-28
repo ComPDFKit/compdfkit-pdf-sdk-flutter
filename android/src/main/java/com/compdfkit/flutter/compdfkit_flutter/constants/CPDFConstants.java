@@ -163,6 +163,7 @@ public class CPDFConstants {
     public static final String GET_WIDGETS = "get_widgets";
 
     public static final String RELOAD_PAGES = "reload_pages";
+    public static final String RELOAD_PAGES_2 = "reload_pages_2";
 
     public static final String GET_DOCUMENT_PATH = "get_document_path";
 
@@ -178,7 +179,10 @@ public class CPDFConstants {
     public static final String ANNOTATION_REDO = "annotation_redo";
     public static final String SET_WIDGET_BACKGROUND_COLOR = "set_widget_background_color";
 
-
+    public static final String SEARCH_TEXT = "search_text";
+    public static final String SEARCH_TEXT_SELECTION = "search_text_selection";
+    public static final String SEARCH_TEXT_CLEAR = "search_text_clear";
+    public static final String GET_SEARCH_TEXT = "get_search_text";
   }
 
 }

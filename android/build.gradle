@@ -25,7 +25,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 33
+    compileSdk 35
     namespace "com.compdfkit.flutter.compdfkit_flutter"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -40,7 +40,7 @@ android {
         compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:2.4.5.2'
+        api 'com.compdf:compdfkit-tools:2.4.6'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'

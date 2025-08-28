@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import com.compdfkit.flutter.compdfkit_flutter.plugin.ComPDFKitSDKPlugin;
 import com.compdfkit.flutter.compdfkit_flutter.platformview.CPDFViewCtrlFactory;
 
+import com.compdfkit.tools.common.utils.glide.CPDFGlideInitializer;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -52,6 +53,7 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
     }
 
     private void setUp(){
+        CPDFGlideInitializer.register(activityPluginBinding.getActivity().getApplicationContext());
         comPDFKitSDKPlugin = new ComPDFKitSDKPlugin(activityPluginBinding.getActivity(), mMessenger);
         comPDFKitSDKPlugin.register();
         activityPluginBinding.addActivityResultListener(comPDFKitSDKPlugin);

@@ -8,6 +8,7 @@
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_markup_annotation.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
+import 'package:compdfkit_flutter/page/cpdf_text_range.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -107,6 +108,44 @@ class CPDFPage {
     });
   }
 
+
+  /// Retrieves a text snippet from the current PDF page based on the specified range.
+  ///
+  /// This method calls the native side to extract a substring of text from the page,
+  /// starting at the given `location` and reading `length` number of characters.
+  ///
+  /// Typically used with a [CPDFTextRange], which can be adjusted using the `expanded`
+  /// method to include surrounding context for better readability in search results.
+  ///
+  /// Parameters:
+  /// - [range]: A CPDFTextRange object that specifies the pageIndex, start location, and length.
+  ///
+  /// Returns:
+  /// A [String] containing the extracted text. Returns an empty string if no result is found.
+  ///
+  /// Usage Example:
+  /// ```dart
+  /// final searcher = cpdfDocument.getTextSearcher();
+  /// List<CPDFTextRange> results = await searcher.searchText(
+  ///  'keywords', searchOptions: CPDFSearchOptions.caseInsensitive);
+  ///
+  /// // then: select the first result
+  /// CPDFTextRange range = searcher.searchResults[0];
+  ///
+  /// // With context (before and after)
+  /// final expandedRange = range.expanded(before: 20, after: 20);
+  /// final contextText = await page.getText(expandedRange);
+  /// print("Text with context: $contextText");
+  /// ```
+  Future<String> getText(CPDFTextRange range) async {
+    final result = await _channel.invokeMethod('get_search_text', {
+      'page_index': pageIndex,
+      'location': range.location,
+      'length': range.length,
+    });
+    return result ?? '';
+  }
+
 }
 
 class CPDFPageSize {
@@ -117,6 +156,14 @@ class CPDFPageSize {
 
   const CPDFPageSize._(this.name, this.width, this.height,
       {this.isCustom = false});
+
+  CPDFPageSize withOrientation(Orientation orientation) {
+    if (orientation == Orientation.landscape) {
+      return CPDFPageSize._(name, height, width, isCustom: isCustom);
+    }
+    return this;
+  }
+
 
   static const letter = CPDFPageSize._('letter', 612, 792);
   static const note = CPDFPageSize._('note', 540, 720);

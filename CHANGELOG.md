@@ -1,7 +1,31 @@
+## 2.4.6
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.6.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.6.
+3. Added compatibility for Android 15 and Android 16.
+4. Optimized page layout and zoom logic for an improved reading experience.
+5. Added pinch-to-zoom and page dragging while drawing annotations.
+6. Added support for filling out forms in annotation mode on Android.
+7. Introduced a new API for text search.
+8. Optimized the bottom toolbar UI in signature mode on iOS.
+9. Added JSON configuration to enable/disable error prompts and adjusted the display logic for scan document prompts on iOS.
+10. Added JSON configuration to enable/disable Ink drawing drag and mode-switch buttons.
+11. Fixed a crash caused by entering Emoji characters on Android.
+12. Resolved crashes when verifying digital signatures in certain documents on Android.
+13. Fixed an issue where adding digital signatures failed in some documents on Android.
+14. Fixed an issue where pages always aligned to the left after setting horizontal margins on Android.
+15. Fixed page jumping issues in vertical scrolling mode when horizontal margins were set on Android.
+16. Fixed an issue where FreeText annotations did not fully display after being saved on Android.
+17. Resolved a crash caused by `InitOutFont` during SDK initialization on Android.
+18. Fixed an issue where `save()` did not save ongoing Ink and Pencil annotations on iOS.
+19. Fixed an issue where the top text was not vertically centered on iOS.
+20. Fixed flickering when opening a document multiple times on iOS.
+21. Fixed lagging when scrolling in content editing mode on iOS.
+
 ## 2.4.5+2
 1. Added support for filling out forms in annotation mode on Android.
 2. Fixed an issue where the toolbar would reappear after setting mainToolbarVisible=false on Android.
 3. Fixed an issue where FreeText annotations were not fully displayed after text input was completed.
+
 
 ## 2.4.5+1
 1. Fixed the issue that calling the save() function did not save the text field form being edited.

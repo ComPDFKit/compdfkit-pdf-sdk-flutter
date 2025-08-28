@@ -8,6 +8,7 @@
 import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
+import 'package:compdfkit_flutter/util/cpdf_file_util.dart';
 import 'package:compdfkit_flutter_example/examples.dart';
 import 'package:compdfkit_flutter_example/theme/themes.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
@@ -54,15 +55,7 @@ class _HomePageState extends State<HomePage> {
     await ComPDFKit.setImportFontDir(fontDir, addSysFont: true);
 
     // Initialize ComPDFKit with your license key file.
-    final licenseFileName = Platform.isAndroid ? 'assets/license_key_flutter_android.xml' : 'assets/license_key_flutter_ios.xml';
-    File licenseFile = await extractAsset(context, licenseFileName, shouldOverwrite: false);
-
-    // On Android Platform use assets folder to store license key file.
-    // licenseFilePath = "assets://license_key_flutter.xml";
-
-    // On iOS Platform use main bundle to store license key file.
-    // licenseFilePath = "license_key_flutter_ios.xml";
-
+    File licenseFile = await CPDFFileUtil.extractAsset('assets/license_key_flutter.xml', shouldOverwrite: false);
     ComPDFKit.initWithPath(licenseFile.path);
   }
 
