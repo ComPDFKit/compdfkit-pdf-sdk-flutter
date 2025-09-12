@@ -1,10 +1,10 @@
 PODS:
-  - ComPDFKit (2.4.6)
-  - compdfkit_flutter (2.4.6):
+  - ComPDFKit (2.4.7)
+  - compdfkit_flutter (2.4.7):
     - ComPDFKit
     - ComPDFKit_Tools
     - Flutter
-  - ComPDFKit_Tools (2.4.6)
+  - ComPDFKit_Tools (2.4.7)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -50,9 +50,9 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - ComPDFKit (from `https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git`, tag `2.4.6`)
+  - ComPDFKit (from `https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git`, tag `2.4.7`)
   - compdfkit_flutter (from `.symlinks/plugins/compdfkit_flutter/ios`)
-  - ComPDFKit_Tools (from `https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git`, tag `2.4.6`)
+  - ComPDFKit_Tools (from `https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git`, tag `2.4.7`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
@@ -68,12 +68,12 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   ComPDFKit:
     :git: https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git
-    :tag: 2.4.6
+    :tag: 2.4.7
   compdfkit_flutter:
     :path: ".symlinks/plugins/compdfkit_flutter/ios"
   ComPDFKit_Tools:
     :git: https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git
-    :tag: 2.4.6
+    :tag: 2.4.7
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
@@ -86,15 +86,15 @@ EXTERNAL SOURCES:
 CHECKOUT OPTIONS:
   ComPDFKit:
     :git: https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git
-    :tag: 2.4.6
+    :tag: 2.4.7
   ComPDFKit_Tools:
     :git: https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git
-    :tag: 2.4.6
+    :tag: 2.4.7
 
 SPEC CHECKSUMS:
-  ComPDFKit: 8ee0f7e26d5a97667122e4aae50aac4298261d2e
-  compdfkit_flutter: 95035631f15bacf85bb0e00dc4c45e6b78625858
-  ComPDFKit_Tools: 4a342a1c2638f7a23762600f91a0d379c31d2e2f
+  ComPDFKit: 9784de4813e55de1640173809de45d1402e86785
+  compdfkit_flutter: 099d1d68d7254ec155acf91a5da55894844f18a4
+  ComPDFKit_Tools: f8ab5a723d16bb3d67d62255622bf04fb2f0a058
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
@@ -104,6 +104,6 @@ SPEC CHECKSUMS:
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 
-PODFILE CHECKSUM: 3719dfebadfc72627a010f88133ff9cb7620dc24
+PODFILE CHECKSUM: e2f51f9e73b70a9d52e02e4b0cc84aeed93e64ab
 
 COCOAPODS: 1.16.2

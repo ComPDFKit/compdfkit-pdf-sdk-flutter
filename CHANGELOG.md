@@ -1,3 +1,13 @@
+## 2.4.7
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.7.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.4.7.
+3. Automatically hide the quick scroll bar when the document contains only one page
+4. Fixed an OOM crash issue caused by importing fonts on the Android platform
+5. Fixed a display issue with circle annotations when opacity was set to 0 on the Android platform
+6. Fixed a potential crash when modifying properties of circle and line annotations on the Android platform
+7. Fixed an issue where some documents failed to correctly trigger callbacks for the first or last page
+
+
 ## 2.4.6
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.6.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.4.6.

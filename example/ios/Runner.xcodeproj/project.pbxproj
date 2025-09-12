@@ -361,13 +361,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -496,7 +492,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2.4.6;
+				CURRENT_PROJECT_VERSION = 2.4.7;
 				DEVELOPMENT_TEAM = 4GGQPGRTSV;
 				ENABLE_BITCODE = NO;
 				FLUTTER_BUILD_NAME = 2.4.1;
@@ -690,7 +686,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2.4.6;
+				CURRENT_PROJECT_VERSION = 2.4.7;
 				DEVELOPMENT_TEAM = 4GGQPGRTSV;
 				ENABLE_BITCODE = NO;
 				FLUTTER_BUILD_NAME = 2.4.1;
@@ -719,7 +715,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2.4.6;
+				CURRENT_PROJECT_VERSION = 2.4.7;
 				DEVELOPMENT_TEAM = 4GGQPGRTSV;
 				ENABLE_BITCODE = NO;
 				FLUTTER_BUILD_NAME = 2.4.1;
