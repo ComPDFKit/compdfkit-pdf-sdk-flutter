@@ -7,7 +7,11 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_manager.dart';
 import 'package:compdfkit_flutter/history/cpdf_annotation_history_manager.dart';
+import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../configuration/cpdf_options.dart';
@@ -38,6 +42,8 @@ class CPDFReaderWidgetController {
 
   late CPDFDocument _document;
 
+  late CPDFEditManager _editManager;
+
   late CPDFAnnotationHistoryManager _annotationHistoryManager;
 
   final Completer<void> _readyCompleter = Completer<void>();
@@ -53,6 +59,7 @@ class CPDFReaderWidgetController {
       CPDFOnTapMainDocAreaCallback? onTapMainDocArea}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
     _annotationHistoryManager = CPDFAnnotationHistoryManager(_channel);
+    _editManager = CPDFEditManager(_channel);
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'onPageChanged':
@@ -81,6 +88,9 @@ class CPDFReaderWidgetController {
         case 'onTapMainDocArea':
           onTapMainDocArea?.call();
           break;
+        case 'onContentEditorHistoryChanged':
+          _editManager.historyManager.handleMethodCall(call);
+          break;
       }
     });
     _document = CPDFDocument.withController(id);
@@ -95,6 +105,14 @@ class CPDFReaderWidgetController {
   /// CPDFAnnotationHistoryManager historyManager = _controller.annotationHistoryManager;
   /// ```
   CPDFAnnotationHistoryManager get annotationHistoryManager => _annotationHistoryManager;
+
+  /// Get the edit manager
+  /// This manager is used to handle content editing operations such as changing edit types.
+  /// Example:
+  /// ```dart
+  /// CPDFEditManager? editManager = _controller.editManager;
+  /// ```
+  CPDFEditManager get editManager => _editManager;
 
   /// Save document
   ///
@@ -353,15 +371,28 @@ class CPDFReaderWidgetController {
   ///
   /// [pageIndex] The index of the page to jump.
   /// [animated] only for iOS, whether to use animation when jumping.
+  /// [rectList] The rects to display in the page.
+  /// The coordinate system of the rectangle uses the bottom-left corner of the
+  /// page as the origin, with the x-axis pointing to the right and the y-axis pointing upwards.
   ///
   /// example:
   /// ```dart
-  /// _controller.setDisplayPageIndex(1, animated: true);
+  /// _controller.setDisplayPageIndex(
+  ///   pageIndex: 1,
+  ///   animated: true,
+  ///   rectList: [CPDFRectF(left: 0, top: 0, right: 100, bottom: 100)]
+  ///   );
   /// ```
-  Future<void> setDisplayPageIndex(int pageIndex,
-      {bool animated = true}) async {
-    await _channel.invokeMethod('set_display_page_index',
-        {'pageIndex': pageIndex, 'animated': animated});
+  Future<void> setDisplayPageIndex({
+    required int pageIndex,
+    bool animated = true,
+    List<CPDFRectF> rectList = const [],
+  }) async {
+    await _channel.invokeMethod('set_display_page_index', {
+      'pageIndex': pageIndex,
+      'animated': animated,
+      'rectList' : rectList.map((e) => e.toJson()).toList(),
+    });
   }
 
   /// get current page index
@@ -465,15 +496,42 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('show_bota_view');
   }
 
-  /// Displays the "Add Watermark" view, where users can add watermarks to the document.
+  /// Displays the **Add Watermark** view, allowing users to add
+  /// text and/or image watermarks to the current document.
+  ///
+  /// The watermark can be configured through [CPDFWatermarkConfig].
+  /// By default, both text and image watermark types are enabled.
   ///
   /// Example:
   /// ```dart
-  /// await controller.showAddWatermarkView();
+  /// final imagePath = await extractAsset(context, 'images/ic_logo.png');
+  /// await controller.showAddWatermarkView(
+  ///   config: CPDFWatermarkConfig(
+  ///     saveAsNewFile: true,
+  ///     types: [CPDFWatermarkType.text, CPDFWatermarkType.image],
+  ///     image: imagePath.path,
+  ///     text: 'ComPDFKit Flutter',
+  ///     textSize: 40,
+  ///     textColor: Colors.red,
+  ///     rotation: -45,
+  ///     opacity: 180,
+  ///     scale: 2.0,
+  ///     isFront: true,
+  ///   ),
+  /// );
   /// ```
-  Future<void> showAddWatermarkView({bool saveAsNewFile = true}) async {
-    await _channel.invokeMethod('show_add_watermark_view', saveAsNewFile);
+  ///
+  /// On **Android**, images can be provided either as:
+  /// - A drawable resource name (`'ic_logo'`) → `R.drawable.ic_logo`
+  /// - A file path
+  ///
+  /// On **iOS**, images should be provided as:
+  /// - A bundled image file name (`'ic_logo'`)
+  /// - A file path
+  Future<void> showAddWatermarkView({CPDFWatermarkConfig? config}) async {
+    await _channel.invokeMethod('show_add_watermark_view', config?.toJson());
   }
+
 
   /// Displays the document security settings view, allowing users to configure document security options.
   ///
@@ -519,6 +577,10 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('reload_pages');
   }
 
+  Future<void> reloadPages2() async {
+    await _channel.invokeMethod(Platform.isAndroid ? 'reload_pages_2' : 'reload_pages');
+  }
+
   /// Used to add a specified annotation type when touching the page in annotation mode
   /// This method is only available in [CPDFViewMode.annotations] mode.
   /// Example:
@@ -544,6 +606,123 @@ class CPDFReaderWidgetController {
   Future<CPDFAnnotationType> getAnnotationMode() async {
     String typeName = await _channel.invokeMethod('get_annotation_mode');
     return CPDFAnnotationType.values.firstWhere((e) => e.name == typeName);
+  }
+
+  /// Used to add a specified form field type when touching the page in form creation mode
+  /// This method is only available in [CPDFViewMode.forms] mode.
+  /// Example:
+  /// ```dart
+  /// await controller.setFormCreationMode(CPDFFormType.text);
+  /// ```
+  /// Throws an exception if called in a mode other than [CPDFViewMode.forms].
+  Future<void> setFormCreationMode(CPDFFormType type) async {
+    var viewMode = await getPreviewMode();
+    if(viewMode != CPDFViewMode.forms) {
+      throw Exception(
+          'setFormCreationMode is only available in CPDFViewMode.forms mode, current mode is $viewMode');
+    }
+    await _channel.invokeMethod('set_form_creation_mode', type.name);
+  }
+
+  /// Exit form creation mode, equivalent to setting the form creation type to [CPDFFormType.unknown]
+  /// This method is only available in [CPDFViewMode.forms] mode.
+  /// Example:
+  /// ```dart
+  /// await controller.exitFormCreationMode();
+  /// ```
+  Future<void> exitFormCreationMode() async {
+    await setFormCreationMode(CPDFFormType.unknown);
+  }
+
+  /// Get the type of form field added to the current touch page
+  /// This method is only available in [CPDFViewMode.forms] mode.
+  /// Example:
+  /// ```dart
+  /// CPDFFormType type = await controller.getFormCreationMode();
+  /// ```
+  Future<CPDFFormType> getFormCreationMode() async {
+    String typeName = await _channel.invokeMethod('get_form_creation_mode');
+    return CPDFFormType.values.firstWhere((e) => e.name == typeName);
+  }
+
+  /// Verify the status of the digital signature in the document and display the verification result on the screen.
+  /// If the document contains a digital signature, a status view will be displayed at the top of the document indicating the verification result.
+  /// If the document does not contain a digital signature, no status view will be displayed.
+  /// Example:
+  /// ```dart
+  /// await controller.verifyDigitalSignatureStatus();
+  /// ```
+  Future<void> verifyDigitalSignatureStatus() async {
+    await _channel.invokeMethod('verify_digital_signature_status');
+  }
+
+  /// Hide the digital signature status view.
+  /// This method can be used to hide the digital signature status view that is displayed after calling [verifyDigitalSignatureStatus].
+  /// Example:
+  /// ```dart
+  /// await controller.hideDigitalSignStatusView();
+  /// ```
+  Future<void> hideDigitalSignStatusView() async {
+    await _channel.invokeMethod('hide_digital_sign_status_view');
+  }
+
+  /// Clear the rectangular area set when jumping to the page number through controller.setDisplayPageIndex
+  /// Example:
+  /// ```dart
+  /// await controller.clearDisplayRect();
+  /// ```
+  Future<void> clearDisplayRect() async {
+    return await _channel.invokeMethod('clear_display_rect');
+  }
+
+  /// Dismiss the context menu if it is currently displayed.
+  /// Example:
+  /// ```dart
+  /// await controller.dismissContextMenu();
+  /// ```
+  Future<void> dismissContextMenu() async {
+    return await _channel.invokeMethod('dismiss_context_menu');
+  }
+
+  /// Show the text search view.
+  /// Example:
+  /// ```dart
+  /// await controller.showTextSearchView();
+  /// ```
+  Future<void> showTextSearchView() async {
+    return await _channel.invokeMethod('show_text_search_view');
+  }
+
+  /// Hide the text search view if it is currently displayed.
+  /// Example:
+  /// ```dart
+  /// await controller.hideTextSearchView();
+  /// ```
+  Future<void> hideTextSearchView() async {
+    return await _channel.invokeMethod('hide_text_search_view');
+  }
+
+  /// Save the currently drawing ink annotation
+  /// Example:
+  /// ```dart
+  /// await controller.saveCurrentInk();
+  /// ```
+  Future<void> saveCurrentInk() async {
+    return await _channel.invokeMethod('save_current_ink');
+  }
+
+  /// Save the currently drawing pencil annotation
+  /// This method is only available on the iOS platform.
+  /// Example:
+  /// ```dart
+  /// await controller.saveCurrentPencil();
+  /// ```
+  /// Throws an exception if called on a platform other than iOS.
+  Future<void> saveCurrentPencil() async {
+    if(defaultTargetPlatform != TargetPlatform.iOS){
+      throw Exception('saveCurrentPencil is only available on iOS platform');
+    }
+    return await _channel.invokeMethod('save_current_pencil');
   }
 
 }

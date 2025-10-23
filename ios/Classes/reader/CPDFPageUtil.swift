@@ -26,7 +26,7 @@ class CPDFPageUtil: NSObject {
     
     func getAnnotations() -> [Dictionary<String, Any>] {
         var annotaionDicts:[Dictionary<String, Any>] = []
-       
+        
         let annoations = page?.annotations ?? []
         
         for  annoation in annoations {
@@ -36,7 +36,7 @@ class CPDFPageUtil: NSObject {
             if annoation.type == "Widget" {
                 continue
             }
-             
+            
             switch type {
             case "Highlight", "Squiggly", "Underline", "Strikeout":
                 if let markupAnnotation = annoation as? CPDFMarkupAnnotation {
@@ -360,7 +360,7 @@ class CPDFPageUtil: NSObject {
                     ]
                     annotaionDict["rect"] = rectDict
                 }
-                    
+                
             default:
                 print("Unhandled type: \(type)")
             }
@@ -375,7 +375,7 @@ class CPDFPageUtil: NSObject {
     
     func getForms() -> [Dictionary<String, Any>] {
         var formDicts:[Dictionary<String, Any>] = []
-
+        
         let forms = page?.annotations ?? []
         
         for form in forms {
@@ -410,7 +410,7 @@ class CPDFPageUtil: NSObject {
                             formDict["borderWidget"] = buttonWidget.borderWidth
                             formDict["borderColor"] = buttonWidget.borderColor?.toHexString()
                             formDict["fillColor"] = buttonWidget.backgroundColor?.toHexString()
-
+                            
                             if widgetType == "PushButton" {
                                 formDict["buttonTitle"] = buttonWidget.caption()
                                 var actionDict: [String: Any] = [:]
@@ -514,10 +514,10 @@ class CPDFPageUtil: NSObject {
                             formDict["borderColor"] = choiceWidget.borderColor?.toHexString()
                             formDict["fillColor"] = choiceWidget.backgroundColor?.toHexString()
                             formDict["selectedIndexes"] = [choiceWidget.selectItemAtIndex]
-
+                            
                             let items = choiceWidget.items ?? []
                             var optionsArray: [[String: String]] = []
-                                                        
+                            
                             for item: CPDFChoiceWidgetItem in items {
                                 let itemDict: [String: String] = [
                                     "text": item.string,
@@ -525,7 +525,7 @@ class CPDFPageUtil: NSObject {
                                 ]
                                 optionsArray.append(itemDict)
                             }
-                                                        
+                            
                             formDict["options"] = optionsArray
                         }
                         
@@ -561,7 +561,7 @@ class CPDFPageUtil: NSObject {
                 }
             }
         }
-    
+        
         return formDicts
     }
     
@@ -708,7 +708,7 @@ class CPDFPageUtil: NSObject {
         print(("getForm(): return nil"))
         return nil
     }
-
+    
     
     func lowercaseFirstLetter(of string: String) -> String {
         guard !string.isEmpty else { return string }
@@ -722,5 +722,5 @@ class CPDFPageUtil: NSObject {
         let pointer = Unmanaged.passUnretained(object).toOpaque()
         return String(describing: pointer)
     }
-
+    
 }

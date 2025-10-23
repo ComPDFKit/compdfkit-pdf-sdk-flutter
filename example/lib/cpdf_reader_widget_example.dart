@@ -19,9 +19,7 @@ class CPDFReaderWidgetExample extends StatelessWidget {
     return CPDFReaderPage(
       title: 'CPDFReaderWidget Example',
       documentPath: documentPath,
-      configuration: CPDFConfiguration(
-        toolbarConfig: const CPDFToolbarConfig(),
-      ),
+      configuration: CPDFConfiguration(),
       onIOSClickBackPressed: (){
         Navigator.pop(context);
       },

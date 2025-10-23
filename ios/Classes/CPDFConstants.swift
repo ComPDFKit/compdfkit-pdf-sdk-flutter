@@ -82,6 +82,10 @@ class CPDFConstants {
     
     static let getCurrentPageIndex = "get_current_page_index"
     
+    static let dismissContextMenu = "dismiss_context_menu"
+    
+    static let clearDisplayRect = "clear_display_rect"
+    
     static let set_preview_mode = "set_preview_mode"
     
     static let get_preview_mode = "get_preview_mode"
@@ -137,18 +141,50 @@ class CPDFConstants {
     static let getAnnotations = "get_annotations"
     
     static let getWidgets = "get_widgets"
-
-    static let setAnnotationMode = "set_annotation_mode"
-
-    static let getAnnotationMode = "get_annotation_mode"
-
-    static let annotationCanRedo = "annotation_can_redo"
-    static let annotationCanUndo = "annotation_can_undo"
+    
+    static let showTextSearchView = "show_text_search_view"
+    
+    static let hideTextSearchView = "hide_text_search_view"
+    
     static let annotationRedo = "annotation_redo"
     static let annotationUndo = "annotation_undo"
+
+    static let setAnnotationMode = "set_annotation_mode"
+    static let getAnnotationMode = "get_annotation_mode"
+    static let annotationCanRedo = "annotation_can_redo"
+    static let annotationCanUndo = "annotation_can_undo"
+    static let saveCurrentInk = "save_current_ink"
+    static let saveCurrentPencil = "save_current_pencil"
+    
+    static let changeEditType = "change_edit_type";
+    static let contentEditorCanRedo = "content_editor_can_redo";
+    static let contentEditorCanUndo = "content_editor_can_undo";
+    static let contentEditorRedo = "content_editor_redo";
+    static let contentEditorUndo = "content_editor_undo";
+
+    static let setFormMode = "set_form_creation_mode"
+    static let getFormMode = "get_form_creation_mode"
+    
+    static let verifyDigitalSignature = "verify_digital_signature_status"
+    static let hideDigitalSignature = "hide_digital_sign_status_view"
+    
     static let setWidgetBackgroundColor = "set_widget_background_color"
     static let searchText = "search_text"
     static let searchTextSelection = "search_text_selection"
     static let searchTextClear = "search_text_clear"
     static let getSearchText = "get_search_text"
+    static let getOutlineRoot = "get_outline_root"
+    static let hasBookmark = "has_bookmark"
+    static let getBookmark = "get_bookmarks"
+    static let addBookmark = "add_bookmark"
+    static let removeBookmark = "remove_bookmark"
+    static let updateBookmark = "update_bookmark"
+    static let getPageSize = "get_page_size"
+    static let renderPage = "render_page"
+    static let insertPageWithImagePath = "insert_page_with_image_path"
+    static let getPageRotaion = "get_page_rotation"
+    static let setPageRotation = "set_page_rotation"
+    static let removePages = "remove_pages"
+
+
 }

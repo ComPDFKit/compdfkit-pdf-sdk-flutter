@@ -183,6 +183,26 @@ public class CPDFConstants {
     public static final String SEARCH_TEXT_SELECTION = "search_text_selection";
     public static final String SEARCH_TEXT_CLEAR = "search_text_clear";
     public static final String GET_SEARCH_TEXT = "get_search_text";
+    public static final String CHANGE_EDIT_TYPE = "change_edit_type";
+    public static final String CONTENT_EDITOR_CAN_REDO = "content_editor_can_redo";
+    public static final String CONTENT_EDITOR_CAN_UNDO = "content_editor_can_undo";
+    public static final String CONTENT_EDITOR_REDO = "content_editor_redo";
+    public static final String CONTENT_EDITOR_UNDO = "content_editor_undo";
+    public static final String SET_FORM_CREATION_MODE = "set_form_creation_mode";
+    public static final String GET_FORM_CREATION_MODE = "get_form_creation_mode";
+    public static final String VERIFY_DIGITAL_SIGNATURE_STATUS = "verify_digital_signature_status";
+    public static final String HIDE_DIGITAL_SIGNATURE_STATUS_VIEW = "hide_digital_sign_status_view";
+
+    public static final String CLEAR_DISPLAY_RECT = "clear_display_rect";
+    public static final String DISMISS_CONTEXT_MENU = "dismiss_context_menu";
+    public static final String SHOW_TEXT_SEARCH_VIEW = "show_text_search_view";
+    public static final String HIDE_TEXT_SEARCH_VIEW = "hide_text_search_view";
+    public static final String INSERT_IMAGE_WITH_PATH = "insert_page_with_image_path";
+    public static final String GET_PAGE_ROTATION = "get_page_rotation";
+    public static final String SET_PAGE_ROTATION = "set_page_rotation";
+    public static final String REMOVE_PAGES = "remove_pages";
+    public static final String RENDER_PAGE = "render_page";
+    public static final String SAVE_CURRENT_INK = "save_current_ink";
   }
 
 }

@@ -11,9 +11,9 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/page/cpdf_text_searcher.dart';
+import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 import '../annotation/cpdf_annotation.dart';
 import '../annotation/form/cpdf_widget.dart';
@@ -41,6 +41,7 @@ class CPDFDocument {
   get isValid => _isValid;
 
   CPDFTextSearcher? _textSearcher;
+
 
   static Future<CPDFDocument> createInstance() async {
     var id = CpdfUuidUtil.generateShortUniqueId();
@@ -555,10 +556,75 @@ class CPDFDocument {
     });
   }
 
-
+  /// Gets the text searcher for the document.
+  /// This method returns an instance of [CPDFTextSearcher] that can be used to perform text searches
+  /// within the PDF document.
+  /// example:
+  /// ```dart
+  /// final searcher = document.getTextSearcher();
+  /// ```
   CPDFTextSearcher getTextSearcher() {
     return _textSearcher ??= CPDFTextSearcher(
       int.parse(_channel.name.split('_').last),
+    );
+  }
+
+
+  /// Renders a specific page of the document as an image.
+  /// Parameters:
+  /// - [pageIndex] The index of the page to render.
+  /// - [width] The width of the rendered image in pixels.
+  /// - [height] The height of the rendered image in pixels.
+  /// - [backgroundColor] The background color to use when rendering the page. Default is white.  only Android Platform
+  /// - [drawAnnot] Whether to draw annotations on the rendered page. Default is true. only Android Platform
+  /// - [drawForm] Whether to draw form fields on the rendered page. Default is true. only Android Platform
+  /// - [compression] The compression format for the rendered image. Default is PNG. only Android Platform
+  /// example:
+  /// ```dart
+  /// var pageIndex = 0; // The index of the page to render
+  /// Size size = await document.getPageSize(pageIndex);
+  /// Uint8List imageData = await document.renderPage(pageIndex: pageIndex, width: size.width, height: size.height);
+  /// ```
+  Future<Uint8List> renderPage(
+      {required int pageIndex,
+      required int width,
+      required int height,
+      Color backgroundColor = Colors.white,
+      bool drawAnnot = true,
+      bool drawForm = true,
+      CPDFPageCompression compression = CPDFPageCompression.png}) async {
+    Uint8List imageData = await _channel.invokeMethod('render_page', {
+      'page_index': pageIndex,
+      'width': width,
+      'height': height,
+      'background_color': backgroundColor.toHex(),
+      'draw_annot' : drawAnnot,
+      'draw_form' : drawForm,
+      'compression': compression.name,
+    });
+    return imageData;
+  }
+
+  /// Gets the size of the specified page in the document.
+  /// This method retrieves the dimensions of a page at the given index.
+  /// Parameters:
+  /// - [pageIndex] The index of the page for which the size is requested.
+  /// example:
+  /// ```dart
+  /// Size pageSize = await document.getPageSize(0);
+  /// ```
+  Future<Size> getPageSize(int pageIndex) async {
+    final result = await _channel.invokeMethod<Map>('get_page_size', {
+      'page_index': pageIndex,
+    });
+
+    if (result == null || result['width'] == null || result['height'] == null) {
+      throw Exception('Invalid page size result');
+    }
+
+    return Size(
+      (result['width'] as num).toDouble(),
+      (result['height'] as num).toDouble(),
     );
   }
 }

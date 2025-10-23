@@ -26,8 +26,9 @@ class ComPDFKit {
   /// ```dart
   /// ComPDFKit.init('your compdfkit license')
   /// ```
-  static void init(String key) async {
-    _methodChannel.invokeMethod('init_sdk', {'key': key});
+
+  static Future<bool> init(String key) async {
+    return await _methodChannel.invokeMethod('init_sdk', {'key': key});
   }
 
   /// Please enter your ComPDFKit license to initialize the ComPDFKit SDK.<br/>
@@ -42,10 +43,10 @@ class ComPDFKit {
   /// ```dart
   /// ComPDFKit.initialize(androidOnlineLicense : 'your android platform compdfkit license', iosOnlineLicense: 'your ios platform compdfkit license')
   /// ```
-  static void initialize(
+  static Future<bool> initialize(
       {required String androidOnlineLicense,
-      required String iosOnlineLicense}) {
-    _methodChannel.invokeMethod('init_sdk_keys', {
+      required String iosOnlineLicense}) async {
+    return await _methodChannel.invokeMethod('init_sdk_keys', {
       'androidOnlineLicense': androidOnlineLicense,
       'iosOnlineLicense': iosOnlineLicense
     });
@@ -73,8 +74,8 @@ class ComPDFKit {
   /// final licenseFile = await extractAsset(context, 'assets/license_key_flutter.xml');
   /// ComPDFKit.initWithPath(licenseFile.path);
   /// ```
-  static void initWithPath(String licenseFilePath) async {
-    _methodChannel.invokeMethod('init_sdk_with_path', licenseFilePath);
+  static Future<bool> initWithPath(String licenseFilePath) async {
+    return await _methodChannel.invokeMethod('init_sdk_with_path', licenseFilePath);
   }
 
   /// Get the version code of the ComPDFKit SDK.

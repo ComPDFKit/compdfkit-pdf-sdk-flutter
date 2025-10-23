@@ -32,13 +32,13 @@ public class CPDFDocumentPlugin {
         _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
         registeryMethodChannel()
     }
-    
+
     init(pdfViewController : CPDFViewController, uid : String, binaryMessager : FlutterBinaryMessenger){
         self.pdfViewController = pdfViewController
         _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
         registeryMethodChannel()
     }
-
+    
     
     private func registeryMethodChannel(){
 
@@ -50,15 +50,19 @@ public class CPDFDocumentPlugin {
                self.document !== newDocument {
                 self.document = newDocument
             }
-            
+
             switch call.method {
             case CPDFConstants.save:
+                if #available(iOS 13.0, *) {
+                    guard let window = UIApplication.shared.windows.first else { return }
+                    window.overrideUserInterfaceStyle = .unspecified
+                }
                 // save pdf
                 guard let pdfListView = self.pdfViewController!.pdfListView else {
                     result(true)
                     return
                 }
-                
+
                 pdfListView.exitDrawing()
                 pdfListView.becomeFirstResponder()
                 var isSuccess = false
@@ -86,7 +90,7 @@ public class CPDFDocumentPlugin {
                 let initInfo = call.arguments as? [String: Any]
                 let path = initInfo?["filePath"] as? String ?? ""
                 let password = initInfo?["password"] ?? ""
-              
+
                 self.document = CPDFDocument(url: URL(fileURLWithPath: path))
                 if(self.document?.isLocked == true){
                     let success = self.document?.unlock(withPassword: password as? String ?? "")
@@ -215,13 +219,13 @@ public class CPDFDocumentPlugin {
                 let info = call.arguments as? [String: Any]
                 
                 let savePath = self.getValue(from: info, key: "save_path", defaultValue: "") ?? ""
-           
+
                 let removeSecurity = self.getValue(from: info, key: "remove_security", defaultValue: false)
-          
+
                 let fontSubSet = self.getValue(from: info, key: "font_sub_set", defaultValue: true)
-              
+
                 var success = false
-             
+
                 if removeSecurity {
                     if (self.pdfViewController?.pdfListView?.isEditing() == true && self.pdfViewController?.pdfListView?.isEdited() == true) {
                         self.pdfViewController?.pdfListView?.commitEditing()
@@ -238,7 +242,7 @@ public class CPDFDocumentPlugin {
                         success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
                     }
                 }
-               
+
                 result(success)
             case CPDFConstants.print:
                 self.pdfViewController?.enterPrintState()
@@ -332,9 +336,9 @@ public class CPDFDocumentPlugin {
                 }
             case CPDFConstants.flattenAllPages:
                 let info = call.arguments as? [String: Any]
-    
+
                 let savePath : String = self.getValue(from: info, key: "save_path", defaultValue: "")
-    
+
                 let fontSubset : Bool = self.getValue(from: info, key: "font_subset", defaultValue: true)
 
                 let success = self.document?.writeFlatten(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubset)
@@ -342,9 +346,9 @@ public class CPDFDocumentPlugin {
                 result(success)
             case CPDFConstants.importDocument:
                 let info = call.arguments as? [String: Any]
-           
+
                 let filePath : String = self.getValue(from: info, key: "file_path", defaultValue: "")
-              
+
                 let pages : [Int] = self.getValue(from: info, key: "pages", defaultValue: [])
                 
                 var insertPosition = self.getValue(from: info, key: "insert_position", defaultValue: -1)
@@ -356,7 +360,7 @@ public class CPDFDocumentPlugin {
                 if _document?.isLocked == true {
                     _document?.unlock(withPassword: password)
                 }
-             
+
                 var _index = insertPosition
                 if insertPosition < 0 || insertPosition > self.document?.pageCount ?? 0 {
                     if insertPosition == -1 {
@@ -377,11 +381,11 @@ public class CPDFDocumentPlugin {
                 result(success)
             case CPDFConstants.insertBlankPage:
                 let info = call.arguments as? [String: Any]
-        
+
                 let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
-       
+
                 let pageWidth = self.getValue(from: info, key: "page_width", defaultValue: 0)
-  
+
                 let pageHeight = self.getValue(from: info, key: "page_height", defaultValue: 0)
                 
                 var _index = pageIndex
@@ -395,14 +399,14 @@ public class CPDFDocumentPlugin {
                 
                 let size = CGSize(width: pageWidth, height: pageHeight)
                 let success = self.document?.insertPage(size, at: UInt(_index))
-//                self.pdfViewController?.pdfListView?.layoutDocumentView()
-
+                //                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                
                 result(success)
             case CPDFConstants.splitDocumentPages:
                 let info = call.arguments as? [String: Any]
-     
+
                 let savePath = self.getValue(from: info, key: "save_path", defaultValue: "")
-   
+
                 let pages : [Int] = self.getValue(from: info, key: "pages", defaultValue: [])
                 
                 var indexSet = IndexSet()
@@ -457,26 +461,109 @@ public class CPDFDocumentPlugin {
                 pageUtil.pageIndex = pageIndex
                 let widgets = pageUtil.getForms()
                 result(widgets)
-                        case CPDFConstants.searchText:
-                            let info = call.arguments as? [String: Any]
-                            let keywords = self.getValue(from: info, key: "keywords", defaultValue: "")
-                            let options = self.getValue(from: info, key: "search_options", defaultValue: CPDFSearchOptions(rawValue: 0))
-                            let searchResults = CPDFSearchUtil.searchText(from: self.document, keywords: keywords, options: options)
-                            result(searchResults)
-                        case CPDFConstants.searchTextSelection:
-                            let info = call.arguments as? [String: Any]
-                            let selection = CPDFSearchUtil.selection(from: self.document, info: info!)
-                            if let selection = selection {
-                                self.pdfViewController?.pdfListView?.go(to: selection.bounds, on: selection.page, offsetY: CGFloat(88), animated: false)
-                                self.pdfViewController?.pdfListView?.setHighlightedSelection(selection, animated: true)
+            case CPDFConstants.searchText:
+                let info = call.arguments as? [String: Any]
+                let keywords = self.getValue(from: info, key: "keywords", defaultValue: "")
+                let options = self.getValue(from: info, key: "search_options", defaultValue: CPDFSearchOptions(rawValue: 0))
+                let searchResults = CPDFSearchUtil.searchText(from: self.document, keywords: keywords, options: options)
+                result(searchResults)
+            case CPDFConstants.searchTextSelection:
+                let info = call.arguments as? [String: Any]
+                let selection = CPDFSearchUtil.selection(from: self.document, info: info!)
+                if let selection = selection {
+                    self.pdfViewController?.pdfListView?.go(to: selection.bounds, on: selection.page, offsetY: CGFloat(88), animated: false)
+                    self.pdfViewController?.pdfListView?.setHighlightedSelection(selection, animated: true)
+                }
+                result(nil)
+            case CPDFConstants.searchTextClear:
+                self.pdfViewController?.pdfListView?.setHighlightedSelection(nil, animated: false)
+                result(nil)
+            case CPDFConstants.getSearchText:
+                let info = call.arguments as? [String: Any]
+                result(CPDFSearchUtil.getSearchText(from: self.document, info: info!))
+            case CPDFConstants.getPageRotaion:
+                let pageIndex = call.arguments as? Int ?? 0
+                guard let page = self.document?.page(at: UInt(pageIndex)) else {
+                    result(["GET_PAGE_ROTATION_FAIL", "Page not found at index: \(pageIndex)"])
+                    return
+                }
+
+                result(page.rotation)
+
+            case CPDFConstants.setPageRotation:
+                let info = call.arguments as? [String: Any]
+
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let rotation = self.getValue(from: info, key: "rotation", defaultValue: 0)
+                guard let page = self.document?.page(at: UInt(pageIndex)) else {
+                    result(["GET_PAGE_ROTATION_FAIL", "Page not found at index: \(pageIndex)"])
+                    return
+                }
+                page.rotation = rotation
+                result(true)
+            case CPDFConstants.getPageSize:
+                let pageIndex = call.arguments as? Int ?? 0
+                
+                guard let document = self.document else {
+                    result(["error": "document is nil"])
+                    return
+                }
+                guard pageIndex >= 0 && pageIndex < document.pageCount else {
+                    result(["error": "pageIndex out of range"])
+                    return
+                }
+                if let page = document.page(at: UInt(pageIndex)) {
+                    let size = page.bounds(for: .mediaBox).size
+                    let pageSize: [String: CGFloat] = [
+                        "width": size.width,
+                        "height": size.height
+                    ]
+                    result(pageSize)
+                } else {
+                    result(["error": "page not found"])
+                }
+            case CPDFConstants.renderPage:
+                let info = call.arguments as? [String: Any]
+
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let renderWidth = self.getValue(from: info, key: "width", defaultValue: 0)
+                let renderHeight = self.getValue(from: info, key: "height", defaultValue: 0)
+                let compression = self.getValue(from: info, key: "compression", defaultValue: "png")
+                //                let backgroundColor = self.getValue(from: info, key: "background_color", defaultValue: "#FFFFFF")
+                print("getPageImageBytes pageIndex:\(pageIndex), width:\(renderWidth), height:\(renderHeight)")
+                guard let document = self.document else {
+                    result(["error": "document is nil"])
+                    return
+                }
+
+                guard pageIndex >= 0 && pageIndex < document.pageCount else {
+                    result(["error": "pageIndex out of range"])
+                    return
+                }
+
+                let page = self.document?.page(at: UInt(pageIndex))
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let thumbnailSize = CGSize(width: renderWidth, height: renderHeight)
+                    
+                    page?.thumbnail(of: thumbnailSize, needReset: true) { image in
+                        DispatchQueue.main.async {
+                            if(image == nil) {
+                                result(["error": "failed to render thumbnail"])
+                                return;
                             }
-                            result(nil)
-                        case CPDFConstants.searchTextClear:
-                            self.pdfViewController?.pdfListView?.setHighlightedSelection(nil, animated: false)
-                            result(nil)
-                        case CPDFConstants.getSearchText:
-                            let info = call.arguments as? [String: Any]
-                            result(CPDFSearchUtil.getSearchText(from: self.document, info: info!))
+                            var data: Data
+                            switch(compression) {
+                            case "png":
+                                data = image!.pngData()!
+                            case "jpeg":
+                                data = image!.jpegData(compressionQuality: 0.85)!
+                            default:
+                                data = image!.pngData()!
+                            }
+                            result(data)
+                        }
+                    }
+                }
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -491,7 +578,7 @@ public class CPDFDocumentPlugin {
         let pages : String = self.getValue(from: info, key: "pages", defaultValue: "")
         
         let textContent : String = self.getValue(from: info, key: "text_content", defaultValue: "")
-       
+
         let imagePath : String = self.getValue(from: info, key: "image_path", defaultValue: "")
         let textColor : String = self.getValue(from: info, key: "text_color", defaultValue: "#000000")
         let fontSize : Int = self.getValue(from: info, key: "font_size", defaultValue: 24)
@@ -602,7 +689,7 @@ public class CPDFDocumentPlugin {
             self.document?.updateWatermark(imageWatermark)
         }
         
-       
+
         self.pdfViewController?.pdfListView?.layoutDocumentView()
     }
     

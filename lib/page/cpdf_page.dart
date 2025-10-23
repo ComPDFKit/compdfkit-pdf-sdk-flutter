@@ -146,6 +146,38 @@ class CPDFPage {
     return result ?? '';
   }
 
+  /// Get the rotation angle of the current page
+  ///
+  /// example:
+  /// ```dart
+  /// int rotation = await page.getRotation();
+  /// ```
+  /// return 0, 90, 180, or 270 degrees.
+  Future<int> getRotation() async {
+    return await _channel.invokeMethod('get_page_rotation', pageIndex);
+  }
+
+  /// Set the rotation angle of the current page.
+  /// Rotation on a page. Must be 0, 90, 180 or 270 (negative rotations will be "normalized" to one of 0, 90, 180 or 270).
+  /// Some PDF's have an inherent rotation and so -[rotation] may be non-zero when a PDF is first opened.
+  /// example:
+  /// ```dart
+  /// bool result = await page.setRotation(90);
+  /// ```
+  Future<bool> setRotation(int rotation) async {
+    const validRotations = [0, 90, 180, 270];
+    if(rotation == 360){
+      rotation = 0;
+    }
+    if (!validRotations.contains(rotation)) {
+      throw ArgumentError('Invalid rotation value: $rotation. Must be one of 0, 90, 180, or 270.');
+    }
+    return await _channel.invokeMethod('set_page_rotation', {
+      'page_index': pageIndex,
+      'rotation' : rotation
+    });
+  }
+
 }
 
 class CPDFPageSize {

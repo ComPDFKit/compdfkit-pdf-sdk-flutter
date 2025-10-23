@@ -19,6 +19,11 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT_CLEAR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT_SELECTION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_ROTATION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_PAGES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_ROTATION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RENDER_PAGE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_SIZE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_WIDGETS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.FLATTEN_ALL_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATIONS;
@@ -52,13 +57,20 @@ import static com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils.CONTENT_SC
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.compdfkit.core.annotation.CPDFAnnotation;
 import com.compdfkit.core.common.CPDFDocumentException;
 import com.compdfkit.core.document.CPDFDocument;
@@ -77,6 +89,8 @@ import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFSearchUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.annotation.pdfannotationlist.data.CPDFAnnotDatas;
 import com.compdfkit.tools.common.utils.CFileUtils;
+import com.compdfkit.tools.common.utils.glide.CPDFWrapper;
+import com.compdfkit.tools.common.utils.glide.wrapper.impl.CPDFDocumentPageWrapper;
 import com.compdfkit.tools.common.utils.print.CPDFPrintUtils;
 import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import com.compdfkit.tools.common.utils.threadpools.SimpleBackgroundTask;
@@ -90,8 +104,18 @@ import com.compdfkit.ui.textsearch.ITextSearcher;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel.Result;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
@@ -641,9 +665,110 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
       case GET_SEARCH_TEXT:
         result.success(CPDFSearchUtil.getText(document, call));
         break;
+      case GET_PAGE_ROTATION: {
+        int _pageIndex = (int) call.arguments;
+        CPDFPage cpdfPage = document.pageAtIndex(_pageIndex);
+        if (cpdfPage == null) {
+          result.error("GET_PAGE_ROTATION_FAIL", "Page not found at index: " + _pageIndex, null);
+          return;
+        }
+        int rotation = cpdfPage.getRotation();
+        result.success(rotation);
+        break;
+      }
+      case SET_PAGE_ROTATION:{
+        int _pageIndex = call.argument("page_index");
+        int rotation = call.argument("rotation");
+        CPDFPage cpdfPage = document.pageAtIndex(_pageIndex);
+        if (cpdfPage == null) {
+          result.error("SET_PAGE_ROTATION_FAIL", "Page not found at index: " + _pageIndex, null);
+          return;
+        }
+        boolean setRotationResult = cpdfPage.setRotation(rotation);
+        result.success(setRotationResult);
+        break;
+      }
+      case REMOVE_PAGES: {
+        ArrayList<Integer> pages = (ArrayList<Integer>) call.arguments;
+        if (pages == null || pages.isEmpty()) {
+          result.error("REMOVE_PAGES_FAIL", "The number of pages must be greater than 1", "");
+          return;
+        }
+        int[] pagesArray = new int[pages.size()];
+        for (int i = 0; i < pages.size(); i++) {
+          pagesArray[i] = pages.get(i);
+        }
+        boolean removeResult = document.removePages(pagesArray);
+        result.success(removeResult);
+      }
+        break;
+      case RENDER_PAGE:
+        renderPageToImage(call, result, document);
+        break;
+      case GET_PAGE_SIZE:
+        int page = call.argument("page_index");
+        RectF rectF = document.getPageSize(page);
+        Map<String, Float> pageSizeMap = new HashMap<>();
+        pageSizeMap.put("width", rectF.width());
+        pageSizeMap.put("height", rectF.height());
+        result.success(pageSizeMap);
+        break;
       default:
         break;
     }
+  }
+
+  private void renderPageToImage(MethodCall call, Result result, CPDFDocument document) {
+    int pageIndex = call.argument("page_index");
+    if (pageIndex < 0 || pageIndex >= document.getPageCount()) {
+      result.error("GET_PAGE_IMAGE_BYTES_FAIL", "Invalid page index: " + pageIndex, null);
+      return;
+    }
+    int width = call.argument("width");
+    int height = call.argument("height");
+    String colorHex = call.argument("background_color");
+    boolean drawAnnot = call.argument("draw_annot");
+    boolean drawForm = call.argument("draw_form");
+    String compression = call.argument("compression");
+    CPDFDocumentPageWrapper pageWrapper = new CPDFDocumentPageWrapper(document, pageIndex);
+    pageWrapper.setBackgroundColor(Color.parseColor(colorHex));
+    pageWrapper.setDrawAnnotation(drawAnnot);
+    pageWrapper.setDrawForms(drawForm);
+    CPDFWrapper wrapper = new CPDFWrapper(pageWrapper);
+    wrapper.setSize(width, height);
+    Glide.with(document.getContext())
+        .asBitmap()
+        .load(wrapper)
+        .override(width, height)
+        .diskCacheStrategy(DiskCacheStrategy.NONE)
+        .into(new CustomTarget<Bitmap>() {
+          @Override
+          public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+            switch (compression) {
+              case "jpeg":
+                Log.i("ComPDFKit-Flutter", "renderPageToImage:jpeg");
+                ByteArrayOutputStream jpegStream = new ByteArrayOutputStream();
+                resource.compress(Bitmap.CompressFormat.JPEG, 85, jpegStream);
+                byte[] byteArray = jpegStream.toByteArray();
+                result.success(byteArray);
+                break;
+              case "png":
+                Log.i("ComPDFKit-Flutter", "renderPageToImage:png");
+                ByteArrayOutputStream pngStream = new ByteArrayOutputStream();
+                resource.compress(Bitmap.CompressFormat.PNG, 100, pngStream);
+                byte[] pngByteArray = pngStream.toByteArray();
+                result.success(pngByteArray);
+                break;
+            }
+
+            Glide.get(document.getContext()).clearMemory();
+          }
+
+          @Override
+          public void onLoadCleared(@Nullable Drawable placeholder) {
+
+          }
+        });
   }
 
   private void createWatermark(MethodCall call, Result result, CPDFViewCtrl pdfView,

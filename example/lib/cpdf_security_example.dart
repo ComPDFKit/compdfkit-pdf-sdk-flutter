@@ -5,27 +5,29 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-import 'dart:io';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
+import 'package:compdfkit_flutter_example/cpdf_configuration_manager.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
+import 'package:compdfkit_flutter_example/widgets/cpdf_example_base.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class CPDFSecurityExample extends StatelessWidget {
-  final String documentPath;
+class CPDFSecurityExample extends CPDFExampleBase {
 
-  final String password;
+  const CPDFSecurityExample({super.key, required super.documentPath, super.password});
 
-  const CPDFSecurityExample(
-      {super.key, required this.documentPath, this.password = ''});
+  @override
+  State<CPDFSecurityExample> createState() => _CpdfSecurityExampleState();
+}
 
-  static const _actions = [
+class _CpdfSecurityExampleState extends CPDFExampleBaseState<CPDFSecurityExample> {
+
+  static const _menuActions = [
     'Set Password',
     'Remove Password',
     'Check Owner Password',
@@ -37,117 +39,154 @@ class CPDFSecurityExample extends StatelessWidget {
     'Document Info'
   ];
 
+
   @override
-  Widget build(BuildContext context) {
-    return CPDFReaderPage(
-        title: 'Security Example',
-        documentPath: documentPath,
-        password: password,
-        configuration: CPDFConfiguration(
-            toolbarConfig: const CPDFToolbarConfig(
-                iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail])),
-        onIOSClickBackPressed: (){
-          Navigator.pop(context);
-        },
-        appBarActions: (controller) => [
-              PopupMenuButton<String>(
-                onSelected: (value) =>
-                    _handleAction(context, value, controller),
-                itemBuilder: (context) => _actions.map((action) {
-                  return PopupMenuItem(value: action, child: Text(action));
-                }).toList(),
-              ),
-            ]);
+  String get pageTitle => 'Security Example';
+
+  @override
+  CPDFConfiguration get configuration => CPDFConfigurationManager.defaultConfig;
+
+  @override
+  List<String> get menuActions => _menuActions;
+
+  @override
+  void onIOSClickBackPressed() {
+    Navigator.pop(context);
   }
 
-  void _handleAction(BuildContext context, String value,
-      CPDFReaderWidgetController controller) async {
-    switch (value) {
+  @override
+  void handleMenuAction(String action, CPDFReaderWidgetController controller) {
+    switch (action) {
       case 'Set Password':
-        bool setPasswordResult = await controller.document.setPassword(
-            userPassword: '1234',
-            ownerPassword: '12345',
-            allowsPrinting: false,
-            allowsCopying: false,
-            encryptAlgo: CPDFDocumentEncryptAlgo.aes256);
-        debugPrint('ComPDFKit:set_user_password:$setPasswordResult');
+        _handleSetPassword(controller);
         break;
       case 'Remove Password':
-        bool removePasswordResult = await controller.document.removePassword();
-        debugPrint('ComPDFKit:remove_user_password:$removePasswordResult');
+        _handleRemovePassword(controller);
         break;
       case 'Check Owner Password':
-        bool result = await controller.document.checkOwnerPassword('12345');
-        debugPrint('ComPDFKit:check_owner_password:$result');
+        _handleCheckOwnerPassword(controller);
         break;
       case 'Create Text Watermark':
-        await controller.document.createWatermark(CPDFWatermark.text(
-            textContent: 'Flutter',
-            scale: 1.0,
-            fontSize: 60,
-            rotation: 0,
-            horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
-            verticalAlignment: CPDFWatermarkVerticalAlignment.center,
-            textColor: Colors.red,
-            pages: [0, 1, 2, 3]));
+        _handleCreateTextWatermark(controller);
         break;
       case 'Create Image Watermark':
-        File imageFile = await extractAsset(context, 'images/logo.png');
-        await controller.document.createWatermark(CPDFWatermark.image(
-          imagePath: imageFile.path,
-          opacity: 1,
-          scale: 1,
-          rotation: 45,
-          pages: [0, 1, 2, 3],
-          horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
-          verticalAlignment: CPDFWatermarkVerticalAlignment.center,
-        ));
+        _handleCreateImageWatermark(controller);
         break;
       case 'Create Image Watermark Pick Image':
-        FilePickerResult? pickerResult = await FilePicker.platform
-            .pickFiles(type: FileType.image, allowMultiple: false);
-        if (pickerResult != null) {
-          debugPrint('ComPDFKit:Document:${pickerResult.files.first.path}');
-          await controller.document.createWatermark(CPDFWatermark.image(
-            imagePath: pickerResult.files.first.path!,
-            pages: [0, 1, 2, 3],
-            scale: 0.3,
-            horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
-            verticalAlignment: CPDFWatermarkVerticalAlignment.center,
-          ));
-          return;
-        }
+        _handleCreateImageWatermarkPickImage(controller);
         break;
       case 'Remove All Watermarks':
-        await controller.document.removeAllWatermarks();
+        _handleRemoveAllWatermarks(controller);
         break;
       case 'Flatten All Pages':
-
-        final tempDir = await ComPDFKit.getTemporaryDirectory();
-        String savePath =
-            '${tempDir.path}/${await controller.document.getFileName()}';
-
-        // var uri = await ComPDFKit.createUri('flatten_test.pdf');
-        debugPrint('ComPDFKit:Document:$savePath');
-        bool flattenResult = await controller.document.flattenAllPages(savePath, true);
-        debugPrint('ComPDFKit:flatten_all_pages:$flattenResult');
-        if (flattenResult) {
-          controller.document.open(savePath);
-        }
+        _handleFlattenAllPages(controller);
         break;
       case 'Document Info':
-        var document = controller.document;
-        debugPrint(
-            'ComPDFKit:Document: fileName:${await document.getFileName()}');
-        debugPrint(
-            'ComPDFKit:Document: checkOwnerUnlocked:${await document.checkOwnerUnlocked()}');
-        debugPrint(
-            'ComPDFKit:Document: isEncrypted:${await document.isEncrypted()}');
-        debugPrint(
-            'ComPDFKit:Document: getPermissions:${await document.getPermissions()}');
-        debugPrint(
-            'ComPDFKit:Document: getEncryptAlgorithm:${await document.getEncryptAlgo()}');
+        _handleDocumentInfo(controller);
         break;
     }
   }
+
+  void _handleSetPassword(CPDFReaderWidgetController controller) async {
+    final result = await controller.document.setPassword(
+      userPassword: '1234',
+      ownerPassword: '12345',
+      allowsPrinting: false,
+      allowsCopying: false,
+      encryptAlgo: CPDFDocumentEncryptAlgo.aes256,
+    );
+    debugPrint('Set password result: $result');
+  }
+
+  void _handleRemovePassword(CPDFReaderWidgetController controller) async {
+    final result = await controller.document.removePassword();
+    debugPrint('Remove password result: $result');
+  }
+
+  void _handleCheckOwnerPassword(CPDFReaderWidgetController controller) async {
+    final result = await controller.document.checkOwnerPassword('12345');
+    debugPrint('Check owner password result: $result');
+  }
+
+  void _handleCreateTextWatermark(CPDFReaderWidgetController controller) async {
+    await controller.document.createWatermark(
+      CPDFWatermark.text(
+        textContent: 'Flutter',
+        scale: 1.0,
+        fontSize: 60,
+        rotation: 0,
+        horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
+        verticalAlignment: CPDFWatermarkVerticalAlignment.center,
+        textColor: Colors.red,
+        pages: [0, 1, 2, 3],
+      ),
+    );
+    debugPrint('Text watermark created');
+  }
+
+  void _handleCreateImageWatermark(CPDFReaderWidgetController controller) async {
+    final imageFile = await extractAsset(context, 'images/logo.png');
+    await controller.document.createWatermark(
+      CPDFWatermark.image(
+        imagePath: imageFile.path,
+        opacity: 1,
+        scale: 1,
+        rotation: 45,
+        pages: [0, 1, 2, 3],
+        horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
+        verticalAlignment: CPDFWatermarkVerticalAlignment.center,
+      ),
+    );
+    debugPrint('Image watermark created with logo');
+  }
+
+  void _handleCreateImageWatermarkPickImage(CPDFReaderWidgetController controller) async {
+    final pickerResult = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    if (pickerResult != null && pickerResult.files.first.path != null) {
+      debugPrint('Selected image path: ${pickerResult.files.first.path}');
+      await controller.document.createWatermark(
+        CPDFWatermark.image(
+          imagePath: pickerResult.files.first.path!,
+          pages: [0, 1, 2, 3],
+          scale: 0.3,
+          horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
+          verticalAlignment: CPDFWatermarkVerticalAlignment.center,
+        ),
+      );
+      debugPrint('Image watermark created from picked image');
+    }
+  }
+
+  void _handleRemoveAllWatermarks(CPDFReaderWidgetController controller) async {
+    await controller.document.removeAllWatermarks();
+    debugPrint('All watermarks removed');
+  }
+
+  void _handleFlattenAllPages(CPDFReaderWidgetController controller) async {
+    final tempDir = await ComPDFKit.getTemporaryDirectory();
+    final fileName = await controller.document.getFileName();
+    final savePath = '${tempDir.path}/$fileName';
+
+    debugPrint('Flatten save path: $savePath');
+    final result = await controller.document.flattenAllPages(savePath, true);
+    debugPrint('Flatten all pages result: $result');
+
+    if (result) {
+      await controller.document.open(savePath);
+    }
+  }
+
+  void _handleDocumentInfo(CPDFReaderWidgetController controller) async {
+    final document = controller.document;
+    debugPrint('Document Info:');
+    debugPrint('  File name: ${await document.getFileName()}');
+    debugPrint('  Owner unlocked: ${await document.checkOwnerUnlocked()}');
+    debugPrint('  Is encrypted: ${await document.isEncrypted()}');
+    debugPrint('  Permissions: ${await document.getPermissions()}');
+    debugPrint('  Encrypt algorithm: ${await document.getEncryptAlgo()}');
+  }
+
 }

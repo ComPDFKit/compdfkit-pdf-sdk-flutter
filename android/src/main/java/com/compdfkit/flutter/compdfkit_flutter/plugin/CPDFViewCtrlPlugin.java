@@ -14,14 +14,24 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ANNOTATION_CAN_UNDO;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ANNOTATION_REDO;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ANNOTATION_UNDO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHANGE_EDIT_TYPE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLEAR_DISPLAY_RECT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONTENT_EDITOR_CAN_REDO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONTENT_EDITOR_CAN_UNDO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONTENT_EDITOR_REDO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONTENT_EDITOR_UNDO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.DISMISS_CONTEXT_MENU;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ENTER_SNIP_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXIT_SNIP_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATION_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_CURRENT_PAGE_INDEX;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_FORM_CREATION_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_SIZE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PREVIEW_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_SCALE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.HIDE_DIGITAL_SIGNATURE_STATUS_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.HIDE_TEXT_SEARCH_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_CONTINUE_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_COVER_PAGE_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_CROP_MODE;
@@ -31,14 +41,17 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_PAGE_IN_SCREEN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.IS_VERTICAL_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RELOAD_PAGES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RELOAD_PAGES_2;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE_CURRENT_INK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_ANNOTATION_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_FORM_CREATION_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_WIDGET_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_ADD_WATERMARK_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_BOTA_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_DISPLAY_SETTINGS_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_SECURITY_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_TEXT_SEARCH_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_THUMBNAIL_VIEW;
-import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_CAN_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_CONTINUE_MODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_COVER_PAGE_MODE;
@@ -55,6 +68,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_READ_BACKGROUND_COLOR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_SCALE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_VERTICAL_MODE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.VERIFY_DIGITAL_SIGNATURE_STATUS;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -64,24 +78,26 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import androidx.core.content.ContextCompat;
-import com.compdfkit.core.annotation.CPDFAnnotation.Type;
-import com.compdfkit.core.undo.CPDFAnnotationChange.Operation;
+import com.compdfkit.core.annotation.form.CPDFWidget.WidgetType;
+import com.compdfkit.core.edit.CPDFEditManager;
+import com.compdfkit.core.edit.OnEditStatusChangeListener;
+import com.compdfkit.core.page.CPDFPage;
 import com.compdfkit.core.undo.CPDFUndoManager;
-import com.compdfkit.core.undo.OnUndoHistoryChangeListener;
+import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
-import com.compdfkit.tools.common.pdf.CPDFDocumentFragment.CFillScreenChangeListener;
-import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
+import com.compdfkit.tools.common.pdf.config.CPDFWatermarkConfig;
 import com.compdfkit.tools.common.views.pdfproperties.CAnnotationType;
 import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
 import com.compdfkit.tools.common.views.pdfview.CPreviewMode;
-import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment;
-import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment.OnBackLisener;
 import com.compdfkit.ui.reader.CPDFReaderView;
+import com.compdfkit.ui.reader.CPDFReaderView.ViewMode;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -136,7 +152,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       }, e -> {
 
       });
-      pdfView.getCPdfReaderView().getUndoManager().addOnUndoHistoryChangeListener(
+      CPDFReaderView readerView = pdfView.getCPdfReaderView();
+
+      readerView.getUndoManager().addOnUndoHistoryChangeListener(
           (cpdfUndoManager, operation, type) -> {
             Map<String, Object> map = new HashMap<>();
             map.put("canUndo", cpdfUndoManager.canUndo());
@@ -145,6 +163,32 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
               methodChannel.invokeMethod("onAnnotationHistoryChanged", map);
             }
           });
+
+      CPDFEditManager editManager = readerView.getEditManager();
+      if (editManager != null){
+        editManager.addEditStatusChangeListener(new OnEditStatusChangeListener() {
+          @Override
+          public void onBegin(int i) {
+
+          }
+
+          @Override
+          public void onUndoRedo(int pageIndex, boolean canUndo, boolean canRedo) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("canUndo", canUndo);
+            map.put("canRedo", canRedo);
+            map.put("pageIndex", pageIndex);
+            if (methodChannel != null) {
+              methodChannel.invokeMethod("onContentEditorHistoryChanged", map);
+            }
+          }
+
+          @Override
+          public void onExit() {
+
+          }
+        });
+      }
 
     });
     documentFragment.setPageEditDialogOnBackListener(() -> {
@@ -289,11 +333,28 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
       case IS_CROP_MODE:
         result.success(readerView.isCropMode());
         break;
-      case SET_DISPLAY_PAGE_INDEX:
+      case SET_DISPLAY_PAGE_INDEX:{
         int pageIndex = call.argument("pageIndex");
-        readerView.setDisplayPageIndex(pageIndex);
+
+        List<Map<String, Object>> rectList = call.argument("rectList");
+        if (rectList != null && rectList.size() > 0) {
+          List<RectF> androidRectList = new ArrayList<>();
+          for (Map<String, Object> rectMap : rectList) {
+            float rectLeft = ((Number) rectMap.get("left")).floatValue();
+            float rectTop = ((Number) rectMap.get("top")).floatValue();
+            float rectRight = ((Number) rectMap.get("right")).floatValue();
+            float rectBottom = ((Number) rectMap.get("bottom")).floatValue();
+            RectF pageRectF = new RectF(rectLeft, rectTop, rectRight, rectBottom);
+            androidRectList.add(convertScreenRectF(readerView, pageIndex, pageRectF));
+          }
+          RectF[] rectArray = androidRectList.toArray(new RectF[0]);
+          readerView.setDisplayPageIndex(pageIndex, rectArray);
+        } else {
+          readerView.setDisplayPageIndex(pageIndex);
+        }
         result.success(null);
         break;
+      }
       case GET_CURRENT_PAGE_INDEX:
         result.success(readerView.getPageNum());
         break;
@@ -351,11 +412,16 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         documentFragment.showBOTA();
         result.success(null);
         break;
-      case SHOW_ADD_WATERMARK_VIEW:
-        boolean saveAsNewFile = (boolean) call.arguments;
-        documentFragment.showAddWatermarkDialog(saveAsNewFile);
+      case SHOW_ADD_WATERMARK_VIEW:{
+        Map<String, Object> configMap = (Map<String, Object>) call.arguments;
+        if (configMap == null){
+          documentFragment.showAddWatermarkDialog();
+        }else {
+          documentFragment.showAddWatermarkDialog(CPDFWatermarkConfig.fromMap(configMap));
+        }
         result.success(null);
         break;
+      }
       case SHOW_SECURITY_VIEW:
         documentFragment.showSecurityDialog();
         result.success(null);
@@ -374,6 +440,10 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         break;
       case RELOAD_PAGES:
         documentFragment.pdfView.getCPdfReaderView().reloadPages();
+        result.success(null);
+        break;
+      case RELOAD_PAGES_2:
+        documentFragment.pdfView.getCPdfReaderView().reloadPages2();
         result.success(null);
         break;
       case SET_ANNOTATION_MODE:
@@ -434,10 +504,156 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin {
         result.success(null);
         break;
       }
+      case CHANGE_EDIT_TYPE:{
+        List<Integer> types = (List<Integer>) call.arguments;
+
+        if (readerView.getViewMode() != ViewMode.PDFEDIT && readerView.getViewMode() != ViewMode.ALL){
+          result.error("1002", "Current mode is not contentEditor mode, please switch to CPDFViewMode.contentEditor mode first.", null);
+          return;
+        }
+        CPDFEditManager editManager = readerView.getEditManager();
+        if (editManager!= null){
+          int editType = 0;
+          for (Integer t : types) {
+            editType = t | editType;
+          }
+          editManager.changeEditType(editType);
+          documentFragment.editToolBar.updateTypeStatus();
+          result.success(true);
+        }else {
+          result.error("1001","EditManager is null, please check if Edit feature is enabled.",null);
+        }
+        break;
+      }
+      case CONTENT_EDITOR_CAN_REDO:{
+        CPDFEditManager editManager = readerView.getEditManager();
+        if (editManager == null){
+          result.success(false);
+          return;
+        }
+        result.success(editManager.canRedo());
+        break;
+      }
+      case CONTENT_EDITOR_CAN_UNDO:{
+        CPDFEditManager editManager = readerView.getEditManager();
+        if (editManager == null){
+          result.success(false);
+          return;
+        }
+        result.success(editManager.canUndo());
+        break;
+      }
+      case CONTENT_EDITOR_UNDO:{
+        CPDFEditManager editManager = readerView.getEditManager();
+        if (editManager == null){
+          result.success(false);
+          return;
+        }
+        if (editManager.canUndo()){
+          editManager.undo();
+          result.success(true);
+        }else {
+          result.success(false);
+        }
+        break;
+      }
+      case CONTENT_EDITOR_REDO:{
+        CPDFEditManager editManager = readerView.getEditManager();
+        if (editManager == null){
+          result.success(false);
+          return;
+        }
+        if (editManager.canRedo()){
+          editManager.redo();
+          result.success(true);
+        }else {
+          result.success(false);
+        }
+        break;
+      }
+      case SET_FORM_CREATION_MODE:{
+        setFormMode(call, result);
+        break;
+      }
+      case GET_FORM_CREATION_MODE:{
+        result.success(getFormMode(readerView));
+        break;
+      }
+      case VERIFY_DIGITAL_SIGNATURE_STATUS:{
+        documentFragment.verifyDocumentSignStatus();
+        result.success(null);
+        break;
+      }
+      case HIDE_DIGITAL_SIGNATURE_STATUS_VIEW:{
+        documentFragment.hideDigitalSignStatusView();
+        result.success(null);
+        break;
+      }
+      case CLEAR_DISPLAY_RECT:{
+        readerView.setDisplayPageRectangles(null);
+        readerView.setShowDisplayPageRect(false);
+        result.success(true);
+        break;
+      }
+      case DISMISS_CONTEXT_MENU:{
+        if (readerView.getContextMenuShowListener() != null) {
+          readerView.getContextMenuShowListener().dismissContextMenu();
+        }
+        result.success(true);
+        break;
+      }
+      case SHOW_TEXT_SEARCH_VIEW: {
+        documentFragment.showTextSearchView();
+        result.success(null);
+        break;
+      }
+      case HIDE_TEXT_SEARCH_VIEW: {
+        documentFragment.hideTextSearchView();
+        result.success(null);
+        break;
+      }
+      case SAVE_CURRENT_INK: {
+        readerView.getInkDrawHelper().onSave();
+        result.success(null);
+        break;
+      }
       default:
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:notImplemented");
         result.notImplemented();
         break;
     }
+  }
+
+  private void setFormMode(MethodCall call, MethodChannel.Result result){
+    String mode = (String) call.arguments;
+    WidgetType type = CPDFConfigurationUtils.getWidgetType(mode);
+    documentFragment.formToolBar.switchFormMode(type);
+    result.success(true);
+  }
+
+  private String getFormMode(CPDFReaderView readerView){
+    switch (readerView.getCurrentFocusedFormType()) {
+      case Widget_TextField:
+        return "textField";
+      case Widget_CheckBox:
+        return "checkBox";
+      case Widget_RadioButton:
+        return "radioButton";
+      case Widget_ListBox:
+        return "listBox";
+      case Widget_ComboBox:
+        return "comboBox";
+      case Widget_PushButton:
+        return "pushButton";
+      case Widget_SignatureFields:
+        return "signaturesFields";
+      default:return "unknown";
+    }
+  }
+
+  private RectF convertScreenRectF(CPDFReaderView readerView, int pageIndex, RectF pageRectF){
+    CPDFPage page = readerView.getPDFDocument().pageAtIndex(pageIndex);
+    RectF screenPageRect = readerView.getPageSize(pageIndex);
+    return page.convertRectFromPage(readerView.isCropMode(), screenPageRect.width(), screenPageRect.height(), pageRectF);
   }
 }

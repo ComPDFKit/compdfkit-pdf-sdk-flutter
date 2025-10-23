@@ -1,3 +1,60 @@
+## 2.5.0
+1. Upgraded iOS ComPDFKit PDF SDK to 2.5.0.
+2. Upgraded Android ComPDFKit PDF SDK to 2.5.0.
+3. Modify the SDK initialization interface to return the initialization result.
+4. Added Spanish language support.
+5. Added API to render PDF pages as images.
+6. Added API for creating forms.
+7. Added watermark configuration options.
+8. Added configurable border color for search results.
+9. Added configurable highlight color for search results.
+10. Added rectangle drawing when jumping to a page.
+11. Added API to set content editing types.
+12. Added configuration for page editing menu options.
+13. Added UI mode configuration.
+14. Added bottom toolbar UI configuration.
+15. Added BOTA interface configuration.
+16. Added control for showing and hiding the search view.
+17. Added API to save ongoing Ink annotations.
+18. Added API to hide the context menu.
+19. Added theme mode configuration on iOS.
+20. Added signature method configuration on iOS.
+21. Added Pencil annotation toolbar configuration on iOS Issues Addressed.
+22. Fixed crash on Android caused by empty arrays in shape annotation properties.
+23. Fixed issue where FreeText input was not properly centered on Android.
+24. Fixed inconsistency between FreeText font size and the configured value on Android.
+25. Fixed issue where imported FreeText annotations might not display on iOS.
+26. Fixed issue where the watermark toolbar would not appear when the top toolbar was hidden on iOS.
+
+
+## 2.5.0-dev.1
+1. Upgraded iOS ComPDFKit PDF SDK to 2.5.0-snapshot.
+2. Upgraded Android ComPDFKit PDF SDK to 2.5.0.
+3. Modify the SDK initialization interface to return the initialization result.
+4. Added API to render PDF pages as images.
+5. Added API for creating forms.
+6. Added watermark configuration options.
+7. Added configurable border color for search results.
+8. Added configurable highlight color for search results.
+9. Added rectangle drawing when jumping to a page.
+10. Added API to set content editing types.
+11. Added configuration for page editing menu options.
+12. Added UI mode configuration.
+13. Added bottom toolbar UI configuration.
+14. Added BOTA interface configuration.
+15. Added control for showing and hiding the search view.
+16. Added API to save ongoing Ink annotations.
+17. Added API to hide the context menu.
+18. Added theme mode configuration on iOS.
+19. Added signature method configuration on iOS.
+20. Added Pencil annotation toolbar configuration on iOS Issues Addressed.
+21. Fixed crash on Android caused by empty arrays in shape annotation properties.
+22. Fixed issue where FreeText input was not properly centered on Android.
+23. Fixed inconsistency between FreeText font size and the configured value on Android.
+24. Fixed issue where imported FreeText annotations might not display on iOS.
+25. Fixed issue where the watermark toolbar would not appear when the top toolbar was hidden on iOS.
+
+
 ## 2.4.7
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.4.7.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.4.7.

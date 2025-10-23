@@ -66,7 +66,7 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title, style: Theme.of(context).textTheme.titleSmall,),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {
@@ -93,7 +93,7 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
   }
 
   Widget _buildPDFReader(){
-    return SafeArea(bottom: true,child: CPDFReaderWidget(
+    return CPDFReaderWidget(
         document: widget.documentPath,
         password: widget.password,
         configuration: widget.configuration,
@@ -113,7 +113,7 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
         onTapMainDocAreaCallback: (){
           widget.onTapMainDocAreaCallback?.call();
         }
-    ),);
+    );
   }
 
   Widget _buildPlaceholder(){

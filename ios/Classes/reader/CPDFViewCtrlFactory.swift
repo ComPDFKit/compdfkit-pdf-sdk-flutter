@@ -16,12 +16,12 @@ import ComPDFKit_Tools
 
 class CPDFViewCtrlFactory: NSObject, FlutterPlatformViewFactory {
     private let messenger: FlutterBinaryMessenger
-
+    
     init(messenger: FlutterBinaryMessenger) {
         self.messenger = messenger
         super.init()
     }
-
+    
     func create(
         withFrame frame: CGRect,
         viewIdentifier viewId: Int64,
@@ -44,7 +44,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     private var pdfViewController : CPDFViewController
     
     private var navigationController : CNavigationController
-
+    
     private var plugin : CPDFViewCtrlPlugin
     init(
         frame: CGRect,
@@ -65,7 +65,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         
         let homeDiectory = NSHomeDirectory()
         let bundlePath = Bundle.main.bundlePath
-            
+        
         if (path.hasPrefix(homeDiectory) || path.hasPrefix(bundlePath)) {
             let fileManager = FileManager.default
             let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
@@ -85,10 +85,23 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
             success = document.startAccessingSecurityScopedResource()
         }
         
-        
-        
         let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
         let configuration = jsonDataParse.configuration
+        
+        let imageName = configuration?.watermarkMode.imageName ?? ""
+        if !imageName.isEmpty {
+            if FileManager.default.fileExists(atPath: imageName) {
+                if let image = UIImage(contentsOfFile: imageName) {
+                    configuration?.watermarkMode.image = image
+                }
+            } else {
+                if let url = Bundle.main.findImageURL(for: imageName) {
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        configuration?.watermarkMode.image = image
+                    }
+                }
+            }
+        }
         
         // Create the pdfview controller view
         pdfViewController = CPDFViewController(filePath: documentPath, password: password as? String, configuration: configuration!)
@@ -98,7 +111,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         navigationController.view.frame = frame
         
         plugin = CPDFViewCtrlPlugin(viewId: viewId, binaryMessenger: messenger!, controller: pdfViewController)
-
+        
         super.init()
         
         // Proxy set, but not used
@@ -109,12 +122,38 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         if success {
             document.stopAccessingSecurityScopedResource()
         }
-
+        
         NotificationCenter.default.addObserver(self, selector: #selector(annotationsOperationChangeNotification(_:)), name: NSNotification.Name(NSNotification.Name("CPDFListViewAnnotationsOperationChangeNotification").rawValue), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(pageChangedNotification(_:)), name: NSNotification.Name(NSNotification.Name("CPDFViewPageChangedNotification").rawValue), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(pageEditingDidChanged(_:)), name: NSNotification.Name(NSNotification.Name("CPDFPageEditingDidChangedNotification").rawValue), object: nil)
     }
-
+    
     func view() -> UIView {
         return navigationController.view
+    }
+    
+    deinit {
+#if DEBUG
+        print("====CPDFViewCtrlFlutter==deinit")
+#endif
+    }
+    
+    private func getImagePath(forResource imageName: String) -> String? {
+        let fileManager = FileManager.default
+        let imageExtensions = ["png", "jpg", "jpeg", "gif", "bmp"]
+        
+        // 获取资源目录下的所有文件
+        if let resourcePath = Bundle.main.resourcePath,
+           let fileList = try? fileManager.contentsOfDirectory(atPath: resourcePath) {
+            for file in fileList {
+                for ext in imageExtensions {
+                    if file.lowercased().hasSuffix(ext) && file.lowercased().contains(imageName.lowercased()) {
+                        return resourcePath + "/" + file
+                    }
+                }
+            }
+        }
+        return nil
     }
     
     // MARK: - Notification
@@ -129,13 +168,44 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         ])
     }
     
-    // MARK: - CPDFViewBaseControllerDelete
+    @objc func pageChangedNotification(_ notification: Notification) {
+        guard let pdfview = notification.object as? CPDFView else {
+            return
+        }
+        let canUndo = pdfview.canEditTextUndo()
+        let canRedo = pdfview.canEditTextRedo()
+        let pageIndex = pdfview.currentPageIndex
         
+        plugin._methodChannel.invokeMethod("onContentEditorHistoryChanged", arguments: [
+            "pageIndex": pageIndex,
+            "canUndo": canUndo,
+            "canRedo": canRedo
+        ])
+    }
+    
+    @objc func pageEditingDidChanged(_ notification: Notification) {
+        guard let page = notification.object as? CPDFPage else {
+            return
+        }
+         
+        let canUndo = pdfViewController.pdfListView?.canEditTextUndo() ?? false
+        let canRedo = pdfViewController.pdfListView?.canEditTextRedo() ?? false
+        let pageIndex = page.pageIndexInteger
+        
+        plugin._methodChannel.invokeMethod("onContentEditorHistoryChanged", arguments: [
+            "pageIndex": pageIndex,
+            "canUndo": canUndo,
+            "canRedo": canRedo
+        ])
+    }
+    
+    // MARK: - CPDFViewBaseControllerDelete
+    
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
         baseControllerDelete.dismiss(animated: true)
         plugin._methodChannel.invokeMethod("onIOSClickBackPressed", arguments: nil)
     }
-   
+    
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, SaveState success: Bool) {
         if success {
             plugin._methodChannel.invokeMethod("saveDocument", arguments: nil)
@@ -163,7 +233,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     func PDFViewBaseControllerTouchEnded(_ baseController: CPDFViewBaseController) {
         self.plugin._methodChannel.invokeMethod("onTapMainDocArea", arguments: nil)
     }
-
+    
 }
 
 

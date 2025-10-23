@@ -5,106 +5,114 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-import 'dart:io';
 
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
-import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_widget_list_page.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
+import 'package:compdfkit_flutter_example/widgets/cpdf_example_base.dart';
 import 'package:flutter/material.dart';
 
-class CPDFWidgetsExample extends StatelessWidget {
-  final String documentPath;
+class CPDFWidgetsExample extends CPDFExampleBase {
+  const CPDFWidgetsExample({super.key, required super.documentPath});
 
-  const CPDFWidgetsExample({super.key, required this.documentPath});
+  @override
+  State<CPDFWidgetsExample> createState() => _CPDFWidgetsExampleState();
+}
 
-  static const _actions = [
+class _CPDFWidgetsExampleState extends CPDFExampleBaseState<CPDFWidgetsExample> {
+  static const List<String> _menuActions = [
     'Open Document',
     'Import Widgets',
     'Export Widgets',
-    'Get Widgets'
+    'Get Widgets',
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return CPDFReaderPage(
-        title: 'Widgets Example',
-        documentPath: documentPath,
-        configuration: CPDFConfiguration(
-          toolbarConfig: const CPDFToolbarConfig(
-            iosLeftBarAvailableActions: [
-              CPDFToolbarAction.thumbnail
-            ]
-          )
-        ),
-        onIOSClickBackPressed: (){
-          Navigator.pop(context);
-        },
-        appBarActions: (controller) => [
-              PopupMenuButton<String>(
-                onSelected: (value) =>
-                    _handleAction(context, value, controller),
-                itemBuilder: (context) => _actions.map((action) {
-                  return PopupMenuItem(value: action, child: Text(action));
-                }).toList(),
-              ),
-            ]);
-  }
+  String get pageTitle => 'Widgets Example';
 
-  void _handleAction(BuildContext context, String value,
-      CPDFReaderWidgetController controller) async {
-    switch (value) {
+  @override
+  CPDFConfiguration get configuration => CPDFConfiguration(
+    toolbarConfig: const CPDFToolbarConfig(
+      iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail],
+    ),
+  );
+
+  @override
+  List<String> get menuActions => _menuActions;
+
+  @override
+  void handleMenuAction(String action, CPDFReaderWidgetController controller) {
+    switch (action) {
       case 'Open Document':
-        String? path = await ComPDFKit.pickFile();
-        if (path != null) {
-          var document = controller.document;
-          var error = await document.open(path);
-          debugPrint('ComPDFKit:Document: open:$error');
-        }
+        _handleOpenDocument(controller);
         break;
       case 'Import Widgets':
-        File xfdfFile = await extractAsset(
-            context, 'pdfs/annot_test_widgets.xfdf',
-            shouldOverwrite: false);
-        bool importResult =
-            await controller.document.importWidgets(xfdfFile.path);
-        debugPrint('ComPDFKit:Document: importWidgets:$importResult');
+        _handleImportWidgets(controller);
         break;
       case 'Export Widgets':
-        String xfdfPath = await controller.document.exportWidgets();
-        debugPrint('ComPDFKit:Document: exportWidgets:$xfdfPath');
+        _handleExportWidgets(controller);
         break;
       case 'Get Widgets':
-        int pageCount = await controller.document.getPageCount();
-        List<CPDFWidget> widgets = [];
-        for(int i = 0; i < pageCount; i++){
-          CPDFPage page = controller.document.pageAtIndex(i);
-          var pageWidgets = await page.getWidgets();
-          widgets.addAll(pageWidgets);
-        }
-        if (context.mounted) {
-          Map<String, dynamic> data = await showModalBottomSheet(
-              context: context,
-              builder: (context) =>
-                  CpdfWidgetListPage(widgets: widgets));
-          String type = data['type'];
-          CPDFWidget widget = data['widget'];
-          if (type == 'jump') {
-            await controller.setDisplayPageIndex(widget.page);
-          } else if (type == 'remove') {
-            CPDFPage page = controller.document.pageAtIndex(widget.page);
-            bool result = await page.removeWidget(widget);
-            debugPrint('ComPDFKit:Document: removeWidget:$result');
-          }
-        }
+        _handleGetWidgets(controller);
         break;
-      default:
-        break;
+    }
+  }
+
+  void _handleOpenDocument(CPDFReaderWidgetController controller) async {
+    final path = await ComPDFKit.pickFile();
+    if (path != null) {
+      final error = await controller.document.open(path);
+      debugPrint('Open document result: $error');
+    }
+  }
+
+  void _handleImportWidgets(CPDFReaderWidgetController controller) async {
+    final xfdfFile = await extractAsset(
+      context,
+      'pdfs/annot_test_widgets.xfdf',
+      shouldOverwrite: false,
+    );
+    final importResult = await controller.document.importWidgets(xfdfFile.path);
+    debugPrint('Import widgets result: $importResult');
+  }
+
+  void _handleExportWidgets(CPDFReaderWidgetController controller) async {
+    final xfdfPath = await controller.document.exportWidgets();
+    debugPrint('Export widgets path: $xfdfPath');
+  }
+
+  void _handleGetWidgets(CPDFReaderWidgetController controller) async {
+    final pageCount = await controller.document.getPageCount();
+    final List<CPDFWidget> widgets = [];
+
+    for (int i = 0; i < pageCount; i++) {
+      final page = controller.document.pageAtIndex(i);
+      final pageWidgets = await page.getWidgets();
+      widgets.addAll(pageWidgets);
+    }
+
+    if (context.mounted) {
+      final data = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        builder: (context) => CpdfWidgetListPage(widgets: widgets),
+      );
+
+      if (data != null) {
+        final type = data['type'] as String;
+        final widget = data['widget'] as CPDFWidget;
+
+        if (type == 'jump') {
+          await controller.setDisplayPageIndex(pageIndex: widget.page, rectList: [widget.rect]);
+        } else if (type == 'remove') {
+          final page = controller.document.pageAtIndex(widget.page);
+          final result = await page.removeWidget(widget);
+          debugPrint('Remove widget result: $result');
+        }
+      }
     }
   }
 }

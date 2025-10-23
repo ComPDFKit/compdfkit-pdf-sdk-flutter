@@ -6,12 +6,15 @@
 // This notice may not be removed from this file.
 
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:compdfkit_flutter/configuration/attributes/cpdf_annot_attr.dart';
+import 'package:compdfkit_flutter/configuration/config/cpdf_page_editor_config.dart';
+import 'package:compdfkit_flutter/configuration/config/cpdf_search_config.dart';
 import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_context_menu_config.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
+import 'package:flutter/material.dart';
 
+import 'config/cpdf_bota_config.dart';
 import 'cpdf_options.dart';
 
 /// modeConfig: Configuration of parameters that can be adjusted when opening a PDF interface.
@@ -81,19 +84,17 @@ class CPDFModeConfig {
   /// Configure supported modes
   final List<CPDFViewMode> availableViewModes;
 
-  /// Setting this to true will hide the top and bottom toolbars,
-  /// displaying only the central PDF document view.
-  /// Conversely, setting this to false will display all toolbars.
-  final bool readerOnly;
 
-  const CPDFModeConfig(
-      {this.initialViewMode = CPDFViewMode.viewer,
-      this.readerOnly = false,
-      this.availableViewModes = CPDFViewMode.values});
+  final CPDFUIVisibilityMode uiVisibilityMode;
+
+  const CPDFModeConfig({
+    this.initialViewMode = CPDFViewMode.viewer,
+    this.uiVisibilityMode = CPDFUIVisibilityMode.automatic,
+    this.availableViewModes = CPDFViewMode.values});
 
   Map<String, dynamic> toJson() => {
         'initialViewMode': initialViewMode.name,
-        'readerOnly': readerOnly,
+        'uiVisibilityMode': uiVisibilityMode.name,
         'availableViewModes': availableViewModes.map((e) => e.name).toList()
       };
 }
@@ -123,6 +124,12 @@ class CPDFToolbarConfig {
   final bool mainToolbarVisible;
 
   final bool annotationToolbarVisible;
+
+  final bool contentEditorToolbarVisible;
+
+  final bool formToolbarVisible;
+
+  final bool signatureToolbarVisible;
 
   final bool showInkToggleButton;
 
@@ -159,6 +166,9 @@ class CPDFToolbarConfig {
     this.mainToolbarVisible = true,
     this.annotationToolbarVisible = true,
     this.showInkToggleButton = true,
+    this.contentEditorToolbarVisible = true,
+    this.formToolbarVisible = true,
+    this.signatureToolbarVisible = true,
     // this.showFormModeToggleButton = true
   });
 
@@ -172,6 +182,9 @@ class CPDFToolbarConfig {
         'availableMenus': availableMenus.map((e) => e.name).toList(),
         'mainToolbarVisible': mainToolbarVisible,
         'annotationToolbarVisible': annotationToolbarVisible,
+        'contentEditorToolbarVisible': contentEditorToolbarVisible,
+        'formToolbarVisible': formToolbarVisible,
+        'signatureToolbarVisible': signatureToolbarVisible,
         'showInkToggleButton': showInkToggleButton,
         // 'showFormModeToggleButton': showFormModeToggleButton
       };
@@ -453,6 +466,16 @@ class CPDFGlobalConfig {
 
   final bool enableErrorTips;
 
+  final CPDFBotaConfig bota;
+
+  final CPDFSearchConfig search;
+
+  final CPDFPageEditorConfig pageEditor;
+
+  /// ios pencil annotation menus config
+  /// Only supports iOS platform.
+  final List<CPDFPencilMenus> pencilMenus;
+
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
       this.fileSaveExtraFontSubset = true,
@@ -460,30 +483,126 @@ class CPDFGlobalConfig {
       this.enableExitSaveTips = true,
       this.signatureType = CPDFFillSignatureType.manual,
       this.thumbnail = const CPDFThumbnailConfig(),
-      this.enableErrorTips = true});
+      this.enableErrorTips = true,
+      this.bota = const CPDFBotaConfig(),
+      this.search = const CPDFSearchConfig(),
+        this.pageEditor = const CPDFPageEditorConfig(),
+        this.pencilMenus = CPDFPencilMenus.values
+      });
 
   Map<String, dynamic> toJson() => {
-        "themeMode": themeMode.name,
-        "fileSaveExtraFontSubset": fileSaveExtraFontSubset,
-        "watermark": watermark.toJson(),
-        "enableExitSaveTips": enableExitSaveTips,
-        "signatureType": signatureType.name,
-        "thumbnail": thumbnail.toJson(),
-        "enableErrorTips": enableErrorTips
+        'themeMode': themeMode.name,
+        'fileSaveExtraFontSubset': fileSaveExtraFontSubset,
+        'watermark': watermark.toJson(),
+        'enableExitSaveTips': enableExitSaveTips,
+        'signatureType': signatureType.name,
+        'thumbnail': thumbnail.toJson(),
+        'enableErrorTips': enableErrorTips,
+        'bota': bota.toJson(),
+        'search': search.toJson(),
+        'pageEditor': pageEditor.toJson(),
+        'pencilMenus': pencilMenus.map((e) => e.name).toList()
       };
 }
 
+
+/// Configuration options for adding a watermark.
+///
+/// Supports both **text** and **image** watermarks, with full control
+/// over appearance, placement, and rendering behavior.
 class CPDFWatermarkConfig {
+  /// Whether to save the watermarked document as a new file.
+  ///
+  /// Defaults to `true`.
   final bool saveAsNewFile;
 
+  /// Background color outside the page area (optional).
   final Color? outsideBackgroundColor;
 
-  const CPDFWatermarkConfig(
-      {this.saveAsNewFile = true, this.outsideBackgroundColor});
+  /// Types of watermarks to apply (text, image, or both).
+  ///
+  /// Defaults to `[CPDFWatermarkType.text, CPDFWatermarkType.image]`.
+  final List<CPDFWatermarkType> types;
+
+  /// The watermark text content.
+  ///
+  /// Defaults to `"Watermark"`.
+  final String text;
+
+  /// The image source for the watermark.
+  ///
+  /// Can be:
+  /// - Android: drawable resource name or file path
+  /// - iOS: bundled image name or file path
+  ///
+  /// Defaults to `""` (no image).
+  final String image;
+
+  /// Font size of the watermark text.
+  ///
+  /// Defaults to `30`.
+  final int textSize;
+
+  /// Color of the watermark text.
+  ///
+  /// Defaults to [Colors.black].
+  final Color textColor;
+
+  /// Scale factor for the watermark size.
+  ///
+  /// Defaults to `1.5`.
+  final double scale;
+
+  /// Rotation angle of the watermark (in degrees).
+  ///
+  /// Negative values rotate counter-clockwise.
+  ///
+  /// Defaults to `-45`.
+  final int rotation;
+
+  /// Opacity of the watermark (0–255).
+  ///
+  /// Defaults to `255` (fully opaque).
+  final int opacity;
+
+  /// Whether to render the watermark **in front** of the content.
+  ///
+  /// Defaults to `false` (behind the content).
+  final bool isFront;
+
+  /// Whether to tile the watermark across the entire page.
+  ///
+  /// Defaults to `false`.
+  final bool isTilePage;
+
+  const CPDFWatermarkConfig({
+    this.saveAsNewFile = true,
+    this.outsideBackgroundColor,
+    this.types = const [CPDFWatermarkType.text, CPDFWatermarkType.image],
+    this.text = "Watermark",
+    this.image = "",
+    this.textSize = 30,
+    this.textColor = Colors.black,
+    this.scale = 1.5,
+    this.rotation = -45,
+    this.opacity = 255,
+    this.isFront = false,
+    this.isTilePage = false
+  });
 
   Map<String, dynamic> toJson() => {
         "saveAsNewFile": saveAsNewFile,
-        "outsideBackgroundColor": outsideBackgroundColor?.toHex()
+        "outsideBackgroundColor": outsideBackgroundColor?.toHex(),
+        "types": types.map((e) => e.name).toList(),
+        "text": text,
+        "image": image,
+        "textSize": textSize,
+        "textColor": textColor.toHex(),
+        "scale": scale,
+        "rotation": rotation,
+        "opacity": opacity,
+        "isFront": isFront,
+        "isTilePage": isTilePage
       };
 }
 

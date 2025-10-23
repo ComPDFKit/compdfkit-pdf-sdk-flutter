@@ -13,6 +13,22 @@ import UIKit
 import ComPDFKit
 import ComPDFKit_Tools
 
+import UniformTypeIdentifiers
+
+extension Bundle {
+    func findImageURL(for name: String) -> URL? {
+        let imageFormats = ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "heic", "webp"]
+                
+        for format in imageFormats {
+            if let url = Bundle.main.url(forResource: name, withExtension: format) {
+                return url
+            }
+        }
+        
+        return nil
+    }
+}
+
 class CPDFViewCtrlPlugin {
     
     public var _methodChannel : FlutterMethodChannel
@@ -23,17 +39,17 @@ class CPDFViewCtrlPlugin {
         self.pdfViewController = controller
         _methodChannel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.ui.pdfviewer.\(viewId)", binaryMessenger: messenger)
         registeryMethodChannel()
-
+        
         var documentPlugin = CPDFDocumentPlugin(pdfViewController: pdfViewController, uid: String(describing: viewId), binaryMessager: messenger)
     }
     
     
     private func registeryMethodChannel(){
-
+        
         _methodChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: FlutterResult) -> Void in
             print("ComPDFKit-Flutter: iOS-MethodChannel: [method:\(call.method)]")
-              // Handle battery messages.
+            // Handle battery messages.
             switch call.method {
             case CPDFConstants.setScale:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
@@ -54,7 +70,7 @@ class CPDFViewCtrlPlugin {
                     result(nil)
                     return
                 }
-           
+                
                 let initInfo = call.arguments as? [String: String]
                 let displayModeName = initInfo?["displayMode"] ?? "light"
                 // light, dark,repia, reseda
@@ -70,7 +86,7 @@ class CPDFViewCtrlPlugin {
                 default:
                     pdfListView.displayMode = .normal
                 }
-
+                
                 pdfListView.layoutDocumentView()
                 result(nil)
             case CPDFConstants.setWidgetBackgroundColor:
@@ -104,7 +120,7 @@ class CPDFViewCtrlPlugin {
                 @unknown default:
                     result("#FFFFFFFF")
                 }
-               
+                
             case CPDFConstants.setFromFieldHighlight:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
                     result(nil)
@@ -156,7 +172,7 @@ class CPDFViewCtrlPlugin {
                     left: CGFloat(truncating: (spacingInfo["left"] ?? 10)),
                     bottom: CGFloat(truncating: (spacingInfo["bottom"] ?? 10)),
                     right: CGFloat(truncating: (spacingInfo["right"] ?? 10))
-                    )
+                )
                 pdfListView.layoutDocumentView()
                 result(nil)
             case CPDFConstants.setContinueMode:
@@ -232,10 +248,39 @@ class CPDFViewCtrlPlugin {
                     result(nil)
                     return
                 }
-                let info =  call.arguments as! [String: Any]
-                let pageIndex = info["pageIndex"] as! NSNumber
-                let animated = info["animated"] as! Bool
+                let info =  call.arguments as? [String: Any] ?? [:]
+                let pageIndex = info["pageIndex"] as? NSNumber ?? 0
+                let animated = info["animated"] as? Bool ?? true
                 pdfListView.go(toPageIndex: Int(truncating: pageIndex), animated: animated)
+                if let rectList = info["rectList"] as? [[String: Any]] {
+                    var m_left:CGFloat = 0.0
+                    var m_top:CGFloat = 0.0
+                    var m_right:CGFloat = 0.0
+                    var m_bottom:CGFloat = 0.0
+                    
+                    var areasDict: [NSNumber: [NSValue]] = [:]
+                    for rect in rectList {
+                        var rectValues:[NSValue] = []
+                        for (key, value) in rect {
+                            if key == "left"  {
+                                m_left = value as? CGFloat ?? 0
+                            } else if key == "top" {
+                                m_top = value as? CGFloat ?? 0
+                            } else if key == "right" {
+                                m_right = value as? CGFloat ?? 0
+                            } else if key == "bottom" {
+                                m_bottom = value as? CGFloat ?? 0
+                            }
+                        }
+                        rectValues.append(NSValue(cgRect: CGRect(x: m_left, y: m_top, width: m_right - m_left, height: m_bottom - m_top)))
+                        areasDict[NSNumber(value: UInt(truncating: pageIndex))] = rectValues
+                    }
+                    
+                    let borderColor = ColorHelper.colorWithHexString(hex: "#1460F3")
+                    let fillColor = ColorHelper.colorWithHexString(hex: "#4D1460F3")
+                    pdfListView.setSquareAreas(areasDict, borderColor: borderColor, borderOpacity: 1.0, fill: fillColor, fillOpacity: 77.0/255.0)
+                }
+                
                 result(nil)
             case CPDFConstants.getCurrentPageIndex:
                 guard let pdfListView = self.pdfViewController.pdfListView else {
@@ -243,6 +288,20 @@ class CPDFViewCtrlPlugin {
                     return
                 }
                 result(pdfListView.currentPageIndex)
+            case CPDFConstants.clearDisplayRect:
+                guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
+                    return
+                }
+                pdfListView.removeAllSquareAreas()
+                result(nil)
+            case CPDFConstants.dismissContextMenu:
+                guard let pdfListView = self.pdfViewController.pdfListView else {
+                    result(nil)
+                    return
+                }
+                pdfListView.becomeFirstResponder()
+                result(nil)
             case CPDFConstants.set_preview_mode:
                 let mode = call.arguments as! String
                 switch mode {
@@ -256,7 +315,7 @@ class CPDFViewCtrlPlugin {
                     self.pdfViewController.enterFormMode()
                 case "signatures":
                     self.pdfViewController.enterSignatureMode()
-                    default:
+                default:
                     self.pdfViewController.enterViewerMode()
                 }
                 result(nil)
@@ -277,7 +336,7 @@ class CPDFViewCtrlPlugin {
                     result("viewer")
                 }
             case CPDFConstants.showThumbnailView:
-                let editMode = call.arguments as! Bool
+                let editMode = call.arguments as? Bool ?? false
                 if editMode {
                     self.pdfViewController.enterThumbnail(false)
                 } else {
@@ -288,8 +347,8 @@ class CPDFViewCtrlPlugin {
                 self.pdfViewController.buttonItemClicked_Bota(UIButton(frame: .zero))
                 result(nil)
             case CPDFConstants.showAddWatermarkView:
-                let isSaveAs = call.arguments as! Bool
-                self.pdfViewController.enterPDFWatermark(isSaveAs: isSaveAs)
+                let config = call.arguments as? [String: Any] ?? [:]
+                self.enterWatermarkModel(config: config)
                 result(nil)
             case CPDFConstants.showSecurityView:
                 self.pdfViewController.enterPDFSecurity()
@@ -349,10 +408,10 @@ class CPDFViewCtrlPlugin {
                     annotationMode = .sound
                 case "unknown":
                     annotationMode = .CPDFViewAnnotationModenone
-                    default:
+                default:
                     break
                 }
-                    
+                
                 self.pdfViewController.annotationBar?.annotationToolBarSwitch(annotationMode)
                 result(nil)
             case CPDFConstants.getAnnotationMode:
@@ -397,7 +456,7 @@ class CPDFViewCtrlPlugin {
                     mode = "sound"
                 case .CPDFViewAnnotationModenone:
                     mode = "unknown"
-                    default:
+                default:
                     break
                 }
                 result(mode)
@@ -413,11 +472,183 @@ class CPDFViewCtrlPlugin {
             case CPDFConstants.annotationUndo:
                 self.pdfViewController.pdfListView?.undoPDFManager?.undo()
                 result(nil)
+            case CPDFConstants.changeEditType:
+                let types: [Int] = call.arguments as? [Int] ?? []
+                var editTypes: CEditingLoadType = []
+                for type in types {
+                    if type == 0 {
+                        editTypes = []
+                    } else if type == 1 {
+                        editTypes.insert(.text)
+                    } else if type == 2 {
+                        editTypes.insert(.image)
+                    } else if type == 4 {
+                        editTypes.insert(.path)
+                    }
+                }
+                self.pdfViewController.changeEditModeType(editTypes)
+                
+                result(nil)
+            case CPDFConstants.contentEditorCanRedo:
+                let canRedo:Bool = self.pdfViewController.pdfListView?.canEditTextRedo() ?? false
+                result(canRedo)
+            case CPDFConstants.contentEditorCanUndo:
+                let canUndo = self.pdfViewController.pdfListView?.canEditTextUndo() ?? false
+                result(canUndo)
+            case CPDFConstants.contentEditorRedo:
+                self.pdfViewController.pdfListView?.editTextRedo()
+                result(nil)
+            case CPDFConstants.contentEditorUndo:
+                self.pdfViewController.pdfListView?.editTextUndo()
+                result(nil)
+            case CPDFConstants.setFormMode:
+                let mode = call.arguments as? String ?? "unknown"
+                var annotationMode: CPDFViewAnnotationMode = .CPDFViewAnnotationModenone
+                switch mode {
+                case "textField":
+                    annotationMode = .formModeText
+                case "checkBox":
+                    annotationMode = .formModeCheckBox
+                case "radioButton":
+                    annotationMode = .formModeRadioButton
+                case "comboBox":
+                    annotationMode = .formModeCombox
+                case "listBox":
+                    annotationMode = .formModeList
+                case "pushButton":
+                    annotationMode = .formModeButton
+                case "signaturesFields":
+                    annotationMode = .formModeSign
+                case "unknown":
+                    annotationMode = .CPDFViewAnnotationModenone
+                default:
+                    annotationMode = .CPDFViewAnnotationModenone
+                }
+                self.pdfViewController.formBar?.formToolBarSwitch(annotationMode)
+                if annotationMode == .CPDFViewAnnotationModenone {
+                    self.pdfViewController.pdfListView?.scrollEnabled = true
+                }
+                result(nil)
+                
+            case CPDFConstants.getFormMode:
+                let annotationMode = self.pdfViewController.pdfListView?.annotationMode ?? .CPDFViewAnnotationModenone
+                var mode = "unknown"
+                switch annotationMode {
+                case .formModeText:
+                    mode = "textField"
+                case .formModeCheckBox:
+                    mode = "checkBox"
+                case .formModeRadioButton:
+                    mode = "radioButton"
+                case .formModeCombox:
+                    mode = "comboBox"
+                case .formModeList:
+                    mode = "listBox"
+                case .formModeButton:
+                    mode = "pushButton"
+                case .formModeSign:
+                    mode = "signaturesFields"
+                case .CPDFViewAnnotationModenone:
+                    mode = "unknown"
+                    default:
+                    break
+                }
+                result(mode)
+            case CPDFConstants.verifyDigitalSignature:
+                self.pdfViewController.verifySignature()
+                result(nil)
+            case CPDFConstants.hideDigitalSignature:
+                self.pdfViewController.hideVerifySignatureView()
+                result(nil)
+            case CPDFConstants.showTextSearchView:
+                self.pdfViewController.buttonItemClicked_Search(nil)
+                result(nil)
+            case CPDFConstants.hideTextSearchView:
+                self.pdfViewController.buttonItemClicked_searchBack(nil)
+                result(nil)
+            case CPDFConstants.saveCurrentInk:
+                self.pdfViewController.annotationBar?.inkCommitDrawing()
+                result(nil)
+            case CPDFConstants.saveCurrentPencil:
+                self.pdfViewController.annotationBar?.inkCommitDrawing()
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }
         });
         
+    }
+    
+    func enterWatermarkModel(config: [String: Any]) {
+        var isWatermarkSaveAs:Bool = true
+        for (configKey, configValue) in config {
+            if configKey == "saveAsNewFile" {
+                isWatermarkSaveAs = configValue as? Bool ?? true
+            } else if configKey == "outsideBackgroundColor" {
+                let string = configValue as? String ?? ""
+                if !string.isEmpty {
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    
+                    let userDefaults = UserDefaults.standard
+                    userDefaults.setPDFListViewColor(color, forKey: "CWatermarkBackgroundColor")
+                    userDefaults.synchronize()
+                }
+            } else if configKey == "text" {
+                self.pdfViewController.configuration?.watermarkMode.text = configValue as? String ?? ""
+            } else if configKey == "image" {
+                let imageName = configValue as? String ?? ""
+                self.pdfViewController.configuration?.watermarkMode.imageName = imageName
+                if !imageName.isEmpty {
+                    if FileManager.default.fileExists(atPath: imageName) {
+                        if let image = UIImage(contentsOfFile: imageName) {
+                            self.pdfViewController.configuration?.watermarkMode.image = image
+                        }
+                    } else {
+                        if let url = Bundle.main.findImageURL(for: imageName) {
+                            if let image = UIImage(contentsOfFile: url.path) {
+                                self.pdfViewController.configuration?.watermarkMode.image = image
+                            }
+                        }
+                    }
+                }
+            } else if configKey == "textSize" {
+                let textSize = configValue as? CGFloat ?? 0
+                self.pdfViewController.configuration?.watermarkMode.fontSize = textSize
+            } else if configKey == "scale" {
+                let scale = configValue as? CGFloat ?? 0
+                self.pdfViewController.configuration?.watermarkMode.watermarkScale = scale
+            } else if configKey == "textColor" {
+                    let string = configValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                self.pdfViewController.configuration?.watermarkMode.textColor = color
+            } else if configKey == "rotation" {
+                let rotation = configValue as? CGFloat ?? 0
+                self.pdfViewController.configuration?.watermarkMode.watermarkRotation = rotation
+            } else if configKey == "opacity" {
+                let opacity = configValue as? CGFloat ?? 255.0
+                self.pdfViewController.configuration?.watermarkMode.watermarkOpacity = opacity/255.0
+            } else if configKey == "isTilePage" {
+                let isTiled = configValue as? Bool ?? true
+                self.pdfViewController.configuration?.watermarkMode.isTile = isTiled
+            } else if configKey == "isFront" {
+                let isFront = configValue as? Bool ?? true
+                self.pdfViewController.configuration?.watermarkMode.isFront = isFront
+            } else if configKey == "types" {
+                let types = configValue as? [String] ?? []
+                
+                var waterType: [CPDFWatermarkToolType] = []
+                for type in types {
+                    if type == "text" {
+                        waterType.append(.text)
+                    } else if type == "image" {
+                        waterType.append(.image)
+                    }
+                }
+                self.pdfViewController.configuration?.watermarkTypes = waterType
+            }
+        }
+        
+        self.pdfViewController.enterPDFWatermark(isSaveAs: isWatermarkSaveAs)
     }
     
 }

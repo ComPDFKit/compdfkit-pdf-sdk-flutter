@@ -21,8 +21,6 @@ class CPDFDarkThemeExample extends StatelessWidget {
       title: 'Dark Theme Example',
       documentPath: documentPath,
       configuration: CPDFConfiguration(
-          toolbarConfig: const CPDFToolbarConfig(
-              iosLeftBarAvailableActions: [CPDFToolbarAction.thumbnail]),
           globalConfig: const CPDFGlobalConfig(themeMode: CPDFThemeMode.dark)),
       onIOSClickBackPressed: () {
         Navigator.pop(context);

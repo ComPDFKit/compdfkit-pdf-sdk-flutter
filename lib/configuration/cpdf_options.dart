@@ -200,13 +200,15 @@ extension CPDFTypefaceEnumExten on Iterable<CPDFTypeface> {
 enum CPDFContentEditorType { editorText, editorImage }
 
 enum CPDFFormType {
+  // formRecog,
   textField,
   checkBox,
   radioButton,
   listBox,
   comboBox,
   signaturesFields,
-  pushButton;
+  pushButton,
+  unknown;
 
   static CPDFFormType fromString(String typeStr) {
     return CPDFFormType.values.firstWhere(
@@ -348,4 +350,104 @@ enum CPDFBorderEffectType {
       orElse: () => throw Exception('Unknown border effect type: $typeStr'),
     );
   }
+}
+
+enum CPDFBotaTabs {
+
+  outline,
+
+  bookmark,
+
+  annotations;
+
+}
+
+enum CPDFBotaAnnotGlobalMenu {
+
+  importAnnotation,
+
+  exportAnnotation,
+
+  removeAllAnnotation,
+
+  removeAllReply;
+
+}
+
+enum CPDFBotaAnnotItemMenu {
+
+  reviewStatus,
+
+  markedStatus,
+
+  more;
+
+}
+
+class CPDFReviewState {
+
+  static const accepted = 'accepted';
+
+  static const rejected = 'rejected';
+
+  static const cancelled = 'cancelled';
+
+  static const completed = 'completed';
+
+  static const none = 'none';
+
+}
+
+class CPDFBotaAnnotMoreMenu {
+
+  static const addReply = 'addReply';
+
+  static const viewReply = 'viewReply';
+
+  static const delete = 'delete';
+}
+
+enum CPDFUIVisibilityMode {
+
+  /// Tap the PDF page to hide or show the top and bottom toolbars,
+  /// and hide the top toolbar when drawing with Ink.
+  automatic,
+
+  /// Always show the top and bottom toolbars.
+  always,
+
+  /// Never show the top and bottom toolbars.
+  never;
+}
+
+/// Page editing menu options
+enum CPDFPageEditorMenus {
+
+  insertPage,
+
+  replacePage,
+
+  extractPage,
+
+  copyPage,
+
+  rotatePage,
+
+  deletePage;
+
+}
+
+enum CPDFPencilMenus{
+  touch,
+
+  discard,
+
+  save;
+}
+
+enum CPDFPageCompression {
+
+  png,
+
+  jpeg;
 }

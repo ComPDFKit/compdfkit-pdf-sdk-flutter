@@ -75,21 +75,21 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 String key = call.argument("key");
                 CPDFSdk.init(context, key, true, (code, msg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + code + ", msg:" + msg);
-                    result.success(null);
+                    result.success(code == CPDFSdk.VERIFY_SUCCESS);
                 });
                 break;
             case INIT_SDK_KEYS:
                 String androidLicenseKey = call.argument("androidOnlineLicense");
                 CPDFSdk.init(context, androidLicenseKey, false, (code, msg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK_KEYS: code:" + code + ", msg:" + msg);
-                    result.success(null);
+                    result.success(code == CPDFSdk.VERIFY_SUCCESS);
                 });
                 break;
             case INIT_SDK_WITH_PATH:
                 String xmlPath = (String) call.arguments;
                 CPDFSdk.initWithPath(context, xmlPath, (verifyCode, verifyMsg) -> {
                     Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + verifyCode + ", msg:" + verifyMsg);
-                    result.success(null);
+                    result.success(verifyCode == CPDFSdk.VERIFY_SUCCESS);
                 });
                 break;
             case SDK_VERSION_CODE:

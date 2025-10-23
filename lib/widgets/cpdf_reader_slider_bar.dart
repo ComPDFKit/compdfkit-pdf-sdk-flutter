@@ -121,7 +121,7 @@ class _CpdfReaderSliderBarState extends State<CPDFReaderSliderBar> {
                   duration: _isDragging
                       ? Duration.zero
                       : const Duration(milliseconds: 200),
-                  curve: Curves.easeOutQuad,
+                  curve: Curves.linear,
                   top: isVertical ? thumbOffset : null,
                   left: !isVertical ? thumbOffset : null,
                   right: null,

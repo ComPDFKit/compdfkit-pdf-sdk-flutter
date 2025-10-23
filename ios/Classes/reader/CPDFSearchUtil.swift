@@ -28,7 +28,7 @@ class CPDFSearchUtil {
                     dict["length"] = selection.range.length
                     dict["text_range_index"] = array.firstIndex(of: selection)
                     searchResults.append(dict)
-
+                    
                 }
             }
         }

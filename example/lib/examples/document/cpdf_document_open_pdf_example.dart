@@ -13,7 +13,6 @@ import 'dart:io';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/cpdf_document.dart';
 import 'package:compdfkit_flutter_example/cpdf_security_example.dart';
-import 'package:compdfkit_flutter_example/examples.dart';
 import 'package:compdfkit_flutter_example/examples/document/log_info_page.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
 import 'package:flutter/material.dart';
@@ -99,11 +98,7 @@ class _CPDFDocumentOpenPDFExampleState
     if (result == CPDFDocumentError.success) {
       _addLog('Document opened successfully. Navigating to reader...');
       if (!mounted) return;
-
-      goTo(
-        CPDFSecurityExample(documentPath: filePath, password: password),
-        context,
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => CPDFSecurityExample(documentPath: filePath, password: password!)));
     } else {
       // Step 6: Opening failed
       _addLog('Failed to open document: ${result.name}');

@@ -284,6 +284,8 @@ class CPDFTextFieldAttr extends CPDFAnnotAttrBase {
 
   final CPDFTypeface? typeface;
 
+  // final int? maxLength;
+
   const CPDFTextFieldAttr(
       {this.fillColor = const Color(0xFFDDE9FF),
       this.borderColor = const Color(0xFF1460F3),
@@ -294,7 +296,9 @@ class CPDFTextFieldAttr extends CPDFAnnotAttrBase {
       this.isItalic = false,
       this.alignment = CPDFAlignment.left,
       this.multiline = true,
-      this.typeface = CPDFTypeface.helvetica});
+      this.typeface = CPDFTypeface.helvetica,
+      // this.maxLength = 0
+      });
 
   @override
   Map<String, dynamic> toJson() {
@@ -308,7 +312,8 @@ class CPDFTextFieldAttr extends CPDFAnnotAttrBase {
       'isItalic': isItalic,
       'alignment': alignment?.name,
       'multiline': multiline,
-      'typeface': typeface?.getFontName()
+      'typeface': typeface?.getFontName(),
+      // 'maxLength': maxLength
     };
   }
 }

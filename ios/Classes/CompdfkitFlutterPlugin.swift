@@ -38,13 +38,13 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             let key = initInfo?["key"] ?? ""
             let code = CPDFKit.verify(withKey: key as? String)
             print("Code \(code)")
-            result(nil)
+            result(code == CPDFKitLicenseCode.success)
         case "init_sdk_keys":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["iosOnlineLicense"] ?? ""
             CPDFKit.verify(withOnlineLicense: key as? String) { code, message in
                 print("Code: \(code), Message:\(String(describing: message))")
-                result(nil)
+                result(code == CPDFKitOnlineLicenseCode.success)
             }
         case "init_sdk_with_path":
             let licensePathArg = call.arguments as? String ?? ""
@@ -65,7 +65,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             }
             CPDFKit.verify(withPath: validLicensePath) { code, message in
                 print("Code: \(code), Message: \(String(describing: message))")
-                result(nil)
+                result(code == CPDFKitOnlineLicenseCode.success)
             }
         case "sdk_build_tag":
             result("iOS build tag:\(CPDFKit.sharedInstance().buildNumber)")

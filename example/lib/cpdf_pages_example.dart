@@ -9,87 +9,121 @@ import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
-import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
+import 'package:compdfkit_flutter_example/widgets/cpdf_example_base.dart';
 import 'package:flutter/material.dart';
 
-class CPDFPagesExample extends StatelessWidget {
-  final String documentPath;
+class CPDFPagesExample extends CPDFExampleBase {
+  const CPDFPagesExample({super.key, required super.documentPath});
 
-  const CPDFPagesExample({super.key, required this.documentPath});
+  @override
+  State<CPDFPagesExample> createState() => _CPDFPagesExampleState();
+}
 
-  static const _actions = [
+class _CPDFPagesExampleState extends CPDFExampleBaseState<CPDFPagesExample> {
+  static const List<String> _menuActions = [
     'Save',
     'Import Document',
     'Insert Blank Page',
-    'Split Document'
+    'Split Document',
+    'Set Rotation',
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return CPDFReaderPage(
-        title: 'Pages Example',
-        documentPath: documentPath,
-        configuration: CPDFConfiguration(
-            toolbarConfig: const CPDFToolbarConfig(),
-        ),
-        onIOSClickBackPressed: () {
-          Navigator.pop(context);
-        },
-        appBarActions: (controller) => [
-              PopupMenuButton<String>(
-                onSelected: (value) =>
-                    _handleAction(context, value, controller),
-                itemBuilder: (context) => _actions.map((action) {
-                  return PopupMenuItem(value: action, child: Text(action));
-                }).toList(),
-              ),
-            ]);
-  }
+  String get pageTitle => 'Pages Example';
 
-  void _handleAction(BuildContext context, String value,
-      CPDFReaderWidgetController controller) async {
-    switch (value) {
+  @override
+  CPDFConfiguration get configuration => CPDFConfiguration(
+    toolbarConfig: const CPDFToolbarConfig(),
+  );
+
+  @override
+  List<String> get menuActions => _menuActions;
+
+  @override
+  void handleMenuAction(String action, CPDFReaderWidgetController controller) {
+    switch (action) {
       case 'Save':
-        bool saveResult = await controller.document.save();
-        debugPrint('ComPDFKit:save():$saveResult');
+        _handleSave(controller);
         break;
       case 'Import Document':
-        String? path = await ComPDFKit.pickFile();
-        if (path != null) {
-          bool importResult = await controller.document.importDocument(
-              filePath: path, pages: [0], insertPosition: 0);
-          debugPrint('ComPDFKit:importDocument():$importResult');
-        }
+        _handleImportDocument(controller);
         break;
       case 'Insert Blank Page':
-        bool insertResult = await controller.document.insertBlankPage(
-            pageIndex: 0, pageSize: CPDFPageSize.a4);
-        debugPrint('ComPDFKit:insertBlankPage():$insertResult');
+        _handleInsertBlankPage(controller);
         break;
       case 'Split Document':
-        List<int> pages = [0];
-
-        final tempDir = await ComPDFKit.getTemporaryDirectory();
-
-        String fileNameNoExtension = await controller.document
-            .getFileName()
-            .then(
-                (fileName) => fileName.substring(0, fileName.lastIndexOf('.')));
-
-        String fileName = '${fileNameNoExtension}_(${pages.join(',')}).pdf';
-        String savePath = '${tempDir.path}/$fileName';
-
-        debugPrint('ComPDFKit:splitDocumentPages() fileName :$fileName');
-        debugPrint('ComPDFKit:splitDocumentPages() savePath :$savePath');
-        bool splitResult =
-            await controller.document.splitDocumentPages(savePath, pages);
-        debugPrint('ComPDFKit:splitDocumentPages():$splitResult');
-        if(splitResult){
-          ComPDFKit.openDocument(savePath);
-        }
+        _handleSplitDocument(controller);
         break;
-      default:
+      case 'Set Rotation':
+        _handleSetRotation(controller);
         break;
+    }
+  }
+
+  void _handleSave(CPDFReaderWidgetController controller) async {
+    final saveResult = await controller.document.save();
+    debugPrint('Save document result: $saveResult');
+  }
+
+  void _handleImportDocument(CPDFReaderWidgetController controller) async {
+    final path = await ComPDFKit.pickFile();
+    if (path != null) {
+      final importResult = await controller.document.importDocument(
+        filePath: path,
+        pages: [0],
+        insertPosition: 0,
+      );
+      debugPrint('Import document result: $importResult');
+    }
+  }
+
+  void _handleInsertBlankPage(CPDFReaderWidgetController controller) async {
+    final insertResult = await controller.document.insertBlankPage(
+      pageIndex: 0,
+      pageSize: CPDFPageSize.a4,
+    );
+    debugPrint('Insert blank page result: $insertResult');
+
+    if (insertResult) {
+      controller.reloadPages();
+    }
+  }
+
+  void _handleSplitDocument(CPDFReaderWidgetController controller) async {
+    const pages = [0];
+
+    final tempDir = await ComPDFKit.getTemporaryDirectory();
+
+    final fileName = await controller.document.getFileName();
+    final fileNameNoExtension = fileName.substring(0, fileName.lastIndexOf('.'));
+    final splitFileName = '${fileNameNoExtension}_(${pages.join(',')}).pdf';
+    final savePath = '${tempDir.path}/$splitFileName';
+
+    debugPrint('Split document - fileName: $splitFileName');
+    debugPrint('Split document - savePath: $savePath');
+
+    final splitResult = await controller.document.splitDocumentPages(savePath, pages);
+    debugPrint('Split document result: $splitResult');
+
+    if (splitResult) {
+      ComPDFKit.openDocument(savePath);
+    }
+  }
+
+  void _handleSetRotation(CPDFReaderWidgetController controller) async {
+    const pageIndex = 0;
+    final page = controller.document.pageAtIndex(pageIndex);
+    final currentRotation = await page.getRotation();
+    final newAngle = currentRotation + 90;
+
+    debugPrint('Page $pageIndex - current rotation: $currentRotation');
+    debugPrint('Page $pageIndex - new angle: $newAngle');
+
+    final result = await page.setRotation(newAngle);
+    debugPrint('Set rotation result: $result');
+
+    if (result) {
+      controller.reloadPages();
     }
   }
 }
