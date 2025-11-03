@@ -1,3 +1,6 @@
+## 2.5.1+1
+1. Fixed the issue where adding a signature could not be saved.
+
 ## 2.5.1
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.5.1.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.5.1.
