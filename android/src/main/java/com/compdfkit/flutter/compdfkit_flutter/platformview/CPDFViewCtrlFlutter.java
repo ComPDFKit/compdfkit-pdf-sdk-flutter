@@ -29,8 +29,6 @@ import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
 
-import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment;
-import com.compdfkit.tools.docseditor.pdfpageedit.CPDFPageEditDialogFragment.OnBackLisener;
 import java.util.Map;
 
 import io.flutter.plugin.common.BinaryMessenger;

@@ -7,13 +7,16 @@
  * This notice may not be removed from this file.
  *
  */
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../page/settings_page.dart';
 
+
 class CAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CAppBar({super.key});
+
 
   @override
   Widget build(BuildContext context) {

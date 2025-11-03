@@ -1,5 +1,12 @@
+## 2.5.1
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.5.1.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.5.1.
+3. Adapted to Androidx Material version 1.13.0.
+4. Android: Fixed crash issue when searching text containing special characters.
+
+
 ## 2.5.0
-1. Upgraded iOS ComPDFKit PDF SDK to 2.5.0.
+1. Upgraded iOS ComPDFKit PDF SDK to 2.5.0-snapshot.
 2. Upgraded Android ComPDFKit PDF SDK to 2.5.0.
 3. Modify the SDK initialization interface to return the initialization result.
 4. Added Spanish language support.
