@@ -169,7 +169,7 @@ class _CPDFControllerExampleState extends CPDFExampleBaseState<CPDFControllerExa
     CPDFActionItem(
       key: 'Watermark',
       displayName: 'Watermark',
-      icon: Icons.opacity, // 修复：使用存在的图标
+      icon: Icons.opacity, 
       group: ActionGroup.view,
     ),
     CPDFActionItem(

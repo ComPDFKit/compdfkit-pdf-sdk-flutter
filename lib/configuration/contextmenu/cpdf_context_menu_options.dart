@@ -163,7 +163,7 @@ enum CPDFContentEditorSearchReplaceMenuKey {
   replace,
 }
 
-/// FormMode 菜单类型
+/// FormMode 
 enum CPDFFormTextFieldMenuKey {
   properties,
   delete,

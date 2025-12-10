@@ -29,7 +29,7 @@ class CpdfWidgetListPage extends StatelessWidget {
       }
     }
 
-    // 生成分页标题列表
+
     List<int> pageNumbers = groupedWidgets.keys.toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,8 +42,8 @@ class CpdfWidgetListPage extends StatelessWidget {
             child: ListView.builder(
                 itemCount: pageNumbers.length * 2,
                 itemBuilder: (context, index) {
-                  final pageNumber = pageNumbers[index ~/ 2]; // 页码
-                  final isHeader = index.isEven; // 判断是否为分页头部
+                  final pageNumber = pageNumbers[index ~/ 2]; 
+                  final isHeader = index.isEven; 
                   if (isHeader) {
                     return _buildPageHeader(pageNumber);
                   } else {
@@ -55,7 +55,6 @@ class CpdfWidgetListPage extends StatelessWidget {
     );
   }
 
-  // 构建分页头部
   Widget _buildPageHeader(int pageNumber) {
     return Container(
       decoration: BoxDecoration(
@@ -71,7 +70,6 @@ class CpdfWidgetListPage extends StatelessWidget {
     );
   }
 
-  // 构建单页注释列表
   Widget _buildWidgetList(List<CPDFWidget> widgetsForPage) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +79,6 @@ class CpdfWidgetListPage extends StatelessWidget {
     );
   }
 
-  // 构建单个注释项
   Widget _buildWidgetItem(CPDFWidget widget) {
     return Builder(builder: (context) {
       return Padding(

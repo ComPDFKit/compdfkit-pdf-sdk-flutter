@@ -295,13 +295,26 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
         result.success(document.getPageCount());
         break;
       case SAVE:
-        pdfView.savePDF((s, uri) -> {
-          Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-success");
-          result.success(true);
-        }, e -> {
-          Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-fail");
-          result.success(false);
-        });
+        if (pdfView != null){
+          pdfView.savePDF((s, uri) -> {
+            Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-success");
+            result.success(true);
+          }, e -> {
+            Log.e(LOG_TAG, "CPDFViewCtrlPlugin:onMethodCall:save-fail");
+            result.success(false);
+          });
+        } else {
+            try {
+              if (document.hasChanges()){
+                boolean saveResult = document.save(PDFDocumentSaveType.PDFDocumentSaveIncremental, true);
+                result.success(saveResult);
+              } else {
+                result.success(false);
+              }
+            } catch (CPDFDocumentException e) {
+                result.success(false);
+            }
+        }
         break;
       case SAVE_AS: {
         String savePath = call.argument("save_path");

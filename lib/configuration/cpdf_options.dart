@@ -40,20 +40,17 @@ enum CPDFThemeType {
   custom,
 }
 
-/// 专业的配置对象
 class CPDFThemes {
   final CPDFThemeType type;
-  final String color; // Hex 格式，如 '#FF998822'
+  final String color; // Hex color. for example: '#FF998822'
 
   const CPDFThemes._(this.type, this.color);
 
-  // 预设主题
   static const light = CPDFThemes._(CPDFThemeType.light, '#FFFFFFFF');
   static const dark = CPDFThemes._(CPDFThemeType.dark, '#FF000000');
   static const sepia = CPDFThemes._(CPDFThemeType.sepia, '#FFFFEFBE');
   static const reseda = CPDFThemes._(CPDFThemeType.reseda, '#FFCDE6D0');
 
-  /// 工厂方法：创建自定义主题
   factory CPDFThemes.custom(Color customColor) {
     return CPDFThemes._(CPDFThemeType.custom, customColor.toHex());
   }
@@ -87,7 +84,6 @@ class CPDFThemes {
 //
 //   const CPDFThemes(this.color);
 //
-//   // 根据 Color 对象获取对应的 CPDFThemes
 //   static CPDFThemes of(Color color) {
 //     return CPDFThemes.values.firstWhere(
 //       (theme) => theme.color == color.toHex().toUpperCase(),
@@ -95,7 +91,6 @@ class CPDFThemes {
 //     );
 //   }
 //
-//   // 获取颜色值
 //   String getColor() {
 //     return color;
 //   }

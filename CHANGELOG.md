@@ -1,3 +1,18 @@
+## 2.5.3
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.5.3.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.5.3.
+3. Added support for displaying 3D annotations.
+4. Fixed a null pointer exception when calling CPDFPage.getEditPage() on Android.
+5. bFixed inconsistent color retrieval between FreeText annotations and content editing text on Android.
+6. Fixed a memory leak issue in CPDFPageView on Android.
+7. Fixed an italic text display issue in content editing mode on Android.
+8. Fixed an issue where the font size became smaller after changing the text color in content editing mode on Android.
+9. Fixed an appearance refresh issue when initializing Push Button widgets on iOS.
+10. Fixed an issue where ink annotations were not saved when exiting directly on iOS.
+11. Fixed an issue where cross-page search highlights were not displayed on iOS.
+12. Fixed an issue where setting the mainToolbarVisible property caused the bottom toolbar to be hidden on iOS.
+
+
 ## 2.5.1+1
 1. Fixed the issue where adding a signature could not be saved.
 

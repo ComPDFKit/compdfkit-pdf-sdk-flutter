@@ -41,8 +41,8 @@ class CpdfAnnotationsListPage extends StatelessWidget {
             child: ListView.builder(
                 itemCount: pageNumbers.length * 2,
                 itemBuilder: (context, index) {
-                  final pageNumber = pageNumbers[index ~/ 2]; // 页码
-                  final isHeader = index.isEven; // 判断是否为分页头部
+                  final pageNumber = pageNumbers[index ~/ 2]; 
+                  final isHeader = index.isEven; 
                   if (isHeader) {
                     return _buildPageHeader(pageNumber);
                   } else {

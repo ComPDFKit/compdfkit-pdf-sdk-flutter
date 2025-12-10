@@ -36,7 +36,7 @@ class ExampleConfig {
   final String? assetPath;
   final bool openInModal;
   final Widget Function(String path)? widgetBuilder;
-  final bool requiresFilePicker; // 是否需要用户选择文件
+  final bool requiresFilePicker; 
 
   const ExampleConfig({
     required this.title,

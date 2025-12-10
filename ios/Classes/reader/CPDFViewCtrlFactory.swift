@@ -142,7 +142,6 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         let fileManager = FileManager.default
         let imageExtensions = ["png", "jpg", "jpeg", "gif", "bmp"]
         
-        // 获取资源目录下的所有文件
         if let resourcePath = Bundle.main.resourcePath,
            let fileList = try? fileManager.contentsOfDirectory(atPath: resourcePath) {
             for file in fileList {
