@@ -2,8 +2,8 @@ package com.compdfkit.flutter.compdfkit_flutter
 
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import kotlin.test.Test
 import org.mockito.Mockito
+import kotlin.test.Test
 
 /*
  * This demonstrates a simple unit test of the Kotlin portion of this plugin's implementation.

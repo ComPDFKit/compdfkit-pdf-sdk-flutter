@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,21 +9,37 @@
  */
 import 'dart:ui';
 
+/// A rectangle defined by left, top, right, and bottom coordinates.
+/// {@category util}
 class CPDFRectF {
   final double left;
   final double top;
   final double right;
   final double bottom;
 
-  CPDFRectF(this.left, this.top, this.right, this.bottom);
+  const CPDFRectF(
+      {required this.left,
+      required this.top,
+      required this.right,
+      required this.bottom});
+
+  const CPDFRectF.isEmpty()
+      : left = 0,
+        top = 0,
+        right = 0,
+        bottom = 0;
 
   factory CPDFRectF.fromLTRB(
       double left, double top, double right, double bottom) {
-    return CPDFRectF(left, top, right, bottom);
+    return CPDFRectF(left: left, top: top, right: right, bottom: bottom);
   }
 
   factory CPDFRectF.fromJson(Map<String, dynamic> json) {
-    return CPDFRectF(json['left'], json['top'], json['right'], json['bottom']);
+    return CPDFRectF(
+        left: json['left'] ?? 0,
+        top: json['top'] ?? 0,
+        right: json['right'] ?? 0,
+        bottom: json['bottom'] ?? 0);
   }
 
   Size get size => Size(right - left, bottom - top);

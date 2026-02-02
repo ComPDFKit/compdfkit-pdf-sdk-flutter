@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,56 +8,57 @@
  *
  */
 
-import 'dart:ui';
 
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
+import 'package:flutter/material.dart';
 
-import '../../util/cpdf_rectf.dart';
-
+/// Text field form widget.
+///
+/// A text input form field that extends [CPDFWidget].
+///
+/// Key properties:
+/// - [text]: Current text value.
+/// - [alignment]: Text alignment.
+/// - [isMultiline]: Whether multiple lines are allowed.
+/// - Text appearance: [fontColor], [fontSize], [familyName], [styleName].
+///
+/// Serialization:
+/// - Use [CPDFTextWidget.fromJson] to create an instance from a JSON map.
+/// - Use [toJson] to convert this instance to a JSON map.
+///
+/// {@category forms}
 class CPDFTextWidget extends CPDFWidget {
-  final String text;
-  final Color fontColor;
-  final double fontSize;
-  final CPDFAlignment alignment;
-  final bool isMultiline;
-  final String familyName;
+  String text;
+  Color fontColor;
+  double fontSize;
+  CPDFAlignment alignment;
+  bool isMultiline;
+  String familyName;
+  String styleName;
 
-  final String styleName;
-
-  CPDFTextWidget(
-      {required CPDFFormType type,
-      required String title,
-      required int page,
-      required String uuid,
-      DateTime? createDate,
-      required CPDFRectF rect,
-      required borderColor,
-      required fillColor,
-      required borderWidth,
-      required this.text,
-      required this.fontColor,
-      required this.fontSize,
-      required this.alignment,
-      required this.isMultiline,
-      required this.familyName,
-      required this.styleName})
-      : super(
-            type: type,
-            title: title,
-            page: page,
-            uuid: uuid,
-            createDate: createDate,
-            rect: rect,
-            borderColor: borderColor,
-            fillColor: fillColor,
-            borderWidth: borderWidth);
+  CPDFTextWidget({
+    required super.title,
+    required super.page,
+    required super.rect,
+    required super.borderColor,
+    required super.fillColor,
+    super.uuid,
+    super.createDate,
+    super.borderWidth = 2.0,
+    this.text = '',
+    this.fontColor = Colors.black,
+    this.fontSize = 20,
+    this.alignment = CPDFAlignment.left,
+    this.isMultiline = true,
+    this.familyName = 'Helvetica',
+    this.styleName = 'Regular',
+  }) : super(type: CPDFFormType.textField);
 
   factory CPDFTextWidget.fromJson(Map<String, dynamic> json) {
     CPDFWidget common = CPDFWidget.fromJson(json);
     return CPDFTextWidget(
-        type: common.type,
         title: common.title,
         page: common.page,
         uuid: common.uuid,
@@ -68,11 +69,11 @@ class CPDFTextWidget extends CPDFWidget {
         borderWidth: common.borderWidth,
         text: json['text'] ?? '',
         fontColor: HexColor.fromHex(json['fontColor'] ?? '#000000'),
-        fontSize: json['fontSize'] ?? 0.0,
+        fontSize: (json['fontSize'] as num?)?.toDouble() ?? 0.0,
         alignment: CPDFAlignment.fromString(json['alignment'] ?? ''),
         isMultiline: json['isMultiline'] ?? false,
-    familyName: json['familyName'] ?? '',
-    styleName: json['styleName'] ?? '');
+        familyName: json['familyName'] ?? 'Helvetica',
+        styleName: json['styleName'] ?? '');
   }
 
   @override

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -14,9 +14,12 @@ import 'package:compdfkit_flutter_example/page/annotations/tools/cpdf_annotation
 import 'package:flutter/material.dart';
 
 class CPDFAnnotationToolsWidget extends StatefulWidget {
+
+  final List<CPDFAnnotationType> availableAnnotationTypes;
+
   final CPDFReaderWidgetController controller;
 
-  const CPDFAnnotationToolsWidget({super.key, required this.controller});
+  const CPDFAnnotationToolsWidget({super.key, required this.controller,this.availableAnnotationTypes = CPDFAnnotationType.values});
 
   @override
   State<CPDFAnnotationToolsWidget> createState() =>
@@ -58,6 +61,7 @@ class _CPDFAnnotationToolsWidgetState extends State<CPDFAnnotationToolsWidget> {
           children: [
             Expanded(
                 child: CpdfAnnotationModeListWidget(
+                  availableAnnotationTypes: widget.availableAnnotationTypes,
                     controller: widget.controller)),
             CpdfAnnotationHistoryManagerWidget(controller: widget.controller)
           ],

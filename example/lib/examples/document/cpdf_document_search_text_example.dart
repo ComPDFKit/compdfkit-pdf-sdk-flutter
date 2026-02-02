@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -45,7 +45,6 @@ class _CPDFDocumentSearchTextExampleState
   /// Extracts the PDF from assets and opens it
   Future<void> _openDocument() async {
     final File file = await extractAsset(
-      context,
       shouldOverwrite: true,
       'pdfs/PDF_Document.pdf',
     );

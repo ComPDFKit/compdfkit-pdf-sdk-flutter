@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -15,30 +15,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-typedef CPDFReaderWidgetCreatedCallback = void Function(
-    CPDFReaderWidgetController controller);
+import 'cpdf_reader_widget_callbacks.dart';
 
-typedef CPDFPageChangedCallback = void Function(int pageIndex);
+export 'cpdf_reader_widget_callbacks.dart';
 
-typedef CPDFDocumentSaveCallback = void Function();
-
-typedef CPDFPageEditDialogBackPressCallback = void Function();
-
-typedef CPDFFillScreenChangedCallback = void Function(bool isFillScreen);
-
-typedef CPDFIOSClickBackPressedCallback = void Function();
-
-typedef CPDFDocumentIsReadyCallback = void Function();
-
-typedef CPDFOnTapMainDocAreaCallback = void Function();
-
+/// PDF reader widget for viewing and interacting with documents.
+///
+/// This widget embeds a native PDF viewer using Flutter platform views.
+///
+/// - Android: [PlatformViewLink] with [AndroidViewSurface]
+/// - iOS: [UiKitView]
+///
+/// Note: This widget only supports Android and iOS.
+///
+/// {@category viewer-ui}
 class CPDFReaderWidget extends StatefulWidget {
-  /// pdf file path
+  /// Local PDF file path.
   final String document;
 
+  /// Optional document password.
   final String? password;
 
-  /// init ComPDFKit SDK configuration
+  /// Whether to use hybrid composition on Android.
+  final bool useHybridComposition;
+
+  /// Initial page index.
+  final int pageIndex;
+
+  /// Initial ComPDFKit SDK configuration.
   final CPDFConfiguration configuration;
 
   final CPDFReaderWidgetCreatedCallback onCreated;
@@ -55,19 +59,33 @@ class CPDFReaderWidget extends StatefulWidget {
 
   final CPDFOnTapMainDocAreaCallback? onTapMainDocAreaCallback;
 
+  final CPDFOnCustomToolbarItemTappedCallback?
+      onCustomToolbarItemTappedCallback;
+
+  final CPDFOnAnnotationCreationPreparedCallback?
+      onAnnotationCreationPreparedCallback;
+
+  final CPDFOnCustomContextMenuItemTappedCallback?
+      onCustomContextMenuItemTappedCallback;
+
   /// init callback
   const CPDFReaderWidget(
       {Key? key,
       required this.document,
       this.password = '',
       required this.configuration,
+      this.pageIndex = 0,
       required this.onCreated,
+      this.useHybridComposition = false,
       this.onPageChanged,
       this.onSaveCallback,
       this.onPageEditDialogBackPress,
       this.onFillScreenChanged,
       this.onIOSClickBackPressed,
-      this.onTapMainDocAreaCallback})
+      this.onTapMainDocAreaCallback,
+      this.onCustomToolbarItemTappedCallback,
+      this.onAnnotationCreationPreparedCallback,
+      this.onCustomContextMenuItemTappedCallback})
       : super(key: key);
 
   @override
@@ -75,13 +93,16 @@ class CPDFReaderWidget extends StatefulWidget {
 }
 
 class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
+  CPDFReaderWidgetController? _controller;
+
   @override
   Widget build(BuildContext context) {
     const String viewType = 'com.compdfkit.flutter.ui.pdfviewer';
     final Map<String, dynamic> creationParams = <String, dynamic>{
       'document': widget.document,
-      'password': widget.password,
-      'configuration': widget.configuration.toJson()
+      'password': widget.password ?? '',
+      'configuration': widget.configuration.toJson(),
+      'pageIndex': widget.pageIndex
     };
 
     if (Platform.isAndroid) {
@@ -95,12 +116,22 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
                     OneSequenceGestureRecognizer>>{});
           },
           onCreatePlatformView: (PlatformViewCreationParams params) {
-            return PlatformViewsService.initSurfaceAndroidView(
-                id: params.id,
-                viewType: viewType,
-                creationParams: creationParams,
-                creationParamsCodec: const StandardMessageCodec(),
-                layoutDirection: TextDirection.ltr)
+            final creation = widget.useHybridComposition
+                ? PlatformViewsService.initExpensiveAndroidView(
+                    id: params.id,
+                    viewType: viewType,
+                    creationParams: creationParams,
+                    creationParamsCodec: const StandardMessageCodec(),
+                    layoutDirection: TextDirection.ltr,
+                  )
+                : PlatformViewsService.initSurfaceAndroidView(
+                    id: params.id,
+                    viewType: viewType,
+                    creationParams: creationParams,
+                    creationParamsCodec: const StandardMessageCodec(),
+                    layoutDirection: TextDirection.ltr,
+                  );
+            return creation
               ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
               ..addOnPlatformViewCreatedListener(_onPlatformViewCreated)
               ..create();
@@ -124,15 +155,36 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
 
   Future<void> _onPlatformViewCreated(int id) async {
     debugPrint('ComPDFKit-Flutter: CPDFReaderWidget created');
-    var controller = CPDFReaderWidgetController(id,
+    final controller = CPDFReaderWidgetController(id,
         onPageChanged: widget.onPageChanged,
         saveCallback: widget.onSaveCallback,
         onPageEditBackPress: widget.onPageEditDialogBackPress,
         onFillScreenChanged: widget.onFillScreenChanged,
         onIOSClickBackPressed: widget.onIOSClickBackPressed,
-        onTapMainDocArea: widget.onTapMainDocAreaCallback);
-    controller.ready.then((e) {
-      widget.onCreated(controller);
-    });
+        onTapMainDocArea: widget.onTapMainDocAreaCallback,
+        onCustomToolbarItemTapped: widget.onCustomToolbarItemTappedCallback,
+        onAnnotationCreationPrepared:
+            widget.onAnnotationCreationPreparedCallback,
+        onCustomContextMenuItemTapped:
+            widget.onCustomContextMenuItemTappedCallback);
+
+    _controller = controller;
+    try {
+      await controller.ready;
+    } catch (e) {
+      debugPrint('ComPDFKit-Flutter: CPDFReaderWidget ready error: $e');
+      return;
+    }
+
+    if (!mounted || _controller != controller) {
+      return;
+    }
+    widget.onCreated(controller);
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -11,7 +11,8 @@
 import 'package:compdfkit_flutter/history/cpdf_history_manager_base.dart';
 import 'package:flutter/services.dart';
 
-typedef CPDFAnnotationHistoryChangedCallback = void Function(bool canUndo, bool canRedo);
+typedef CPDFAnnotationHistoryChangedCallback = void Function(
+    bool canUndo, bool canRedo);
 
 /// This class manages the history of annotations being edited in the current document,<br/>
 /// providing APIs for undo and redo functionality.<br/>
@@ -33,8 +34,9 @@ typedef CPDFAnnotationHistoryChangedCallback = void Function(bool canUndo, bool 
 /// await historyManager.undo();
 /// await historyManager.redo();
 /// ```
+///
+/// {@category history}
 class CPDFAnnotationHistoryManager extends CPDFHistoryManagerBase {
-
   final MethodChannel _channel;
 
   CPDFAnnotationHistoryChangedCallback? _onHistoryChanged;
@@ -53,7 +55,8 @@ class CPDFAnnotationHistoryManager extends CPDFHistoryManagerBase {
   /// print('Can Undo: $canUndo, Can Redo: $canRedo');
   /// });
   /// ```
-  void setOnHistoryChangedListener(CPDFAnnotationHistoryChangedCallback callback) {
+  void setOnHistoryChangedListener(
+      CPDFAnnotationHistoryChangedCallback callback) {
     _onHistoryChanged = callback;
   }
 

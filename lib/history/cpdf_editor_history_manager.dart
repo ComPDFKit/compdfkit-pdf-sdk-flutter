@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -12,8 +12,8 @@ import 'package:flutter/services.dart';
 
 import 'cpdf_history_manager_base.dart';
 
-typedef CPDFEditorHistoryChangedCallback = void Function(int pageIndex, bool canUndo, bool canRedo);
-
+typedef CPDFEditorHistoryChangedCallback = void Function(
+    int pageIndex, bool canUndo, bool canRedo);
 
 /// Content Editor History Manager
 /// Manages the undo and redo functionality for content editing operations.
@@ -32,8 +32,9 @@ typedef CPDFEditorHistoryChangedCallback = void Function(int pageIndex, bool can
 ///   // Handle history change
 /// });
 /// ```
+///
+/// {@category history}
 class CPDFEditorHistoryManager implements CPDFHistoryManagerBase {
-
   late final MethodChannel _channel;
 
   CPDFEditorHistoryManager(this._channel);
@@ -105,5 +106,4 @@ class CPDFEditorHistoryManager implements CPDFHistoryManagerBase {
   Future<void> undo() async {
     await _channel.invokeMethod('content_editor_undo');
   }
-
 }

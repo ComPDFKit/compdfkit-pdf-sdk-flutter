@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,12 +9,18 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.utils.annotation;
 
-
+import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.document.CPDFDocument;
 import java.util.HashMap;
 
 public interface FlutterCPDFAnnotation {
 
-  public HashMap<String, Object> getAnnotation(
+  HashMap<String, Object> getAnnotation(
       com.compdfkit.core.annotation.CPDFAnnotation annotation);
 
+  void updateAnnotation(
+      com.compdfkit.core.annotation.CPDFAnnotation annotation,
+      HashMap<String, Object> annotMap);
+
+  CPDFAnnotation addAnnotation(CPDFDocument document, HashMap<String, Object> annotMap);
 }

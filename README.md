@@ -21,11 +21,10 @@ Before starting, please make sure that you have already met the following prereq
 
 ComPDF offers two types of license keys: a free 30-day trial license and a commercial license.
 
-- **Trial License** – You can request a [30-day free trial](https://www.compdf.com/pricing) online.  
-- **Commercial License** – For advanced features, custom requirements, or quote inquiries, feel free to [contact our sales](https://www.compdf.com/contact-sales).  
+- **Trial License** – You can request a [30-day free trial](https://www.compdf.com/pricing) online.
+- **Commercial License** – For advanced features, custom requirements, or quote inquiries, feel free to [contact our sales](https://www.compdf.com/contact-sales).
 
 For the Flutter PDF SDK, the commercial license must be bound to your application’s ApplicationId and iOS BundleId.
-
 
 ### System Requirements
 
@@ -58,7 +57,7 @@ Operating Environment Requirements:
 * The iOS 12.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.
 
-## How to Build the Flutter PDF Editor by Integrating ComPDFKit PDF SDK 
+## How to Build the Flutter PDF Editor by Integrating ComPDFKit PDF SDK
 
 [![image](https://img.youtube.com/vi/I0Rz11iVAbE/maxresdefault.jpg)](https://youtu.be/I0Rz11iVAbE)
 
@@ -151,7 +150,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.5.3
++  compdfkit_flutter: ^2.6.0
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -197,7 +196,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.5.3
++  compdfkit_flutter: ^2.6.0
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -220,8 +219,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.5.3'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.5.3'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.6.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.6.0'
  end
 ```
 
@@ -278,16 +277,13 @@ pod install
 flutter pub get
 ```
 
-
-
 ### Apply the License Key
 
 ComPDFKit PDF SDK currently supports two authentication methods to verify license keys: online authentication and offline authentication.
 
 Learn about:
 
-* [What is the authentication mechanism of ComPDFKit's license?](https://www.compdf.com/faq/authentication-mechanism-of-compdfkit-license)
-
+* [What is the authentication mechanism of ComPDFKit&#39;s license?](https://www.compdf.com/faq/authentication-mechanism-of-compdfkit-license)
 * [What are the differences between Online Authentication and Offline Authentication?](https://www.compdf.com/faq/the-differences-between-online-authentication-and-offline-authentication)
 
 Accurately obtaining the license key is crucial for the application of the license.
@@ -321,8 +317,6 @@ ComPDFKit.initWithPath('assets://license_key_flutter.xml');
 // Copy the license_key_flutter.xml file into your iOS project directory (or a readable location):
 ComPDFKit.initWithPath('license_key_flutter.xml');
 ```
-
-
 
 ### Run Project
 

@@ -1,3 +1,24 @@
+## 2.6.0
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.6.0.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.6.0.
+3. Added a dynamic font loading API.
+4. Added double-tap zoom support for pages.
+5. Added APIs for outlines and bookmarks.
+6. Added APIs for creating annotations and forms.
+7. Added APIs for creating text and images in content editing mode.
+8. Added APIs for modifying annotation and form properties.
+9. Added callbacks for annotation, form, and content editing selection and creation.
+10. Added support for custom top toolbar menus.
+11. Added support for custom context menus.
+12. Added support for creating custom content for signature and stamp annotations.
+13. Added APIs to retrieve document information and permission details.
+14. Added an API to retrieve available font lists.
+15. Added support for customizing selected annotation and form borders and selected text styles.
+16. Added APIs for inserting, deleting, and moving pages.
+17. Added support for opening documents at a specified initial page.
+18. Fixed an input abnormality issue on Android when using certain input methods in content editing mode.
+19. Fixed a zoom jitter issue on Android in documents with a large number of pages.
+
 ## 2.5.3
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.5.3.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.5.3.
@@ -169,7 +190,6 @@
 
 
 ## 2.4.0+1
-
 1. Fixed the issue of `flattenAllPages()` not working.
 ## 2.4.0
 

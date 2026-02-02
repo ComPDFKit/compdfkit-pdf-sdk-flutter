@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -28,7 +28,9 @@ class _CPDFDocumentRenderPageExampleState
     extends State<CPDFDocumentRenderPageExample> {
   final List<String> logs = [];
   CPDFDocument? document;
+
   int currentPageIndex = 0;
+
   int pageCount = 0;
 
   @override
@@ -39,7 +41,7 @@ class _CPDFDocumentRenderPageExampleState
 
   Future<void> openDocument() async {
     File pdfFile = await extractAsset(
-        context, shouldOverwrite: true, 'pdfs/PDF_Document.pdf');
+        shouldOverwrite: true, 'pdfs/PDF_Document.pdf');
     applyLog('filePath: ${pdfFile.path}');
 
     final doc = await CPDFDocument.createInstance();

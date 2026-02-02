@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -7,8 +7,17 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
+import 'package:compdfkit_flutter/annotation/cpdf_annotation_registry.dart';
+import 'package:compdfkit_flutter/annotation/cpdf_text_stamp.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_widget_registry.dart';
+import 'package:compdfkit_flutter/configuration/attributes/cpdf_annot_attr_base.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_image_area.dart';
 import 'package:compdfkit_flutter/edit/cpdf_edit_manager.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_text_area.dart';
 import 'package:compdfkit_flutter/history/cpdf_annotation_history_manager.dart';
 import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 import 'package:flutter/foundation.dart';
@@ -20,6 +29,8 @@ import '../util/extension/cpdf_color_extension.dart';
 import 'cpdf_reader_widget.dart';
 
 /// PDF Reader Widget Controller
+///
+/// {@category viewer-ui}
 ///
 /// Examples:
 /// ```dart
@@ -37,7 +48,6 @@ import 'cpdf_reader_widget.dart';
 ///         ));
 /// ```
 class CPDFReaderWidgetController {
-
   late MethodChannel _channel;
 
   late CPDFDocument _document;
@@ -50,13 +60,19 @@ class CPDFReaderWidgetController {
 
   Future<void> get ready => _readyCompleter.future;
 
+  final Map<CPDFEvent, List<Function(dynamic eventData)>> _eventListeners = {};
+
   CPDFReaderWidgetController(int id,
       {CPDFPageChangedCallback? onPageChanged,
       CPDFDocumentSaveCallback? saveCallback,
       CPDFPageEditDialogBackPressCallback? onPageEditBackPress,
       CPDFFillScreenChangedCallback? onFillScreenChanged,
       CPDFIOSClickBackPressedCallback? onIOSClickBackPressed,
-      CPDFOnTapMainDocAreaCallback? onTapMainDocArea}) {
+      CPDFOnTapMainDocAreaCallback? onTapMainDocArea,
+      CPDFOnCustomToolbarItemTappedCallback? onCustomToolbarItemTapped,
+      CPDFOnAnnotationCreationPreparedCallback? onAnnotationCreationPrepared,
+      CPDFOnCustomContextMenuItemTappedCallback?
+          onCustomContextMenuItemTapped}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
     _annotationHistoryManager = CPDFAnnotationHistoryManager(_channel);
     _editManager = CPDFEditManager(_channel);
@@ -91,6 +107,147 @@ class CPDFReaderWidgetController {
         case 'onContentEditorHistoryChanged':
           _editManager.historyManager.handleMethodCall(call);
           break;
+        case 'onCustomToolbarItemTapped':
+          onCustomToolbarItemTapped?.call(call.arguments);
+          break;
+        case 'annotationsCreated':
+          dynamic annotationData = call.arguments;
+          final map = Map<String, dynamic>.from(annotationData);
+          final annotation = CPDFAnnotationRegistry.fromJson(map);
+          _eventListeners[CPDFEvent.annotationsCreated]
+              ?.forEach((cb) => cb(annotation));
+          break;
+        case 'annotationsSelected':
+          dynamic annotationData = call.arguments;
+          final map = Map<String, dynamic>.from(annotationData);
+          final annotation = CPDFAnnotationRegistry.fromJson(map);
+          _eventListeners[CPDFEvent.annotationsSelected]
+              ?.forEach((cb) => cb(annotation));
+          break;
+        case 'annotationsDeselected':
+          dynamic annotationData = call.arguments;
+          dynamic data;
+          if (annotationData != null) {
+            final map = Map<String, dynamic>.from(annotationData);
+            data = CPDFAnnotationRegistry.fromJson(map);
+          }
+          _eventListeners[CPDFEvent.annotationsDeselected]
+              ?.forEach((cb) => cb(data));
+          break;
+        case 'formFieldsCreated':
+          dynamic widgetData = call.arguments;
+          final map = Map<String, dynamic>.from(widgetData);
+          final widget = CPDFWidgetRegistry.fromJson(map);
+          _eventListeners[CPDFEvent.formFieldsCreated]
+              ?.forEach((cb) => cb(widget));
+          break;
+        case 'formFieldsSelected':
+          dynamic widgetData = call.arguments;
+          final map = Map<String, dynamic>.from(widgetData);
+          final widget = CPDFWidgetRegistry.fromJson(map);
+          _eventListeners[CPDFEvent.formFieldsSelected]
+              ?.forEach((cb) => cb(widget));
+          break;
+        case 'formFieldsDeselected':
+          dynamic widgetData = call.arguments;
+          dynamic data;
+          if (widgetData != null) {
+            final map = Map<String, dynamic>.from(widgetData);
+            data = CPDFWidgetRegistry.fromJson(map);
+          }
+          _eventListeners[CPDFEvent.formFieldsDeselected]
+              ?.forEach((cb) => cb(data));
+          break;
+        case 'editorSelectionDeselected':
+          _eventListeners[CPDFEvent.editorSelectionDeselected]
+              ?.forEach((cb) => cb(null));
+          break;
+        case 'editorSelectionSelected':
+          dynamic type = call.arguments['type'];
+          dynamic editAreaData = call.arguments;
+          final map = Map<String, dynamic>.from(editAreaData);
+          CPDFEditArea? editArea;
+          if (type == 'text') {
+            editArea = CPDFEditTextArea.fromJson(map);
+          } else if (type == 'image') {
+            editArea = CPDFEditImageArea.fromJson(map);
+          } else if (type == 'path') {
+            editArea = CPDFEditArea.fromJson(map);
+          }
+          _eventListeners[CPDFEvent.editorSelectionSelected]
+              ?.forEach((cb) => cb(editArea));
+          break;
+        case 'onAnnotationCreationPrepared':
+          String typeName = call.arguments['type'];
+          CPDFAnnotationType type =
+              CPDFAnnotationType.values.firstWhere((e) => e.name == typeName);
+          if (call.arguments['annotation'] != null) {
+            dynamic annotationData = call.arguments['annotation'];
+            final map = Map<String, dynamic>.from(annotationData);
+            final annotation = CPDFAnnotationRegistry.fromJson(map);
+            onAnnotationCreationPrepared?.call(type, annotation);
+          } else {
+            onAnnotationCreationPrepared?.call(type, null);
+          }
+          break;
+        case 'onCustomContextMenuItemTapped':
+          dynamic data = call.arguments;
+          final dataMap = Map<String, dynamic>.from(data);
+          Map<String, dynamic> resultMap = {};
+          for (var element in dataMap.entries) {
+            try {
+              switch (element.key) {
+                case 'rect':
+                  final rectF = CPDFRectF.fromJson(
+                      Map<String, dynamic>.from(element.value));
+                  resultMap['rect'] = rectF;
+                  break;
+                case 'annotation':
+                  final annotation = CPDFAnnotationRegistry.fromJson(
+                      Map<String, dynamic>.from(element.value));
+                  resultMap['annotation'] = annotation;
+                  break;
+                case 'widget':
+                  final widget = CPDFWidgetRegistry.fromJson(
+                      Map<String, dynamic>.from(element.value));
+                  resultMap['widget'] = widget;
+                  break;
+                case 'editArea':
+                  final editAreaMap = Map<String, dynamic>.from(element.value);
+                  if (editAreaMap['type'] == 'text') {
+                    final editTextArea = CPDFEditTextArea.fromJson(editAreaMap);
+                    resultMap['editArea'] = editTextArea;
+                  } else if (editAreaMap['type'] == 'image') {
+                    final editImageArea =
+                        CPDFEditImageArea.fromJson(editAreaMap);
+                    resultMap['editArea'] = editImageArea;
+                  } else {
+                    final editArea = CPDFEditArea.fromJson(editAreaMap);
+                    resultMap['editArea'] = editArea;
+                  }
+                  break;
+                case 'point':
+                  double x = (element.value['x'] as num).toDouble();
+                  double y = (element.value['y'] as num).toDouble();
+                  resultMap['point'] = {
+                    'x': double.parse(x.toStringAsFixed(2)),
+                    'y': double.parse(y.toStringAsFixed(2))
+                  };
+                  break;
+                default:
+                  if (element.key != 'customEventType') {
+                    resultMap[element.key] = element.value;
+                  }
+                  break;
+              }
+            } catch (e) {
+              debugPrint(
+                  'ComPDFKit-Flutter: onCustomContextMenuItemTapped parse error: $e');
+            }
+          }
+          final identifier = call.arguments["identifier"];
+          onCustomContextMenuItemTapped?.call(identifier, resultMap);
+          break;
       }
     });
     _document = CPDFDocument.withController(id);
@@ -104,7 +261,8 @@ class CPDFReaderWidgetController {
   /// ```dart
   /// CPDFAnnotationHistoryManager historyManager = _controller.annotationHistoryManager;
   /// ```
-  CPDFAnnotationHistoryManager get annotationHistoryManager => _annotationHistoryManager;
+  CPDFAnnotationHistoryManager get annotationHistoryManager =>
+      _annotationHistoryManager;
 
   /// Get the edit manager
   /// This manager is used to handle content editing operations such as changing edit types.
@@ -173,7 +331,8 @@ class CPDFReaderWidgetController {
   }
 
   Future<void> setWidgetBackgroundColor(Color color) async {
-    return await _channel.invokeMethod('set_widget_background_color', color.toHex());
+    return await _channel.invokeMethod(
+        'set_widget_background_color', color.toHex());
   }
 
   /// Get background color of reader.
@@ -265,9 +424,9 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('set_margin', edgeInsets.toJson());
   }
 
-  /// Sets the spacing between pages. This method is supported only on the [Android] platform.
+  /// Sets the spacing between pages. This method is supported only on Android.
   ///
-  /// - For the [iOS] platform, use the [setMargins] method instead.
+  /// - For iOS, use the [setMargins] method instead.
   ///   The spacing between pages is equal to the value of [CPDFEdgeInsets.top].
   ///
   /// Parameters:
@@ -347,7 +506,7 @@ class CPDFReaderWidgetController {
 
   /// Sets whether it is crop mode.
   ///
-  /// [cropMode] Whether it is crop mode.
+  /// `isCropMode` Whether crop mode is enabled.
   ///
   /// example:
   /// ```dart
@@ -391,7 +550,7 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('set_display_page_index', {
       'pageIndex': pageIndex,
       'animated': animated,
-      'rectList' : rectList.map((e) => e.toJson()).toList(),
+      'rectList': rectList.map((e) => e.toJson()).toList(),
     });
   }
 
@@ -532,7 +691,6 @@ class CPDFReaderWidgetController {
     await _channel.invokeMethod('show_add_watermark_view', config?.toJson());
   }
 
-
   /// Displays the document security settings view, allowing users to configure document security options.
   ///
   /// Example:
@@ -578,7 +736,8 @@ class CPDFReaderWidgetController {
   }
 
   Future<void> reloadPages2() async {
-    await _channel.invokeMethod(Platform.isAndroid ? 'reload_pages_2' : 'reload_pages');
+    await _channel
+        .invokeMethod(Platform.isAndroid ? 'reload_pages_2' : 'reload_pages');
   }
 
   /// Used to add a specified annotation type when touching the page in annotation mode
@@ -590,7 +749,7 @@ class CPDFReaderWidgetController {
   /// Throws an exception if called in a mode other than [CPDFViewMode.annotations].
   Future<void> setAnnotationMode(CPDFAnnotationType type) async {
     var viewMode = await getPreviewMode();
-    if(viewMode != CPDFViewMode.annotations) {
+    if (viewMode != CPDFViewMode.annotations) {
       throw Exception(
           'setAnnotationMode is only available in CPDFViewMode.annotations mode, current mode is $viewMode');
     }
@@ -617,7 +776,7 @@ class CPDFReaderWidgetController {
   /// Throws an exception if called in a mode other than [CPDFViewMode.forms].
   Future<void> setFormCreationMode(CPDFFormType type) async {
     var viewMode = await getPreviewMode();
-    if(viewMode != CPDFViewMode.forms) {
+    if (viewMode != CPDFViewMode.forms) {
       throw Exception(
           'setFormCreationMode is only available in CPDFViewMode.forms mode, current mode is $viewMode');
     }
@@ -719,10 +878,334 @@ class CPDFReaderWidgetController {
   /// ```
   /// Throws an exception if called on a platform other than iOS.
   Future<void> saveCurrentPencil() async {
-    if(defaultTargetPlatform != TargetPlatform.iOS){
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
       throw Exception('saveCurrentPencil is only available on iOS platform');
     }
     return await _channel.invokeMethod('save_current_pencil');
   }
 
+  /// Displays the default properties panel for the specified annotation type.
+  ///
+  /// Only some annotation types are supported. If an unsupported type is passed in
+  /// (such as eraser, unknown, signature, stamp, sound, image, link, etc.),
+  /// an exception will be thrown.
+  ///
+  /// Parameters:
+  /// - [type] The annotation type [CPDFAnnotationType] for which to display the properties panel.
+  ///
+  /// Exceptions:
+  /// - If an unsupported annotation type is passed in, an [Exception] will be thrown.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showDefaultAnnotationPropertiesView(CPDFAnnotationType.highlight);
+  /// ```
+  Future<void> showDefaultAnnotationPropertiesView(
+      CPDFAnnotationType type) async {
+    const notSupportType = [
+      CPDFAnnotationType.ink_eraser,
+      CPDFAnnotationType.unknown,
+      CPDFAnnotationType.signature,
+      CPDFAnnotationType.stamp,
+      CPDFAnnotationType.sound,
+      CPDFAnnotationType.pictures,
+      CPDFAnnotationType.link,
+    ];
+    if (notSupportType.contains(type)) {
+      throw Exception(
+          'This type:$type of annotation is not supported, please select another type.');
+    }
+    return await _channel.invokeMethod(
+        'show_default_annotation_properties_view', type.name);
+  }
+
+  /// Displays the properties panel for the specified annotation.
+  /// Only some annotation types are supported. If an unsupported type is passed in
+  /// (such as eraser, unknown, signature, stamp, sound, image, link, etc.),
+  /// an exception will be thrown.
+  ///
+  /// Parameters:
+  /// - [annotation] The annotation [CPDFAnnotation] for which to display the properties panel.
+  ///
+  /// Exceptions:
+  /// - If an unsupported annotation type is passed in, an [Exception] will be thrown
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showAnnotationPropertiesView(annotation);
+  /// ```
+  Future<void> showAnnotationPropertiesView(CPDFAnnotation annotation) async {
+    const notSupportType = [
+      CPDFAnnotationType.ink_eraser,
+      CPDFAnnotationType.unknown,
+      CPDFAnnotationType.signature,
+      CPDFAnnotationType.stamp,
+      CPDFAnnotationType.sound,
+      CPDFAnnotationType.pictures,
+      CPDFAnnotationType.link,
+    ];
+    if (notSupportType.contains(annotation.type)) {
+      throw Exception(
+          'This type:${annotation.type} of annotation is not supported, please select another type.');
+    }
+    return await _channel.invokeMethod(
+        'show_annotation_properties_view', annotation.toJson());
+  }
+
+  /// Displays the properties panel for the specified form field widget.
+  /// Only some form field types are supported. If an unsupported type is passed in
+  /// (such as signature fields, unknown, etc.),
+  /// an exception will be thrown.
+  ///
+  /// Parameters:
+  /// - [widget] The form field widget [CPDFWidget] for which to display the properties panel.
+  ///
+  /// Exceptions:
+  /// - If an unsupported form field type is passed in, an [Exception] will be thrown
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showWidgetPropertiesView(widget);
+  /// ```
+  Future<void> showWidgetPropertiesView(CPDFWidget widget) async {
+    if (widget.type == CPDFFormType.signaturesFields ||
+        widget.type == CPDFFormType.unknown) {
+      throw Exception(
+          'This type:${widget.type} of form field is not supported, please select another type.');
+    }
+    return await _channel.invokeMethod(
+        'show_widget_properties_view', widget.toJson());
+  }
+
+  /// Displays the properties panel for the specified edit area.
+  /// Only some edit area types are supported. If an unsupported type is passed in
+  /// (such as path type),
+  /// an exception will be thrown.
+  ///
+  /// Parameters:
+  /// - [editArea] The edit area [CPDFEditArea] for which to display the properties panel.
+  ///
+  /// Exceptions:
+  /// - If an unsupported edit area type is passed in, an [Exception] will be thrown
+  /// Example:
+  /// ```dart
+  /// await controller.showEditAreaPropertiesView(editArea);
+  /// ```
+  Future<void> showEditAreaPropertiesView(CPDFEditArea editArea) async {
+    if (editArea.type == CPDFEditAreaType.path) {
+      throw Exception(
+          'This type:${editArea.type} of edit area is not supported, please select another type.');
+    }
+    return await _channel.invokeMethod(
+        'show_edit_area_properties_view', editArea.toJson());
+  }
+
+  /// Add event listener for specific [event] with [callback].
+  /// The [callback] will be invoked when the specified event occurs,
+  /// and the event data will be passed as a parameter to the callback function.
+  /// Example:
+  /// ```dart
+  /// controller.addEventListener(CPDFEvent.annotationsCreated, (event) {
+  ///   debugPrint('Annotation created: ${event.toString()}');
+  /// });
+  /// ```
+  Future<void> addEventListener(
+      CPDFEvent event, Function(dynamic) callback) async {
+    debugPrint('ComPDFKit-Flutter: addEventListener for event: $event');
+    _eventListeners.putIfAbsent(event, () => []).add(callback);
+  }
+
+  /// show or hide annotations layer
+  /// Example:
+  /// ```dart
+  /// await controller.setAnnotationsVisible(true); // show annotations
+  /// await controller.setAnnotationsVisible(false); // hide annotations
+  /// ```
+  Future<void> setAnnotationsVisible(bool visible) async {
+    return await _channel.invokeMethod('annotations_visible', visible);
+  }
+
+  /// check if annotations layer is visible
+  /// Example:
+  /// ```dart
+  /// bool isVisible = await controller.isAnnotationsVisible();
+  /// ```
+  Future<bool> isAnnotationsVisible() async {
+    return await _channel.invokeMethod('is_annotations_visible');
+  }
+
+  /// Pre-configure the next signature annotation to be inserted when the user taps the page.
+  /// only use in signature creation mode. [CPDFAnnotationType.signature]
+  /// Example:
+  /// ```dart
+  /// // first enter signature creation mode
+  /// await controller.setAnnotationMode(CPDFAnnotationType.signature);
+  ///
+  /// // then prepare the signature image path
+  /// await controller.prepareNextSignature('/path/to/signature.png');
+  ///
+  /// // now, when the user taps the page, the signature will be inserted using the specified image
+  /// ```
+  Future<void> prepareNextSignature(String signaturePath) async {
+    return await _channel.invokeMethod('prepare_next_signature', signaturePath);
+  }
+
+  /// Pre-configure the next stamp annotation to be inserted when the user taps the page.
+  ///
+  /// Usage:
+  /// Call this after entering stamp creation mode to specify which kind of stamp (image / standard / text) will be inserted on the next tap.
+  ///
+  /// Constraints:
+  /// Exactly one of \`imagePath\`, \`standardStamp\`, or \`textStamp\` must be provided. Supplying none or more than one throws an \`ArgumentError\`.
+  ///
+  /// Parameters:
+  /// [imagePath] Path to an image stamp. Android: file path or drawable resource name. iOS: file path or bundled image name.
+  /// [standardStamp] Built-in standard stamp enum value (e.g. \`CPDFStandardStamp.approved\`).
+  /// [textStamp] A \`CPDFTextStamp\` instance defining custom text, colors, size, etc.
+  ///
+  /// Returns:
+  /// A \`Future<void>\` that completes when the native side is notified.
+  ///
+  /// Exceptions:
+  /// \`ArgumentError\`: Thrown if the "exactly one parameter" rule is violated. Message is in English.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.prepareNextStamp(imagePath: '/path/to/stamp.png');
+  /// await controller.prepareNextStamp(standardStamp: CPDFStandardStamp.approved);
+  /// await controller.prepareNextStamp(
+  ///   textStamp: CPDFTextStamp(text: 'CONFIDENTIAL', textColor: Colors.red),
+  /// );
+  /// ```
+  Future<void> prepareNextStamp({
+    String? imagePath,
+    CPDFStandardStamp? standardStamp,
+    CPDFTextStamp? textStamp,
+  }) async {
+    final count =
+        [imagePath, standardStamp, textStamp].where((e) => e != null).length;
+    if (count != 1) {
+      throw ArgumentError(
+          'Exactly one argument must be provided: imagePath, standardStamp, or textStamp');
+    }
+    final Map<String, dynamic> payload = {};
+    if (imagePath != null) {
+      payload
+        ..['type'] = 'image'
+        ..['imagePath'] = imagePath;
+    } else if (standardStamp != null) {
+      payload
+        ..['type'] = 'standard'
+        ..['standardStamp'] = standardStamp.name;
+    } else {
+      payload['type'] = 'text';
+      payload.addAll(textStamp!.toJson());
+    }
+    await _channel.invokeMethod('prepare_next_stamp', payload);
+  }
+
+  /// Pre-configure the next image annotation to be inserted when the user taps the page.
+  /// Example:
+  /// ```dart
+  /// // first enter image creation mode
+  /// await controller.setAnnotationMode(CPDFAnnotationType.pictures);
+  ///
+  /// // then prepare the image path
+  /// await controller.prepareNextImage('/path/to/image.png');
+  ///
+  /// // now, when the user taps the page, the image will be inserted using the specified image
+  /// ```
+  Future<void> prepareNextImage(String imagePath) async {
+    return await _channel.invokeMethod('prepare_next_image', imagePath);
+  }
+
+  /// Retrieves the default annotation style for the CPDFReaderWidget.
+  /// This method returns a [CPDFAnnotAttribute] object that contains the default
+  /// annotation attributes such as color, alpha, and border width.
+  /// example:
+  /// ```dart
+  /// CPDFAnnotAttribute defaultStyle = await controller.fetchDefaultAnnotationStyle();
+  /// ```
+  Future<CPDFAnnotAttribute> fetchDefaultAnnotationStyle() async {
+    final attrMap = await _channel.invokeMethod('get_default_annotation_attr');
+    return CPDFAnnotAttribute.fromJson(Map<String, dynamic>.from(attrMap));
+  }
+
+  /// Sets the default annotation style for the CPDFReaderWidget.
+  /// This method allows you to customize the default attributes for annotations
+  /// such as color, alpha, and border width.
+  /// example:
+  /// ```dart
+  /// CPDFAnnotAttribute defaultStyle = await controller.fetchDefaultAnnotationStyle();
+  ///
+  /// // For example, to set the default style for a note annotation:
+  /// CPDFNoteAttr noteAttr = defaultStyle.noteAttr.copyWith(
+  ///   color: Colors.red,
+  ///   alpha: 128,
+  ///   );
+  /// await controller.updateDefaultAnnotationStyle(noteAttr);
+  ///
+  /// // To set the default style for an ink annotation:
+  /// CPDFInkAttr inkAttr = defaultStyle.inkAttr.copyWith(
+  ///    color: Colors.blue,
+  ///    alpha: 200,
+  ///    borderWidth: 5);
+  /// await controller.updateDefaultAnnotationStyle(inkAttr);
+  /// ```
+  Future<void> updateDefaultAnnotationStyle(
+      CPDFAnnotAttrBase annotationStyle) async {
+    return await _channel.invokeMethod('set_default_annotation_attr',
+        {'type': annotationStyle.type, 'attr': annotationStyle.toJson()});
+  }
+
+  /// Retrieves the default widget (form field) style applied inside the reader widget.
+  /// Returns the current [CPDFFormAttribute] describing properties such as color
+  /// and text appearance for interactive form fields.
+  ///
+  /// example:
+  /// ```dart
+  /// CPDFFormAttribute defaultWidgetStyle = await controller.fetchDefaultWidgetStyle();
+  /// ```
+  Future<CPDFFormAttribute> fetchDefaultWidgetStyle() async {
+    final attrMap = await _channel.invokeMethod('get_default_widget_attr');
+    return CPDFFormAttribute.fromJson(Map<String, dynamic>.from(attrMap));
+  }
+
+  /// Persists a new default widget style so subsequent form field creations share
+  /// consistent appearance characteristics.
+  ///
+  /// example:
+  /// ```dart
+  /// CPDFFormAttribute defaultWidgetStyle = await controller.fetchDefaultWidgetStyle();
+  ///
+  /// // get all fonts
+  /// final fonts  = await ComPDFKit.getFonts();
+  /// final familyName = fonts[0].familyName;
+  /// final styleName = fonts[0].styleNames[0];
+  ///
+  /// // Modify the text field attribute
+  /// final textFieldAttr = defaultWidgetStyle.textFieldAttr.copyWith(
+  ///    fillColor: Colors.lightGreen,
+  ///    borderColor: Colors.deepOrange,
+  ///    borderWidth: 5,
+  ///    fontColor: Colors.black,
+  ///    fontSize: 20,
+  ///    alignment: CPDFAlignment.left,
+  ///    multiline: false,
+  ///    familyName: familyName,
+  ///    styleName: styleName,
+  /// );
+  ///
+  /// await controller.updateDefaultWidgetStyle(textFieldAttr);
+  /// ```
+  Future<void> updateDefaultWidgetStyle(CPDFAnnotAttrBase widgetStyle) async {
+    return await _channel.invokeMethod('set_default_widget_attr',
+        {'type': widgetStyle.type, 'attr': widgetStyle.toJson()});
+  }
+
+  void dispose() {
+    debugPrint('ComPDFKit-Flutter: dispose CPDFReaderWidgetController');
+    _eventListeners.clear();
+    _channel.setMethodCallHandler(null);
+  }
 }

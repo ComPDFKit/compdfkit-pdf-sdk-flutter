@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,25 +9,48 @@ import 'dart:ui';
 
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
+/// Viewer modes supported by ComPDFKit.
+///
+/// {@category configuration}
 enum CPDFViewMode { viewer, annotations, contentEditor, forms, signatures }
 
-/// The [CPDFToolbarAction.back] button will only be displayed on the leftmost side of the top toolbar on the Android platform
-enum CPDFToolbarAction { back, thumbnail, search, bota, menu }
+/// Toolbar action identifiers used by the viewer UI.
+///
+/// {@category toolbar}
+enum CPDFToolbarAction {
+  back,
 
-enum CPDFToolbarMenuAction {
+  thumbnail,
+
+  search,
+
+  bota,
+
+  menu,
+
   viewSettings,
+
   documentEditor,
+
   security,
+
   watermark,
+
   flattened,
+
   documentInfo,
+
   save,
+
   share,
+
   openDocument,
 
   /// The PDF capture function allows you to capture an area
   /// in the PDF document and convert it into an image.
-  snip
+  snip,
+
+  custom;
 }
 
 enum CPDFDisplayMode { singlePage, doublePage, coverPage }
@@ -58,11 +81,12 @@ class CPDFThemes {
   static CPDFThemes of(Color color) {
     final hex = color.toHex();
     return {
-      light.color: light,
-      dark.color: dark,
-      sepia.color: sepia,
-      reseda.color: reseda,
-    }[hex.toUpperCase()] ?? CPDFThemes.custom(color);
+          light.color: light,
+          dark.color: dark,
+          sepia.color: sepia,
+          reseda.color: reseda,
+        }[hex.toUpperCase()] ??
+        CPDFThemes.custom(color);
   }
 }
 
@@ -103,6 +127,7 @@ enum CPDFAnnotationType {
   squiggly,
   strikeout,
   ink,
+  // ignore: constant_identifier_names
   ink_eraser,
   // only ios platform
   pencil,
@@ -142,7 +167,7 @@ enum CPDFLineType {
   static CPDFLineType fromString(String typeStr) {
     return CPDFLineType.values.firstWhere(
       (e) => e.name == typeStr,
-      orElse: () => throw Exception('Unknown line type: $typeStr'),
+      orElse: () => unknown,
     );
   }
 }
@@ -157,38 +182,6 @@ enum CPDFAlignment {
       (e) => e.name == typeStr.toLowerCase(),
       orElse: () => throw Exception('Unknown alignment type: $typeStr'),
     );
-  }
-}
-
-enum CPDFTypeface { courier, helvetica, timesRoman }
-
-extension CPDFTypefaceExtension on CPDFTypeface {
-  String getFontName() {
-    switch (name) {
-      case 'courier':
-        return 'Courier';
-      case 'helvetica':
-        return 'Helvetica';
-      case 'timesRoman':
-        return 'Times-Roman';
-      default:
-        return 'Courier';
-    }
-  }
-}
-
-extension CPDFTypefaceEnumExten on Iterable<CPDFTypeface> {
-  CPDFTypeface byFontName(String fontName) {
-    switch (fontName.toLowerCase()) {
-      case 'courier':
-        return CPDFTypeface.courier;
-      case 'helvetica':
-        return CPDFTypeface.helvetica;
-      case 'times-roman':
-        return CPDFTypeface.timesRoman;
-      default:
-        return CPDFTypeface.courier;
-    }
   }
 }
 
@@ -224,7 +217,7 @@ enum CPDFCheckStyle {
   static CPDFCheckStyle fromString(String typeStr) {
     return CPDFCheckStyle.values.firstWhere(
       (e) => e.name == typeStr,
-      orElse: () => throw Exception('Unknown check style type: $typeStr'),
+      orElse: () => CPDFCheckStyle.check,
     );
   }
 }
@@ -348,17 +341,14 @@ enum CPDFBorderEffectType {
 }
 
 enum CPDFBotaTabs {
-
   outline,
 
   bookmark,
 
   annotations;
-
 }
 
 enum CPDFBotaAnnotGlobalMenu {
-
   importAnnotation,
 
   exportAnnotation,
@@ -366,21 +356,17 @@ enum CPDFBotaAnnotGlobalMenu {
   removeAllAnnotation,
 
   removeAllReply;
-
 }
 
 enum CPDFBotaAnnotItemMenu {
-
   reviewStatus,
 
   markedStatus,
 
   more;
-
 }
 
 class CPDFReviewState {
-
   static const accepted = 'accepted';
 
   static const rejected = 'rejected';
@@ -390,11 +376,9 @@ class CPDFReviewState {
   static const completed = 'completed';
 
   static const none = 'none';
-
 }
 
 class CPDFBotaAnnotMoreMenu {
-
   static const addReply = 'addReply';
 
   static const viewReply = 'viewReply';
@@ -403,7 +387,6 @@ class CPDFBotaAnnotMoreMenu {
 }
 
 enum CPDFUIVisibilityMode {
-
   /// Tap the PDF page to hide or show the top and bottom toolbars,
   /// and hide the top toolbar when drawing with Ink.
   automatic,
@@ -417,7 +400,6 @@ enum CPDFUIVisibilityMode {
 
 /// Page editing menu options
 enum CPDFPageEditorMenus {
-
   insertPage,
 
   replacePage,
@@ -429,10 +411,9 @@ enum CPDFPageEditorMenus {
   rotatePage,
 
   deletePage;
-
 }
 
-enum CPDFPencilMenus{
+enum CPDFPencilMenus {
   touch,
 
   discard,
@@ -441,8 +422,139 @@ enum CPDFPencilMenus{
 }
 
 enum CPDFPageCompression {
-
   png,
 
   jpeg;
+}
+
+enum CPDFStandardStamp {
+  notApproved,
+  approved,
+  completed,
+  final_,
+  draft,
+  confidential,
+  notForPublicRelease,
+  forPublicRelease,
+  forComment,
+  void_,
+  preliminaryResults,
+  informationOnly,
+  accepted,
+  rejected,
+  witness,
+  initialHere,
+  signHere,
+  revised,
+  privateAccepted,
+  privateRejected,
+  privateRadioMark,
+  unknown;
+}
+
+extension CPDFStampExtension on CPDFStandardStamp {
+  String get name {
+    switch (this) {
+      case CPDFStandardStamp.notApproved:
+        return "NotApproved";
+      case CPDFStandardStamp.approved:
+        return "Approved";
+      case CPDFStandardStamp.completed:
+        return "Completed";
+      case CPDFStandardStamp.final_:
+        return "Final";
+      case CPDFStandardStamp.draft:
+        return "Draft";
+      case CPDFStandardStamp.confidential:
+        return "Confidential";
+      case CPDFStandardStamp.notForPublicRelease:
+        return "NotForPublicRelease";
+      case CPDFStandardStamp.forPublicRelease:
+        return "ForPublicRelease";
+      case CPDFStandardStamp.forComment:
+        return "ForComment";
+      case CPDFStandardStamp.void_:
+        return "Void";
+      case CPDFStandardStamp.preliminaryResults:
+        return "PreliminaryResults";
+      case CPDFStandardStamp.informationOnly:
+        return "InformationOnly";
+      case CPDFStandardStamp.accepted:
+        return "Accepted";
+      case CPDFStandardStamp.rejected:
+        return "Rejected";
+      case CPDFStandardStamp.witness:
+        return "Witness";
+      case CPDFStandardStamp.initialHere:
+        return "InitialHere";
+      case CPDFStandardStamp.signHere:
+        return "SignHere";
+      case CPDFStandardStamp.revised:
+        return "revised";
+      case CPDFStandardStamp.privateAccepted:
+        return "PrivateMark#1";
+      case CPDFStandardStamp.privateRejected:
+        return "PrivateMark#2";
+      case CPDFStandardStamp.privateRadioMark:
+        return "PrivateMark#3";
+      case CPDFStandardStamp.unknown:
+        return "Unknown";
+    }
+  }
+}
+
+enum CPDFStampType {
+  unknown,
+
+  standard,
+
+  text,
+
+  image;
+}
+
+/// Adds event listener callbacks.
+/// Use ComPDFKit.addEventListener(CPDFEvent event, CPDFOnEventsCallback callback) to register.
+/// See example at example/lib/cpdf_event_listener_example.dart
+/// Example:
+/// controller.addEventListener(CPDFEvent.annotationsCreated, (event) {
+///   debugPrint('ComPDFKit: Annotation created: Type=${event.runtimeType}');
+///   printJsonString(jsonEncode(event));
+/// });
+enum CPDFEvent {
+  /// Fired when an annotation is created.
+  /// Data type: CPDFAnnotation and its subclasses.
+  annotationsCreated,
+
+  /// Fired when an annotation is selected.
+  /// Data type: CPDFAnnotation and its subclasses.
+  annotationsSelected,
+
+  /// Fired when an annotation is deselected.
+  /// Data type: CPDFAnnotation and its subclasses.
+  /// Data may be null.
+  annotationsDeselected,
+
+  /// Fired when a form field is created.
+  /// Data type: CPDFWidget and its subclasses.
+  formFieldsCreated,
+
+  /// Fired when a form field is selected.
+  /// Data type: CPDFWidget and its subclasses.
+  formFieldsSelected,
+
+  /// Fired when a form field is deselected.
+  /// Data type: CPDFWidget and its subclasses.
+  /// Data may be null.
+  formFieldsDeselected,
+
+  /// Fired when a content editor element is selected.
+  /// Data type: CPDFEditArea and its subclasses.
+  /// image: CPDFEditImageArea
+  /// text: CPDFEditTextArea
+  editorSelectionSelected,
+
+  /// Fired when a content editor element is deselected.
+  /// No data returned.
+  editorSelectionDeselected,
 }

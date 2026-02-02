@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,60 +8,60 @@
  *
  */
 
-import 'dart:ui';
 
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/document/action/cpdf_action.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
+import 'package:flutter/material.dart';
 
-import '../../util/cpdf_rectf.dart';
-
+/// Push button form widget.
+///
+/// A button form field that extends [CPDFWidget].
+///
+/// Key properties:
+/// - [buttonTitle]: The displayed caption for the button.
+/// - [action]: Optional action associated with this button.
+/// - Text appearance: [fontColor], [fontSize], [familyName], [styleName].
+///
+/// Serialization:
+/// - Use [CPDFPushButtonWidget.fromJson] to create an instance from a JSON map.
+/// - Use [toJson] to convert this instance to a JSON map.
+///
+/// {@category forms}
 class CPDFPushButtonWidget extends CPDFWidget {
-  final String buttonTitle;
+  String buttonTitle;
 
-  final CPDFAction? action;
+  CPDFAction? action;
 
-  final Color fontColor;
+  Color fontColor;
 
-  final double fontSize;
+  double fontSize;
 
-  final String familyName;
+  String familyName;
 
-  final String styleName;
+  String styleName;
 
-  CPDFPushButtonWidget(
-      {required CPDFFormType type,
-      required String title,
-      required int page,
-      required String uuid,
-      DateTime? modifyDate,
-      DateTime? createDate,
-      required CPDFRectF rect,
-      required borderColor,
-      required fillColor,
-      required borderWidth,
-      required this.buttonTitle,
-      this.action,
-      required this.fontColor,
-      required this.fontSize,
-      required this.familyName,
-      required this.styleName})
-      : super(
-            type: type,
-            title: title,
-            page: page,
-            uuid: uuid,
-            createDate: createDate,
-            rect: rect,
-            borderColor: borderColor,
-            fillColor: fillColor,
-            borderWidth: borderWidth);
+  CPDFPushButtonWidget({
+    required super.title,
+    required super.page,
+    required super.rect,
+    required super.borderColor,
+    required super.fillColor,
+    super.uuid,
+    super.createDate,
+    super.borderWidth = 2,
+    required this.buttonTitle,
+    this.action,
+    this.fontColor = Colors.black,
+    this.fontSize = 20,
+    this.familyName = 'Helvetica',
+    this.styleName = 'Regular',
+  }) : super(type: CPDFFormType.pushButton);
 
   factory CPDFPushButtonWidget.fromJson(Map<String, dynamic> json) {
     CPDFWidget common = CPDFWidget.fromJson(json);
     return CPDFPushButtonWidget(
-        type: common.type,
         title: common.title,
         page: common.page,
         uuid: common.uuid,
@@ -76,9 +76,9 @@ class CPDFPushButtonWidget extends CPDFWidget {
                 Map<String, dynamic>.from(json['action'] ?? {}))
             : null,
         fontColor: HexColor.fromHex(json['fontColor'] ?? '#000000'),
-        fontSize: double.parse((json['fontSize'] as double).toStringAsFixed(2)),
+        fontSize: (json['fontSize'] as num?)?.toDouble() ?? 20.0,
         familyName: json['familyName'] ?? 'Helvetica',
-        styleName: json['styleName'] ?? 'Regular');
+        styleName: json['styleName'] ?? '');
   }
 
   @override
@@ -87,10 +87,10 @@ class CPDFPushButtonWidget extends CPDFWidget {
       ...super.toJson(),
       'buttonTitle': buttonTitle,
       'action': action?.toJson(),
-      'fontColor' : fontColor.toHex(),
-      'fontSize' : fontSize,
-      'familyName' : familyName,
-      'styleName' : styleName
+      'fontColor': fontColor.toHex(),
+      'fontSize': fontSize,
+      'familyName': familyName,
+      'styleName': styleName
     };
   }
 }

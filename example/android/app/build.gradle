@@ -57,8 +57,8 @@ android {
         applicationId "com.compdfkit.flutter.example"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion rootProject.ext.android.MINSDK
-        targetSdkVersion flutter.targetSdkVersion
+        minSdk rootProject.ext.android.MINSDK
+        targetSdk flutter.targetSdkVersion
         versionCode rootProject.ext.android.VERSIONCODE
         versionName flutterVersionName
     }
@@ -66,8 +66,9 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            shrinkResources true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }

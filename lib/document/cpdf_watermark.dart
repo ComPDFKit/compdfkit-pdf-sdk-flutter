@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -86,7 +86,8 @@ class CPDFWatermark {
   /// This constructor creates a text watermark with customizable properties.
   ///
   /// - [textContent]: The text content of the watermark. (Required)
-  /// - [pages]: A list of page indices where the watermark should be applied, e.g., [0, 1, 2, 3] represents pages 1 through 4. (Required)
+  /// - [pages]: A list of page indices where the watermark should be applied,
+  ///   e.g., `[0, 1, 2, 3]` represents pages 1 through 4. (Required)
   /// - [textColor]: The color of the watermark text. Default is `Colors.black`.
   /// - [fontSize]: The font size of the watermark text. Default is `24`.
   /// - [scale]: The scaling factor for the text. Default is `1.0`.
@@ -141,7 +142,8 @@ class CPDFWatermark {
   /// This constructor creates an image watermark with customizable properties.
   ///
   /// - [imagePath]: The file path of the image to be used as the watermark. (Required)
-  /// - [pages]: A list of page indices where the watermark should be applied, e.g., [0, 1, 2, 3] represents pages 1 through 4. (Required)
+  /// - [pages]: A list of page indices where the watermark should be applied,
+  ///   e.g., `[0, 1, 2, 3]` represents pages 1 through 4. (Required)
   /// - [scale]: The scaling factor for the image. Default is 1.0.
   /// - [rotation]: The rotation angle of the watermark in degrees. Default is 45.0.
   /// - [opacity]: The transparency of the watermark, where 1.0 is fully opaque and 0.0 is fully transparent. Default is 1.0.

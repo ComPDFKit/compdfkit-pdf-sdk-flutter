@@ -1,24 +1,33 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+import 'dart:core';
 import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/document/cpdf_bookmark.dart';
+import 'package:compdfkit_flutter/document/cpdf_document_permission_info.dart';
+import 'package:compdfkit_flutter/document/cpdf_outline.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:compdfkit_flutter/page/cpdf_page.dart';
 import 'package:compdfkit_flutter/page/cpdf_text_searcher.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../annotation/cpdf_annotation.dart';
 import '../annotation/form/cpdf_widget.dart';
 import '../compdfkit.dart';
+import '../configuration/attributes/cpdf_editor_text_attr.dart';
+import '../edit/cpdf_image_data.dart';
 import '../util/cpdf_uuid_util.dart';
+import 'cpdf_info.dart';
 
 /// A class to handle PDF documents without using [CPDFReaderWidget]
 ///
@@ -33,6 +42,8 @@ import '../util/cpdf_uuid_util.dart';
 /// /// get pdf document file name.
 /// var fileName = await document.getFileName();
 /// ```
+///
+/// {@category document}
 class CPDFDocument {
   late final MethodChannel _channel;
 
@@ -42,6 +53,14 @@ class CPDFDocument {
 
   CPDFTextSearcher? _textSearcher;
 
+  // static Future<CPDFDocument> _createDocument() async {
+  //   var id = CpdfUuidUtil.generateShortUniqueId();
+  //   bool success = await ComPDFKit.createDocument(id);
+  //   if (!success) {
+  //     throw Exception('Failed to create document instance');
+  //   }
+  //   return CPDFDocument._(id);
+  // }
 
   static Future<CPDFDocument> createInstance() async {
     var id = CpdfUuidUtil.generateShortUniqueId();
@@ -202,15 +221,20 @@ class CPDFDocument {
   }
 
   /// Save document
+  /// - [saveIncremental] Whether to perform an incremental save. Default is true.Only supported on Android Platform.
+  /// - [fontSubSet] Whether to embed the font subset when saving the PDF. This will affect how text appears in other PDF software. This is a time-consuming operation.
+  ///
   ///
   /// example:
   /// ```dart
-  /// bool result = await _controller.save();
+  /// bool result = await _controller.save(saveIncremental: true, fontSubSet: true);
   /// ```
   /// Return value: **true** if the save is successful,
   /// **false** if the save fails.
-  Future<bool> save() async {
-    return await _channel.invokeMethod('save');
+  Future<bool> save(
+      {bool saveIncremental = true, bool fontSubSet = true}) async {
+    return await _channel.invokeMethod('save',
+        {'save_incremental': saveIncremental, 'font_sub_set': fontSubSet});
   }
 
   /// Saves the document to the specified directory.
@@ -363,7 +387,6 @@ class CPDFDocument {
       return;
     }
     await _channel.invokeMethod('close');
-    debugPrint('ComPDFKit:CPDFDocument.close');
     _isValid = false;
   }
 
@@ -487,6 +510,35 @@ class CPDFDocument {
     });
   }
 
+  /// Inserts a new PDF page at the specified index using an image from a file path.
+  ///
+  /// The image located at [imagePath] will be used to create a new page,
+  /// which will be inserted at [pageIndex] in the current PDF document.
+  ///
+  /// [pageSize] specifies the size of the new page. Defaults to A4 size.
+  ///
+  /// example:
+  /// ```dart
+  /// bool result = await controller.document.insertPageWithImagePath(
+  ///   pageIndex: 0,
+  ///   imagePath: '/path/to/image.png',
+  ///   pageSize: CPDFPageSize.a4,
+  ///  );
+  /// ```
+  /// Returns `true` if the page is successfully inserted, otherwise `false`.
+  /// Throws a [PlatformException] if the native platform reports an error.
+  Future<bool> insertPageWithImagePath({
+    required int pageIndex,
+    required String imagePath,
+    CPDFPageSize pageSize = CPDFPageSize.a4,
+  }) async {
+    return await _channel.invokeMethod('insert_page_with_image_path', {
+      'page_index': pageIndex,
+      'image_path': imagePath,
+      'page_width': pageSize.width,
+      'page_height': pageSize.height
+    });
+  }
 
   /// Splits the specified pages from the current document and saves them as a new document.
   ///
@@ -556,6 +608,304 @@ class CPDFDocument {
     });
   }
 
+  /// Gets the outline data of the current document.
+  ///
+  /// example:
+  /// ```dart
+  /// CPDFOutline outline = await document.getOutlineRoot();
+  /// ```
+  Future<CPDFOutline?> getOutlineRoot() async {
+    final result = await _channel.invokeMethod('get_outline_root');
+    if (result is Map) {
+      final outlineMap = Map<String, dynamic>.from(result);
+      return CPDFOutline.fromJson(outlineMap);
+    } else {
+      return null;
+    }
+  }
+
+  /// Creates a new outline root for the current document.
+  /// example:
+  /// ```dart
+  /// CPDFOutline? outline = await document.newOutlineRoot();
+  /// ```
+  Future<CPDFOutline?> newOutlineRoot() async {
+    final result = await _channel.invokeMethod('new_outline_root');
+    if (result is Map) {
+      final outlineMap = Map<String, dynamic>.from(result);
+      return CPDFOutline.fromJson(outlineMap);
+    } else {
+      return null;
+    }
+  }
+
+  /// Adds an outline to the current document.
+  /// Parameters:
+  /// - [parentUuid] The UUID of the parent outline under which the new outline will be added.
+  /// - [insertIndex] The index at which to insert the new outline under the parent. Default is -1 (append to the end).
+  /// - [title] The title of the new outline.
+  /// - [pageIndex] The index of the page that the outline will point to.
+  /// example:
+  /// ```dart
+  /// bool result = await document.addOutline(
+  ///   parentUuid: parentOutline.uuid,
+  ///   insertIndex: 0,
+  ///   title: 'New Outline',
+  ///   pageIndex: 0
+  /// );
+  /// ```
+  Future<bool> addOutline(
+      {required String parentUuid,
+      int insertIndex = -1,
+      required String title,
+      required int pageIndex}) async {
+    return await _channel.invokeMethod('add_outline', {
+      'parent_uuid': parentUuid,
+      'insert_index': insertIndex,
+      'title': title,
+      'page_index': pageIndex
+    });
+  }
+
+  /// Removes an outline from the current document by its UUID.
+  /// Parameters:
+  /// - [uuid] The UUID of the outline to be removed.
+  /// example:
+  /// ```dart
+  /// bool result = await document.removeOutline(outline.uuid);
+  /// ```
+  Future<bool> removeOutline(String uuid) async {
+    return await _channel.invokeMethod('remove_outline', uuid);
+  }
+
+  /// Updates an existing outline in the current document.
+  /// Parameters:
+  /// - [uuid] The UUID of the outline to be updated.
+  /// - [title] The new title for the outline.
+  /// - [pageIndex] The new page index that the outline will point to.
+  /// example:
+  /// ```dart
+  /// bool result = await document.updateOutline(
+  ///   uuid: outline.uuid,
+  ///   title: 'Updated Title',
+  ///   pageIndex: 1
+  /// );
+  /// ```
+  Future<bool> updateOutline({
+    required String uuid,
+    required title,
+    required pageIndex,
+  }) async {
+    return await _channel.invokeMethod('update_outline', {
+      'uuid': uuid,
+      'title': title,
+      'page_index': pageIndex,
+    });
+  }
+
+  /// Moves the specified outline to a new parent outline at the given insert position.
+  ///
+  /// This method repositions an existing outline within the document's outline tree.
+  /// It changes the parent of the outline and inserts it at the specified index
+  /// under the new parent.
+  ///
+  /// Parameters:
+  /// - `outline`: The outline node to be moved.
+  /// - `newParent`: The target parent outline under which the node will be placed.
+  /// - `insertIndex`: The position at which to insert the outline under `newParent`.
+  ///   Use `-1` to append the outline to the end.
+  ///
+  /// Example:
+  /// ```dart
+  /// bool result = await document.moveOutline(
+  ///  outline: outlineToMove,
+  ///  newParent: targetParentOutline,
+  ///  insertIndex: 0,
+  ///  );
+  /// ```
+  ///
+  /// Returns:
+  /// - `true` if the operation succeeds; otherwise, `false`.
+  Future<bool> moveOutline({
+    required CPDFOutline outline,
+    required CPDFOutline newParent,
+    int insertIndex = -1,
+  }) async {
+    return await _channel.invokeMethod('move_to_outline', {
+      'new_parent_uuid': newParent.uuid,
+      'uuid': outline.uuid,
+      'insert_index': insertIndex,
+    });
+  }
+
+  /// Gets the bookmarks of the current document.
+  /// example:
+  /// ```dart
+  /// List<CPDFBookmark> bookmarks = await document.getBookmarks();
+  /// ```
+  Future<List<CPDFBookmark>> getBookmarks() async {
+    final bookmarks = await _channel.invokeMethod('get_bookmarks');
+    if (bookmarks is! List) return [];
+    return bookmarks
+        .whereType<Map>()
+        .map((item) {
+          try {
+            final map = Map<String, dynamic>.from(item);
+            return CPDFBookmark.fromJson(map);
+          } catch (e, stack) {
+            debugPrint('CPDFBookmark parse error: $e\n$stack');
+            return null;
+          }
+        })
+        .whereType<CPDFBookmark>()
+        .toList();
+  }
+
+  /// remove a bookmark by its page index.
+  ///
+  /// Parameters:
+  /// - [pageIndex] The index of the page for which the bookmark should be removed.
+  /// example:
+  /// ```dart
+  /// bool result = await document.removeBookmark(0);
+  /// ```
+  Future<bool> removeBookmark(int pageIndex) async {
+    return await _channel.invokeMethod('remove_bookmark', pageIndex);
+  }
+
+  /// Checks if a bookmark exists for the specified page index.
+  ///
+  /// Parameters:
+  /// - [pageIndex] The index of the page to check for a bookmark.
+  /// example:
+  /// ```dart
+  /// bool hasBookmark = await document.hasBookmark(0);
+  /// ```
+  Future<bool> hasBookmark(int pageIndex) async {
+    return await _channel.invokeMethod('has_bookmark', pageIndex);
+  }
+
+  /// Adds a bookmark with the specified title and page index.
+  /// Parameters:
+  /// - [title] The title of the bookmark.
+  /// - [pageIndex] The index of the page to which the bookmark should point.
+  /// example:
+  /// ```dart
+  /// bool result = await document.addBookmark(title: 'My Bookmark', pageIndex: 0);
+  /// ```
+  Future<bool> addBookmark({
+    required String title,
+    required int pageIndex,
+  }) async {
+    return await _channel.invokeMethod('add_bookmark', {
+      'title': title,
+      'page_index': pageIndex,
+    });
+  }
+
+  /// Updates an existing bookmark with the specified title and page index.
+  /// Parameters:
+  /// - [bookmark] The bookmark object containing the updated title and page index.
+  /// example:
+  /// ```dart
+  /// List<CPDFBookmark> bookmarks = await document.getBookmarks();
+  /// if (bookmarks.isNotEmpty) {
+  ///   CPDFBookmark bookmark = bookmarks.first;
+  ///   bookmark.setTitle('Updated Title');
+  ///   bool result = await document.updateBookmark(bookmark);
+  /// }
+  /// ```
+  Future<bool> updateBookmark(CPDFBookmark bookmark) async {
+    return await _channel.invokeMethod('update_bookmark', bookmark.toJson());
+  }
+
+  /// Removes pages at the specified indexes from the document.
+  /// This method allows you to delete multiple pages from the PDF document
+  /// by providing a list of page indexes.
+  /// Parameters:
+  /// - [pageIndexes] A list of integers representing the indexes of the pages to be removed.
+  /// example:
+  /// ```dart
+  /// List<int> pagesToRemove = [0, 1, 2]; // Pages to remove
+  /// bool result = await document.removePages(pagesToRemove);
+  /// ```
+  Future<bool> removePages(List<int> pageIndexes) async {
+    if (pageIndexes.isEmpty) return false;
+    return await _channel.invokeMethod('remove_pages', pageIndexes);
+  }
+
+  /// Moves a page from one index to another within the document.
+  /// Parameters:
+  /// - [fromIndex] The index of the page to move.
+  /// - [toIndex] The index to which the page should be moved.
+  /// example:
+  /// ```dart
+  /// bool result = await document.movePage(fromIndex: 0, toIndex: 1);
+  /// ```
+  Future<bool> movePage({
+    required int fromIndex,
+    required int toIndex,
+  }) async {
+    return await _channel.invokeMethod('move_page', {
+      'from_index': fromIndex,
+      'to_index': toIndex,
+    });
+  }
+
+  /// Gets the document information, such as title, author, subject, keywords, creation date, modification date, and producer.
+  /// This method retrieves metadata about the PDF document.
+  /// example:
+  /// ```dart
+  /// CPDFInfo info = await document.getInfo();
+  /// ```
+  Future<CPDFInfo> getInfo() async {
+    final result = await _channel.invokeMethod('get_document_info');
+    if (result is Map) {
+      final infoMap = Map<String, dynamic>.from(result);
+      return CPDFInfo.fromJson(infoMap);
+    } else {
+      return CPDFInfo.empty();
+    }
+  }
+
+  /// Gets major version string of document.
+  /// example:
+  /// ```dart
+  /// int majorVersion = await document.getMajorVersion();
+  /// ```
+  Future<int> getMajorVersion() async {
+    return await _channel.invokeMethod('get_major_version');
+  }
+
+  /// Gets minor version string of document.
+  /// example:
+  /// ```dart
+  /// int minorVersion = await document.getMinorVersion();
+  /// ```
+  Future<int> getMinorVersion() async {
+    return await _channel.invokeMethod('get_minor_version');
+  }
+
+  /// Gets permission information of document,
+  /// including whether printing, copying, and modifying are allowed.
+  /// example:
+  /// ```dart
+  /// CPDFDocumentPermissionInfo permissionsInfo = await document.getPermissionsInfo();
+  /// ```
+  Future<CPDFDocumentPermissionInfo> getPermissionsInfo() async {
+    final result = await _channel.invokeMethod('get_permissions_info');
+    if (result is Map) {
+      final infoMap = Map<String, dynamic>.from(result);
+      return CPDFDocumentPermissionInfo.fromJson(infoMap);
+    } else {
+      return CPDFDocumentPermissionInfo.empty();
+    }
+  }
+
+  Future<bool> isLocked() async {
+    return await _channel.invokeMethod('is_locked');
+  }
+
   /// Gets the text searcher for the document.
   /// This method returns an instance of [CPDFTextSearcher] that can be used to perform text searches
   /// within the PDF document.
@@ -568,7 +918,6 @@ class CPDFDocument {
       int.parse(_channel.name.split('_').last),
     );
   }
-
 
   /// Renders a specific page of the document as an image.
   /// Parameters:
@@ -598,8 +947,8 @@ class CPDFDocument {
       'width': width,
       'height': height,
       'background_color': backgroundColor.toHex(),
-      'draw_annot' : drawAnnot,
-      'draw_form' : drawForm,
+      'draw_annot': drawAnnot,
+      'draw_form': drawForm,
       'compression': compression.name,
     });
     return imageData;
@@ -626,5 +975,260 @@ class CPDFDocument {
       (result['width'] as num).toDouble(),
       (result['height'] as num).toDouble(),
     );
+  }
+
+  /// Updates an annotation on the document.
+  ///
+  /// **example:**
+  /// ```dart
+  /// CPDFPage page = controller.document.pageAtIndex(pageIndex);
+  /// List<CPDFAnnotation> annotations = await page.getAnnotations();
+  /// bool result = await document.updateAnnotation(annotations[0]);
+  /// ```
+  Future<bool> updateAnnotation(CPDFAnnotation annotation) async {
+    return await _channel.invokeMethod('update_annotation', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+      'data': annotation.toJson(),
+    });
+  }
+
+  /// Updates a widget on the document.
+  ///
+  /// **example:**
+  /// ```dart
+  /// CPDFPage page = document.pageAtIndex(pageIndex);
+  /// List<CPDFWidget> widgets = await page.getWidgets();
+  /// CPDFTextWidget widget = widgets[0] as CPDFTextWidget;
+  /// widget.title = 'TextFields---ComPDFKit';
+  /// widget.fillColor = Colors.green;
+  /// widget.borderColor = Colors.red;
+  /// widget.borderWidth = 10;
+  /// widget.text = 'Updated Text';
+  /// widget.fontColor = Colors.blue;
+  /// widget.fontSize = 20.0;
+  /// widget.alignment = CPDFAlignment.center;
+  /// widget.isMultiline = true;
+  /// widget.familyName = 'Dancing Script';
+  /// widget.styleName = 'Regular';
+  ///
+  /// bool result = await document.updateWidget(widget);
+  /// ```
+  Future<bool> updateWidget(CPDFWidget widget) async {
+    return await _channel.invokeMethod('update_widget', {
+      'page_index': widget.page,
+      'uuid': widget.uuid,
+      'data': widget.toJson(),
+    });
+  }
+
+  /// Removes an edit area from the document.
+  ///
+  /// **example:**
+  /// ```dart
+  /// controller.addEventListener(CPDFEvent.editorSelectionSelected, (event){
+  ///   if(event is CPDFEditTextArea || event is CPDFEditImageArea || event is CPDFEditPathArea){
+  ///     document.removeEditArea(event);
+  ///   }
+  /// });
+  ///
+  /// document.removeEditArea(editArea);
+  /// ```
+  Future<bool> removeEditArea(CPDFEditArea editArea) async {
+    return await _channel.invokeMethod('remove_edit_area', {
+      'page_index': editArea.page,
+      'uuid': editArea.uuid,
+      'type': editArea.type.name,
+    });
+  }
+
+  /// Adds annotations to the document.
+  ///
+  /// **example:**
+  /// ```dart
+  /// List<CPDFAnnotation> annotations = [
+  ///     CPDFNoteAnnotation(
+  ///           page: 1,
+  ///           title: 'ComPDFKit-Flutter',
+  ///           content: 'This is Note Annotation',
+  ///           uuid: 'note-annotation-1',
+  ///           rect: const CPDFRectF(left: 260, top: 700, right: 300, bottom: 740),
+  ///           color: Colors.green,
+  ///           alpha: 128)];
+  /// await document.addAnnotations(annotations);
+  /// ```
+  Future<bool> addAnnotations(List<CPDFAnnotation> annotations) async {
+    List<Map<String, dynamic>> annotationsData =
+        annotations.map((e) => e.toJson()).toList();
+    return await _channel
+        .invokeMethod('add_annotations', {'annotations': annotationsData});
+  }
+
+  /// Adds widgets to the document.
+  ///
+  /// **example:**
+  /// ```dart
+  /// List<CPDFWidget> widgets = [CPDFTextWidget(
+  ///     title: CPDFWidgetUtil.createFieldName(CPDFFormType.textField),
+  ///     page: 0,
+  ///     rect: const CPDFRectF(left: 40, top: 799, right: 320, bottom: 701),
+  ///     borderColor: Colors.lightGreen,
+  ///     fillColor: Colors.white,
+  ///     borderWidth: 2,
+  ///     text: 'This text field is created using the Flutter API.',
+  ///     familyName: 'Times',
+  ///     styleName: 'Bold')];
+  ///
+  /// bool result = await document.addWidgets(widgets);
+  /// ```
+  Future<bool> addWidgets(List<CPDFWidget> widgets) async {
+    List<Map<String, dynamic>> widgetsData =
+        widgets.map((e) => e.toJson()).toList();
+    return await _channel.invokeMethod('add_widgets', {'widgets': widgetsData});
+  }
+
+  /// Inserts a new text area on the specified page.
+  ///
+  /// This method creates a new text box within the page's coordinate system
+  /// and writes the given text content into it. The coordinate origin (0, 0)
+  /// is located at the bottom-left corner of the page.
+  ///
+  /// ---
+  /// **Parameters:**
+  ///
+  /// - [pageIndex]: The index of the target page where the text will be inserted,
+  ///                starting from 0.
+  /// - [content]: The text content to be inserted.
+  /// - [offset]: The position of the text area’s bottom-left corner in PDF
+  ///             page coordinates (unit: point).
+  /// - [maxWidth]: The maximum width of the text area. Text will automatically
+  ///               wrap when exceeding this width.
+  ///               If `null`, the width is not constrained.
+  /// - [attr]: Text attributes, such as font size, color, alignment, etc.
+  ///           Defaults to the standard `CPDFEditorTextAttr` configuration.
+  ///
+  /// ---
+  /// **Returns:**
+  /// - `true` if the text area is successfully created.
+  /// - `false` if the operation fails.
+  ///
+  /// ---
+  /// **Platform Requirements:**
+  /// - This method is only supported on Android.
+  ///   Calling it on other platforms will throw an `UnsupportedError`.
+  ///
+  /// ---
+  /// **Example:**
+  /// ```dart
+  /// bool result = await document.createNewTextArea(
+  ///       pageIndex: 0,
+  ///       content: 'ComPDFKit insert text This is Test create text Area ...',
+  ///       offset: const Offset(50, 800),
+  ///       maxWidth: 300,
+  ///       attr: const CPDFEditorTextAttr(
+  ///         fontSize: 18,
+  ///         fontColor: Colors.red,
+  ///         alignment: CPDFAlignment.left,
+  ///       ),
+  /// );
+  /// ```
+  Future<bool> createNewTextArea({
+    required int pageIndex,
+    required String content,
+    required Offset offset,
+    double? maxWidth,
+    CPDFEditorTextAttr attr = const CPDFEditorTextAttr(),
+  }) async {
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      throw UnsupportedError(
+          'createNewTextArea() is only supported on Android platform.');
+    }
+    return await _channel.invokeMethod(
+      'create_new_text_area',
+      {
+        'page_index': pageIndex,
+        'content': content,
+        'x': offset.dx,
+        'y': offset.dy,
+        'max_width': maxWidth,
+        'attr': attr.toJson(),
+      },
+    );
+  }
+
+  /// Inserts a new image area on the specified page.
+  ///
+  /// This method creates a new image box within the page's coordinate system.
+  /// The coordinate origin (0, 0) is located at the bottom-left corner of the page.
+  ///
+  /// ---
+  /// **Parameters:**
+  ///
+  /// - [pageIndex]: The index of the target page where the image will be inserted,
+  ///                starting from 0.
+  /// - [imageData]: The image data to be inserted. Supports multiple formats:
+  ///   - File path: `CPDFImageData.fromPath('/path/to/image.png')`
+  ///   - Base64: `CPDFImageData.fromBase64('iVBORw0KGgo...')`
+  ///   - Asset: `CPDFImageData.fromAsset('assets/images/logo.png')`
+  ///   - Uri (Android): `CPDFImageData.fromUri('content://...')`
+  /// - [offset]: The position of the image area's bottom-left corner in PDF
+  ///             page coordinates (unit: point).
+  /// - [width]: The width of the image area. Height is calculated automatically
+  ///            based on aspect ratio. If `null`, uses original image width.
+  ///
+  /// ---
+  /// **Returns:**
+  /// - `true` if the image area is successfully created.
+  /// - `false` if the operation fails.
+  ///
+  /// ---
+  /// **Example:**
+  /// ```dart
+  /// // From file path
+  /// bool result1 = await document.createNewImageArea(
+  ///   pageIndex: 0,
+  ///   imageData: CPDFImageData.fromPath('/path/to/image.png'),
+  ///   offset: const Offset(50, 700),
+  ///   width: 200,
+  /// );
+  ///
+  /// // From base64
+  /// bool result2 = await document.createNewImageArea(
+  ///   pageIndex: 1,
+  ///   imageData: CPDFImageData.fromBase64('iVBORw0KGgoAAAANSUhEUgAAAAUA...'),
+  ///   offset: const Offset(100, 600),
+  ///   width: 150,
+  /// );
+  ///
+  /// // From asset
+  /// bool result3 = await document.createNewImageArea(
+  ///   pageIndex: 2,
+  ///   imageData: CPDFImageData.fromAsset('logo.png'),
+  ///   offset: const Offset(200, 500),
+  ///   width: null, // Use original width
+  /// );
+  /// ```
+  Future<bool> createNewImageArea({
+    required int pageIndex,
+    required CPDFImageData imageData,
+    required Offset offset,
+    double width = 200,
+  }) async {
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      throw UnsupportedError(
+          'createNewTextArea() is only supported on Android platform.');
+    }
+    try {
+      return await _channel.invokeMethod('create_new_image_area', {
+        'page_index': pageIndex,
+        'image_data': imageData.toJson(),
+        'x': offset.dx,
+        'y': offset.dy,
+        'width': width,
+      });
+    } on PlatformException catch (e) {
+      debugPrint('Error creating image area: ${e.message}');
+      return false;
+    }
   }
 }

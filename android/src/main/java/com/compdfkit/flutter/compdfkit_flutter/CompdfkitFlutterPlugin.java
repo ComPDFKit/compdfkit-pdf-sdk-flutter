@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,17 +10,14 @@
 package com.compdfkit.flutter.compdfkit_flutter;
 
 import androidx.annotation.NonNull;
-
-import com.compdfkit.flutter.compdfkit_flutter.plugin.ComPDFKitSDKPlugin;
 import com.compdfkit.flutter.compdfkit_flutter.platformview.CPDFViewCtrlFactory;
-
+import com.compdfkit.flutter.compdfkit_flutter.plugin.ComPDFKitSDKPlugin;
 import com.compdfkit.tools.common.utils.glide.CPDFGlideInitializer;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.platform.PlatformViewRegistry;
-
 
 public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
@@ -34,6 +31,7 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
     private ActivityPluginBinding activityPluginBinding;
 
     private ComPDFKitSDKPlugin comPDFKitSDKPlugin;
+
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         this.pluginBinding = flutterPluginBinding;
@@ -52,17 +50,17 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
         setUp();
     }
 
-    private void setUp(){
+    private void setUp() {
         CPDFGlideInitializer.register(activityPluginBinding.getActivity().getApplicationContext());
         comPDFKitSDKPlugin = new ComPDFKitSDKPlugin(activityPluginBinding.getActivity(), mMessenger);
         comPDFKitSDKPlugin.register();
         activityPluginBinding.addActivityResultListener(comPDFKitSDKPlugin);
         if (mRegistry != null) {
-            mRegistry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID,new CPDFViewCtrlFactory(mMessenger));
+            mRegistry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID, new CPDFViewCtrlFactory(mMessenger));
         }
     }
 
-    private void clear(){
+    private void clear() {
         this.activityPluginBinding.removeActivityResultListener(comPDFKitSDKPlugin);
         this.activityPluginBinding = null;
         this.comPDFKitSDKPlugin = null;

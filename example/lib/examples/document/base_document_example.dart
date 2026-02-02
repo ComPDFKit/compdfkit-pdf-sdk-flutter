@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -37,7 +37,7 @@ class BaseDocumentExampleState<T extends BaseDocumentExample> extends State<T> {
   }
 
   Future<void> openDocument() async {
-    File file = await extractAsset(context, shouldOverwrite: true, widget.assetPath);
+    File file = await extractAsset( shouldOverwrite: true, widget.assetPath);
     applyLog('filePath: ${file.path}');
     document = await CPDFDocument.createInstance();
     final error = await document.open(file.path);

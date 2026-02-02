@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -25,23 +25,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class CPDFSearchUtil {
 
-
   /**
-   * Searches for keywords in the given PDF document using the specified text searcher.
+   * Searches for keywords in the given PDF document using the specified text
+   * searcher.
    *
-   * @param document       The PDF document to search within.
-   * @param iTextSearcher  The text searcher to use for searching.
-   * @param keywords       The keywords to search for.
-   * @param searchOptions  Options for the search, such as case sensitivity and whole word matching.
+   * @param document      The PDF document to search within.
+   * @param iTextSearcher The text searcher to use for searching.
+   * @param keywords      The keywords to search for.
+   * @param searchOptions Options for the search, such as case sensitivity and
+   *                      whole word matching.
    * @see com.compdfkit.core.page.CPDFTextSearcher.PDFSearchOptions#PDFSearchCaseInsensitive
    * @see com.compdfkit.core.page.CPDFTextSearcher.PDFSearchOptions#PDFSearchCaseSensitive
    * @see com.compdfkit.core.page.CPDFTextSearcher.PDFSearchOptions#PDFSearchMatchWholeWord
    * @see com.compdfkit.core.page.CPDFTextSearcher.PDFSearchOptions#PDFSearchConsecutive
    */
-  public static List<Map<String, Object>> search(CPDFDocument document, ITextSearcher iTextSearcher, String keywords, int searchOptions) {
+  public static List<Map<String, Object>> search(CPDFDocument document, ITextSearcher iTextSearcher, String keywords,
+      int searchOptions) {
     List<Map<String, Object>> searchResults = new ArrayList<>();
     iTextSearcher.setSearchConfig(keywords, searchOptions);
     for (int pageIndex = 0; pageIndex < document.getPageCount(); pageIndex++) {
@@ -60,7 +61,8 @@ public class CPDFSearchUtil {
     return searchResults;
   }
 
-  public static void selection(Context context,  @Nullable CPDFViewCtrl pdfView, CPDFDocument document, MethodCall call){
+  public static void selection(Context context, @Nullable CPDFViewCtrl pdfView, CPDFDocument document,
+      MethodCall call) {
     ITextSearcher iTextSearcher = getTextSearcher(context, pdfView, document);
     int pageIndex = call.argument("page_index");
     int textRangeIndex = call.argument("text_range_index");
@@ -70,7 +72,7 @@ public class CPDFSearchUtil {
     }
   }
 
-  public static void clearSearch(Context context, @Nullable CPDFViewCtrl pdfView,  CPDFDocument document){
+  public static void clearSearch(Context context, @Nullable CPDFViewCtrl pdfView, CPDFDocument document) {
     ITextSearcher iTextSearcher = getTextSearcher(context, pdfView, document);
     iTextSearcher.cancelSearch();
     if (pdfView != null) {
@@ -78,7 +80,7 @@ public class CPDFSearchUtil {
     }
   }
 
-  public static String getText(CPDFDocument document, MethodCall call){
+  public static String getText(CPDFDocument document, MethodCall call) {
     int pageIndex = call.argument("page_index");
     int location = call.argument("location");
     int length = call.argument("length");

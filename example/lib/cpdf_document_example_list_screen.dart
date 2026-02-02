@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -7,11 +7,13 @@
  * This notice may not be removed from this file.
  *
  */
+
+import 'package:compdfkit_flutter_example/examples/document/cpdf_document_open_pdf_example.dart';
+import 'package:compdfkit_flutter_example/examples/document/cpdf_document_search_text_example.dart';
 import 'package:flutter/material.dart';
-import 'examples/document/cpdf_document_open_pdf_example.dart';
+import 'examples/document/cpdf_document_bookmark_example.dart';
 import 'examples/document/cpdf_document_annotation_example.dart';
 import 'examples/document/cpdf_document_widget_example.dart';
-import 'examples/document/cpdf_document_search_text_example.dart';
 import 'examples/document/cpdf_document_render_page_example.dart';
 
 /// Single document example item
@@ -29,6 +31,8 @@ final List<DocumentExampleItem> documentExamples = [
   const DocumentExampleItem(title: 'Form & Widget Handling', page: CPDFDocumentWidgetExample()),
   const DocumentExampleItem(title: 'Text Search', page: CPDFDocumentSearchTextExample()),
   const DocumentExampleItem(title: 'Render Page to Image', page: CPDFDocumentRenderPageExample()),
+  const DocumentExampleItem(title: 'Bookmark Test', page: CPDFDocumentBookmarkExample()),
+
 ];
 
 /// CPDFDocument example menu screen

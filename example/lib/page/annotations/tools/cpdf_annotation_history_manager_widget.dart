@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,6 +8,9 @@
  *
  */
 
+import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
+import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/history/cpdf_annotation_history_manager.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +28,11 @@ class CpdfAnnotationHistoryManagerWidget extends StatefulWidget {
 
 class _CpdfAnnotationHistoryManagerWidgetState
     extends State<CpdfAnnotationHistoryManagerWidget> {
+
+  CPDFAnnotation? selectAnnotation;
+
+  CPDFWidget? selectWidget;
+
   bool _canUndo = false;
 
   bool _canRedo = false;
@@ -37,6 +45,29 @@ class _CpdfAnnotationHistoryManagerWidgetState
       setState(() {
         _canUndo = isCanUndo;
         _canRedo = isCanRedo;
+      });
+    });
+    widget.controller.addEventListener(CPDFEvent.annotationsSelected, (event){
+      setState(() {
+        selectAnnotation = event;
+      });
+    });
+
+    widget.controller.addEventListener(CPDFEvent.annotationsDeselected, (event){
+      setState(() {
+        selectAnnotation = null;
+      });
+    });
+
+    widget.controller.addEventListener(CPDFEvent.formFieldsSelected, (event){
+      setState(() {
+        selectWidget = event;
+      });
+    });
+
+    widget.controller.addEventListener(CPDFEvent.formFieldsDeselected, (event){
+      setState(() {
+        selectWidget = null;
       });
     });
   }
@@ -59,6 +90,19 @@ class _CpdfAnnotationHistoryManagerWidgetState
   Widget build(BuildContext context) {
     return Row(
       children: [
+        IconButton(
+            onPressed: () {
+              if (selectAnnotation != null) {
+                widget.controller.showAnnotationPropertiesView(selectAnnotation!);
+              }
+              if(selectWidget != null){
+                widget.controller.showWidgetPropertiesView(selectWidget!);
+              }
+            },
+            icon: Icon(
+              Icons.settings,
+              color: (selectAnnotation != null || selectWidget != null) ? Colors.black : Colors.black12,
+            )),
         IconButton(
             onPressed: () {
               if (_canUndo) {

@@ -1,7 +1,7 @@
 //
 //  CPDFViewCtrlFactory.swift
 //
-//  Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+//  Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 //  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 //  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -46,6 +46,9 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     private var navigationController : CNavigationController
     
     private var plugin : CPDFViewCtrlPlugin
+    
+    private var configuration: CPDFConfiguration?
+    
     init(
         frame: CGRect,
         viewIdentifier viewId: Int64,
@@ -57,6 +60,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         let jsonString = initInfo?["configuration"] ?? ""
         let password = initInfo?["password"] ?? ""
         let path = initInfo?["document"] as? String ?? ""
+        let pageIdex = initInfo?["pageIndex"] as? Int ?? 0
         
         let document = NSURL(fileURLWithPath: path)
         
@@ -86,7 +90,8 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         }
         
         let jsonDataParse = CPDFJSONDataParse(String: jsonString as! String)
-        let configuration = jsonDataParse.configuration
+        configuration = jsonDataParse.configuration
+        configuration?.defaultPageIndex = pageIdex
         
         let imageName = configuration?.watermarkMode.imageName ?? ""
         if !imageName.isEmpty {
@@ -103,6 +108,69 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
             }
         }
         
+        let bookmarkImageName = configuration?.bookmarkImageName ?? ""
+        if !bookmarkImageName.isEmpty {
+            if FileManager.default.fileExists(atPath: bookmarkImageName) {
+                if let image = UIImage(contentsOfFile: bookmarkImageName) {
+                    configuration?.bookmarkImage = image
+                }
+            } else {
+                if let url = Bundle.main.findImageURL(for: bookmarkImageName) {
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        configuration?.bookmarkImage = image
+                    }
+                }
+            }
+        }
+        
+        // selectTextLeftImage
+        let selectTextLeftImageName = configuration?.selectTextLeftImageName ?? ""
+        if !selectTextLeftImageName.isEmpty {
+            if FileManager.default.fileExists(atPath: selectTextLeftImageName) {
+                if let image = UIImage(contentsOfFile: selectTextLeftImageName) {
+                    configuration?.selectTextLeftImage = image
+                }
+            } else {
+                if let url = Bundle.main.findImageURL(for: selectTextLeftImageName) {
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        configuration?.selectTextLeftImage = image
+                    }
+                }
+            }
+        }
+
+        // selectTextRightImage
+        let selectTextRightImageName = configuration?.selectTextRightImageName ?? ""
+        if !selectTextRightImageName.isEmpty {
+            if FileManager.default.fileExists(atPath: selectTextRightImageName) {
+                if let image = UIImage(contentsOfFile: selectTextRightImageName) {
+                    configuration?.selectTextRightImage = image
+                }
+            } else {
+                if let url = Bundle.main.findImageURL(for: selectTextRightImageName) {
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        configuration?.selectTextRightImage = image
+                    }
+                }
+            }
+        }
+
+        // rotationAnnotationImage
+        let rotationAnnotationImageName = configuration?.rotationAnnotationImageName ?? ""
+        if !rotationAnnotationImageName.isEmpty {
+            if FileManager.default.fileExists(atPath: rotationAnnotationImageName) {
+                if let image = UIImage(contentsOfFile: rotationAnnotationImageName) {
+                    configuration?.rotationAnnotationImage = image
+                }
+            } else {
+                if let url = Bundle.main.findImageURL(for: rotationAnnotationImageName) {
+                    if let image = UIImage(contentsOfFile: url.path) {
+                        configuration?.rotationAnnotationImage = image
+                    }
+                }
+            }
+        }
+    
         // Create the pdfview controller view
         pdfViewController = CPDFViewController(filePath: documentPath, password: password as? String, configuration: configuration!)
         
@@ -127,7 +195,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         NotificationCenter.default.addObserver(self, selector: #selector(pageChangedNotification(_:)), name: NSNotification.Name(NSNotification.Name("CPDFViewPageChangedNotification").rawValue), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(pageEditingDidChanged(_:)), name: NSNotification.Name(NSNotification.Name("CPDFPageEditingDidChangedNotification").rawValue), object: nil)
     }
-    
+
     func view() -> UIView {
         return navigationController.view
     }
@@ -186,7 +254,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         guard let page = notification.object as? CPDFPage else {
             return
         }
-         
+        
         let canUndo = pdfViewController.pdfListView?.canEditTextUndo() ?? false
         let canRedo = pdfViewController.pdfListView?.canEditTextRedo() ?? false
         let pageIndex = page.pageIndexInteger
@@ -203,6 +271,10 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     public func PDFViewBaseControllerDissmiss(_ baseControllerDelete: CPDFViewBaseController) {
         baseControllerDelete.dismiss(animated: true)
         plugin._methodChannel.invokeMethod("onIOSClickBackPressed", arguments: nil)
+    }
+    
+    func PDFViewBaseControllerDigitalSignatureDone(_ baseController: CPDFViewBaseController) {
+
     }
     
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, SaveState success: Bool) {
@@ -231,6 +303,138 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     
     func PDFViewBaseControllerTouchEnded(_ baseController: CPDFViewBaseController) {
         self.plugin._methodChannel.invokeMethod("onTapMainDocArea", arguments: nil)
+    }
+    
+    func PDFViewBaseControllerAnndotationAdded(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation) {
+        let page = annotation.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        
+        let dict = pageUtil.getAnnotation(FormAnnotation: annotation)
+        self.plugin._methodChannel.invokeMethod("annotationsCreated", arguments: dict)
+    }
+    
+    func PDFViewBaseControllerAnndotationSelect(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation, isSelected: Bool) {
+        let page = annotation.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        
+        let dict = pageUtil.getAnnotation(FormAnnotation: annotation)
+        if isSelected {
+            self.plugin._methodChannel.invokeMethod("annotationsSelected", arguments: dict)
+        } else {
+            self.plugin._methodChannel.invokeMethod("annotationsDeselected", arguments: dict)
+        }
+    }
+    
+    func PDFViewBaseControllerFormFieldAdded(_ baseController: CPDFViewBaseController, forFormField formField: CPDFWidgetAnnotation) {
+        let page = formField.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        
+        let dict = pageUtil.getForm(FormAnnotation: formField)
+        self.plugin._methodChannel.invokeMethod("formFieldsCreated", arguments: dict)
+    }
+    
+    func PDFViewBaseControllerFormFieldSelect(_ baseController: CPDFViewBaseController, forFormField formField: CPDFWidgetAnnotation, isSelected: Bool) {
+        let page = formField.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        
+        let dict = pageUtil.getForm(FormAnnotation: formField)
+        if isSelected {
+            self.plugin._methodChannel.invokeMethod("formFieldsSelected", arguments: dict)
+        } else {
+            self.plugin._methodChannel.invokeMethod("formFieldsDeselected", arguments: dict)
+        }
+    }
+    
+    func PDFViewBaseControllerEditingAreaAdded(_ baseController: CPDFViewBaseController, forEditingArea editArea: CPDFEditArea, withAttributes attributes: CEditAttributes?) {
+        
+    }
+    
+    func PDFViewBaseControllerEditingAreaSelect(_ baseController: CPDFViewBaseController, forEditingArea editArea: CPDFEditArea, isSelected: Bool) {
+        let page = editArea.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pdfView = baseController.pdfListView
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        
+        let dict = pageUtil.getEditArea(FromEditArea: editArea)
+        if isSelected {
+            self.plugin._methodChannel.invokeMethod("editorSelectionSelected", arguments: dict)
+        } else {
+            self.plugin._methodChannel.invokeMethod("editorSelectionDeselected", arguments: dict)
+        }
+    }
+    
+    func PDFViewBaseControllerAutoShowAnnotationPicker(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode, forAnnotation annotation: CPDFAnnotation?) {
+        if annotationMode == .stamp {
+            self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "stamp"])
+        } else if annotationMode == .signature {
+            self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "signature"])
+        } else if annotationMode == .image {
+            self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "pictures"])
+        } else if annotationMode == .link {
+            if let linkAnnotation = annotation as? CPDFLinkAnnotation {
+                let page = linkAnnotation.page
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+                let dict = pageUtil.getAnnotation(FormAnnotation: linkAnnotation)
+                self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "link", "annotation": dict])
+            }
+        }
+    }
+    
+    func PDFViewBaseControllerAutoShowFormPicker(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode, forAnnotation annotation: CPDFWidgetAnnotation?) {
+        
+    }
+    
+    func PDFViewBaseControllerHandleCustomMenuAction(_ baseController: CPDFViewBaseController, fronView view: Any, payload: [String : Any]) {
+        if let CPDFAnnotation = payload["annotation"] as? CPDFAnnotation {
+            let page = CPDFAnnotation.page
+            let pageUtil = CPDFPageUtil(page: page)
+            pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+            let dict = pageUtil.getAnnotation(FormAnnotation: CPDFAnnotation)
+            var newPayload = payload
+            newPayload["annotation"] = dict
+            self.plugin._methodChannel.invokeMethod("onCustomContextMenuItemTapped", arguments: newPayload)
+            return
+        } else if let CPDFWidgetAnnotation = payload["widget"] as? CPDFWidgetAnnotation {
+            let page = CPDFWidgetAnnotation.page
+            let pageUtil = CPDFPageUtil(page: page)
+            pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+            let dict = pageUtil.getForm(FormAnnotation: CPDFWidgetAnnotation)
+            var newPayload = payload
+            newPayload["widget"] = dict
+            self.plugin._methodChannel.invokeMethod("onCustomContextMenuItemTapped", arguments: newPayload)
+            return
+        } else if let editArea = payload["editArea"] as? CPDFEditArea {
+            let page = editArea.page
+            let pageUtil = CPDFPageUtil(page: page)
+            pageUtil.pdfView = baseController.pdfListView
+            pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+            var dict = pageUtil.getEditArea(FromEditArea: editArea)
+            if let selectString = self.pdfViewController.pdfListView?.editingSelectionString() {
+                dict["text"] = selectString
+            }
+            var newPayload = payload
+            newPayload["editArea"] = dict
+            self.plugin._methodChannel.invokeMethod("onCustomContextMenuItemTapped", arguments: newPayload)
+            return
+        } else if let image = payload["image"] as? UIImage {
+            var newPayload = payload
+            let data: Data = image.jpegData(compressionQuality: 0.85)!
+            newPayload["image"] = data
+            self.plugin._methodChannel.invokeMethod("onCustomContextMenuItemTapped", arguments: newPayload)
+        } else {
+            self.plugin._methodChannel.invokeMethod("onCustomContextMenuItemTapped", arguments: payload)
+        }
+    }
+    
+    func PDFViewBaseControllerHandleCustomToolbarAction(_ baseController: CPDFViewBaseController, fronView view: Any, payload: [String : Any]) {
+        if let value = payload["identifier"] {
+            self.plugin._methodChannel.invokeMethod("onCustomToolbarItemTapped", arguments: value)
+        }
     }
     
 }

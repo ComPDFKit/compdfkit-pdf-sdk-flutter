@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -15,6 +15,9 @@ import 'package:flutter/services.dart';
 import '../annotation/cpdf_annotation_registry.dart';
 import '../annotation/form/cpdf_widget_registry.dart';
 
+/// Page-level APIs for working with annotations, widgets, and page properties.
+///
+/// {@category page}
 class CPDFPage {
   final MethodChannel _channel;
 
@@ -108,6 +111,36 @@ class CPDFPage {
     });
   }
 
+  /// Get the rotation angle of the current page
+  ///
+  /// example:
+  /// ```dart
+  /// int rotation = await page.getRotation();
+  /// ```
+  /// return 0, 90, 180, or 270 degrees.
+  Future<int> getRotation() async {
+    return await _channel.invokeMethod('get_page_rotation', pageIndex);
+  }
+
+  /// Set the rotation angle of the current page.
+  /// Rotation on a page. Must be 0, 90, 180 or 270 (negative rotations will be "normalized" to one of 0, 90, 180 or 270).
+  /// Some PDF's have an inherent rotation and so -[rotation] may be non-zero when a PDF is first opened.
+  /// example:
+  /// ```dart
+  /// bool result = await page.setRotation(90);
+  /// ```
+  Future<bool> setRotation(int rotation) async {
+    const validRotations = [0, 90, 180, 270];
+    if (rotation == 360) {
+      rotation = 0;
+    }
+    if (!validRotations.contains(rotation)) {
+      throw ArgumentError(
+          'Invalid rotation value: $rotation. Must be one of 0, 90, 180, or 270.');
+    }
+    return await _channel.invokeMethod(
+        'set_page_rotation', {'page_index': pageIndex, 'rotation': rotation});
+  }
 
   /// Retrieves a text snippet from the current PDF page based on the specified range.
   ///
@@ -145,39 +178,6 @@ class CPDFPage {
     });
     return result ?? '';
   }
-
-  /// Get the rotation angle of the current page
-  ///
-  /// example:
-  /// ```dart
-  /// int rotation = await page.getRotation();
-  /// ```
-  /// return 0, 90, 180, or 270 degrees.
-  Future<int> getRotation() async {
-    return await _channel.invokeMethod('get_page_rotation', pageIndex);
-  }
-
-  /// Set the rotation angle of the current page.
-  /// Rotation on a page. Must be 0, 90, 180 or 270 (negative rotations will be "normalized" to one of 0, 90, 180 or 270).
-  /// Some PDF's have an inherent rotation and so -[rotation] may be non-zero when a PDF is first opened.
-  /// example:
-  /// ```dart
-  /// bool result = await page.setRotation(90);
-  /// ```
-  Future<bool> setRotation(int rotation) async {
-    const validRotations = [0, 90, 180, 270];
-    if(rotation == 360){
-      rotation = 0;
-    }
-    if (!validRotations.contains(rotation)) {
-      throw ArgumentError('Invalid rotation value: $rotation. Must be one of 0, 90, 180, or 270.');
-    }
-    return await _channel.invokeMethod('set_page_rotation', {
-      'page_index': pageIndex,
-      'rotation' : rotation
-    });
-  }
-
 }
 
 class CPDFPageSize {
@@ -195,7 +195,6 @@ class CPDFPageSize {
     }
     return this;
   }
-
 
   static const letter = CPDFPageSize._('letter', 612, 792);
   static const note = CPDFPageSize._('note', 540, 720);

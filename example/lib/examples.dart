@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,6 +9,10 @@
  */
 
 import 'dart:io';
+import 'package:compdfkit_flutter_example/cpdf_context_menu_custom_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_custom_annotation_creation_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_event_listener_example.dart';
+import 'package:compdfkit_flutter_example/cpdf_toolbar_custom_example.dart';
 import 'package:flutter/material.dart';
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
@@ -21,6 +25,7 @@ import 'cpdf_security_example.dart';
 import 'cpdf_annotations_example.dart';
 import 'cpdf_form_creation_example.dart';
 import 'cpdf_content_editor_example.dart';
+import 'cpdf_ui_custom_example.dart';
 import 'cpdf_widgets_example.dart';
 import 'cpdf_pages_example.dart';
 import 'cpdf_search_example.dart';
@@ -84,8 +89,14 @@ final List<ExampleConfig> _widgetExamples = [
   ExampleConfig(
     title: 'Annotations',
     description: 'Create, edit, and delete PDF annotations.',
-    assetPath: 'pdfs/annot_test.pdf',
+    assetPath: _defaultDocument,
     widgetBuilder: (path) => CPDFAnnotationsExample(documentPath: path),
+  ),
+  ExampleConfig(
+    title: 'Custom Annotation & Widget Creation',
+    description: 'Intercept annotation creation (stamp, image, signature, form options) and supply input from Flutter.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CPDFCustomAnnotationCreationExample(documentPath: path),
   ),
   ExampleConfig(
     title: 'Form Creation',
@@ -94,16 +105,16 @@ final List<ExampleConfig> _widgetExamples = [
     widgetBuilder: (path) => CPDFFormCreationExample(documentPath: path),
   ),
   ExampleConfig(
+    title: 'Form Data (Import/Export)',
+    description: 'Manage form data: retrieve, modify, import, and export.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CPDFWidgetsExample(documentPath: path),
+  ),
+  ExampleConfig(
     title: 'Content Editing',
     description: 'Switch between different content editing modes using API.',
     assetPath: _defaultDocument,
     widgetBuilder: (path) => CPDFContentEditorExample(documentPath: path),
-  ),
-  ExampleConfig(
-    title: 'Form Data (Import/Export)',
-    description: 'Manage form data: retrieve, modify, import, and export.',
-    assetPath: 'pdfs/annot_test.pdf',
-    widgetBuilder: (path) => CPDFWidgetsExample(documentPath: path),
   ),
   ExampleConfig(
     title: 'Page Management',
@@ -117,7 +128,33 @@ final List<ExampleConfig> _widgetExamples = [
     assetPath: _defaultDocument,
     widgetBuilder: (path) => CpdfSearchExample(documentPath: path),
   ),
+  ExampleConfig(
+    title: 'Toolbar Customization',
+    description: 'Customize toolbar items and actions programmatically.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CpdfToolbarCustomExample(documentPath: path),
+  ),
+  ExampleConfig(
+    title: 'Ui Style Customization',
+    description: 'Customize styles such as selected text and border color in CPDFReaderWidget.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CpdfUiCustomExample(documentPath: path),
+  ),
+  ExampleConfig(
+    title: 'Event Listeners Example',
+    description: 'Listen to various document events like annotation selection.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CpdfEventListenerExample(documentPath: path),
+  ),
+
+  ExampleConfig(
+    title: 'Custom Context Menu Example',
+    description: 'Customize context menu items and handle their actions.',
+    assetPath: _defaultDocument,
+    widgetBuilder: (path) => CpdfContextMenuCustomExample(documentPath: path),
+  ),
 ];
+
 
 final List<ExampleConfig> _modalExamples = [
   const ExampleConfig(
@@ -171,7 +208,7 @@ Widget _buildFeatureItem(BuildContext context, ExampleConfig config) {
       }
 
       if (config.assetPath != null) {
-        final file = await extractAsset(context, config.assetPath!, shouldOverwrite: false);
+        final file = await extractAsset(config.assetPath!, shouldOverwrite: false);
         path = file.path;
       }
 
@@ -186,7 +223,11 @@ Widget _buildFeatureItem(BuildContext context, ExampleConfig config) {
       }
 
       if (config.widgetBuilder != null && path != null && context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => config.widgetBuilder!(path!)));
+        Navigator.push(context, PageRouteBuilder(
+          pageBuilder: (_, __, ___) => config.widgetBuilder!(path!),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ));
       }
     },
   );

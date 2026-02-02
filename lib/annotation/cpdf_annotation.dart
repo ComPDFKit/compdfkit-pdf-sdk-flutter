@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,14 +10,37 @@ import 'dart:convert';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 
+/// Base annotation model.
+///
+/// This model describes the common properties shared by all PDF annotations.
+/// Concrete annotation types (e.g. ink, highlight, stamp) extend this class to
+/// provide type-specific fields.
+///
+/// Key properties:
+/// - [type]: The annotation type.
+/// - [title]: The annotation title/subject.
+/// - [page]: The page index where the annotation is located.
+/// - [content]: The annotation content.
+/// - [uuid]: The unique identifier of this annotation.
+/// - [createDate]: The creation time, if available.
+/// - [rect]: The annotation bounds in page coordinates.
+///
+/// Serialization:
+/// - Use [CPDFAnnotation.fromJson] to parse common fields from a JSON map.
+/// - Use [toJson] to convert this instance to a JSON map.
+///
+/// For polymorphic parsing into concrete subclasses, use
+/// [CPDFAnnotationRegistry.fromJson].
+///
+/// {@category annotations}
 class CPDFAnnotation {
   final CPDFAnnotationType type;
 
-  final String title;
+  String title;
 
   final int page;
 
-  final String content;
+  String content;
 
   final String uuid;
 
@@ -25,14 +48,15 @@ class CPDFAnnotation {
 
   final CPDFRectF rect;
 
-  CPDFAnnotation(
-      {required this.type,
-      required this.title,
-      required this.page,
-      required this.content,
-      required this.uuid,
-      this.createDate,
-      required this.rect});
+  CPDFAnnotation({
+    required this.type,
+    this.title = "",
+    required this.page,
+    this.content = "",
+    required this.uuid,
+    this.createDate,
+    required this.rect,
+  });
 
   factory CPDFAnnotation.fromJson(Map<String, dynamic> json) {
     return CPDFAnnotation(
@@ -54,8 +78,8 @@ class CPDFAnnotation {
         'page': page,
         'content': content,
         'uuid': uuid,
-        'createDate': createDate?.toString(),
-        'rect': rect.toString()
+        'createDate': createDate?.millisecondsSinceEpoch,
+        'rect': rect.toJson()
       };
 
   @override

@@ -3,7 +3,11 @@ package com.compdfkit.flutter.compdfkit_flutter.utils.annotation;
 
 import android.graphics.RectF;
 import android.util.Log;
+import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.CPDFAnnotation.Type;
 import com.compdfkit.core.common.CPDFDate;
+import com.compdfkit.core.document.CPDFDocument;
+import com.compdfkit.flutter.compdfkit_flutter.utils.CAppUtils;
 import com.compdfkit.tools.common.utils.date.CDateUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,13 +23,14 @@ public abstract class FlutterCPDFBaseAnnotation implements FlutterCPDFAnnotation
     map.put("content", annotation.getContent());
     map.put("uuid", annotation.getAnnotPtr()+"");
     RectF rect = annotation.getRect();
-    Map<String, Float> rectMap = new HashMap<>();
-    rectMap.put("left", rect.left);
-    rectMap.put("top", rect.top);
-    rectMap.put("right", rect.right);
-    rectMap.put("bottom", rect.bottom);
-    map.put("rect", rectMap);
-
+    if (rect != null){
+      Map<String, Float> rectMap = new HashMap<>();
+      rectMap.put("left", CAppUtils.roundTo2f(rect.left));
+      rectMap.put("top", CAppUtils.roundTo2f(rect.top));
+      rectMap.put("right", CAppUtils.roundTo2f(rect.right));
+      rectMap.put("bottom", CAppUtils.roundTo2f(rect.bottom));
+      map.put("rect", rectMap);
+    }
     CPDFDate modifyDate = annotation.getRecentlyModifyDate();
     CPDFDate createDate = annotation.getCreationDate();
     if (modifyDate != null) {
@@ -34,9 +39,22 @@ public abstract class FlutterCPDFBaseAnnotation implements FlutterCPDFAnnotation
     if (createDate != null) {
       map.put("createDate", CDateUtil.transformToTimestamp(createDate));
     }
-    covert(annotation, map);
+    getAnnotationConvert(annotation, map);
     return map;
   }
 
-  public abstract void covert(com.compdfkit.core.annotation.CPDFAnnotation annotation, HashMap<String, Object> map);
+  public abstract void getAnnotationConvert(com.compdfkit.core.annotation.CPDFAnnotation annotation, HashMap<String, Object> map);
+
+  @Override
+  public void updateAnnotation(CPDFAnnotation annotation, HashMap<String, Object> annotMap) {
+    String title = annotMap.get("title").toString();
+    String content = annotMap.get("content").toString();
+    annotation.setTitle(title);
+    annotation.setContent(content);
+  }
+
+  @Override
+  public CPDFAnnotation addAnnotation(CPDFDocument document, HashMap<String, Object> annotMap) {
+    return null;
+  }
 }

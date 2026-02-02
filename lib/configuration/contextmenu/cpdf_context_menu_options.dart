@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -12,11 +12,13 @@
 enum CPDFScreenShotMenuKey {
   exit,
   share,
+  custom
 }
 
 
 enum CPDFViewModeTextSelectKey {
-  copy
+  copy,
+  custom
 }
 
 
@@ -26,6 +28,7 @@ enum CPDFAnnotationTextSelectMenuKey {
   underline,
   strikeout,
   squiggly,
+  custom;
 }
 
 enum CPDFAnnotationLongPressMenuKey {
@@ -34,6 +37,7 @@ enum CPDFAnnotationLongPressMenuKey {
   textBox,
   stamp,
   image,
+  custom;
 }
 
 enum CPDFAnnotationMarkupMenuKey {
@@ -42,6 +46,7 @@ enum CPDFAnnotationMarkupMenuKey {
   reply,
   viewReply,
   delete,
+  custom;
 }
 
 enum CPDFAnnotationSoundMenuKey {
@@ -50,6 +55,7 @@ enum CPDFAnnotationSoundMenuKey {
   play,
   record,
   delete,
+  custom;
 }
 
 enum CPDFAnnotationInkMenuKey {
@@ -58,6 +64,7 @@ enum CPDFAnnotationInkMenuKey {
   reply,
   viewReply,
   delete,
+  custom;
 }
 
 enum CPDFAnnotationShapeMenuKey {
@@ -66,6 +73,7 @@ enum CPDFAnnotationShapeMenuKey {
   reply,
   viewReply,
   delete,
+  custom;
 }
 
 enum CPDFAnnotationFreeTextMenuKey {
@@ -74,12 +82,14 @@ enum CPDFAnnotationFreeTextMenuKey {
   reply,
   viewReply,
   delete,
+  custom;
 }
 
 enum CPDFAnnotationSignMenuKey {
   signHere,
   delete,
   rotate,
+  custom;
 }
 
 enum CPDFAnnotationStampMenuKey {
@@ -88,11 +98,13 @@ enum CPDFAnnotationStampMenuKey {
   viewReply,
   delete,
   rotate,
+  custom;
 }
 
 enum CPDFAnnotationLinkMenuKey {
   edit,
   delete,
+  custom;
 }
 
 
@@ -102,6 +114,7 @@ enum CPDFContentEditorEditTextAreaMenuKey {
   cut,
   copy,
   delete,
+  custom;
 }
 
 enum CPDFContentEditorEditSelectTextMenuKey {
@@ -110,6 +123,7 @@ enum CPDFContentEditorEditSelectTextMenuKey {
   cut,
   copy,
   delete,
+  custom;
 }
 
 enum CPDFContentEditorEditTextMenuKey {
@@ -131,6 +145,7 @@ enum CPDFContentEditorImageAreaMenuKey {
   delete,
   copy,
   cut,
+  custom;
 }
 
 enum CPDFContentEditorImageCropMenuKey {
@@ -147,63 +162,72 @@ enum CPDFContentEditorLongPressWithEditTextModeMenuKey {
   paste,
   keepTextOnly,
   keepSourceFormatingPaste,
+  custom;
 }
 
 enum CPDFContentEditorLongPressWithEditImageModeMenuKey {
   addImages,
   paste,
+  custom;
 }
 
 enum CPDFContentEditorLongPressWithAllModeMenuKey {
   paste,
   keepSourceFormatingPaste,
+  custom;
 }
 
 enum CPDFContentEditorSearchReplaceMenuKey {
   replace,
 }
 
-/// FormMode 
+/// FormMode
 enum CPDFFormTextFieldMenuKey {
   properties,
   delete,
+  custom
 }
 
 enum CPDFFormCheckBoxMenuKey {
   properties,
   delete,
+  custom;
 }
 
 enum CPDFFormRadioButtonMenuKey {
   properties,
   delete,
+  custom;
 }
 
 enum CPDFFormListBoxMenuKey {
   options,
   properties,
   delete,
+  custom;
 }
 
 enum CPDFFormComboBoxMenuKey {
   options,
   properties,
   delete,
+  custom;
 }
 
 enum CPDFFormSignatureFieldMenuKey {
   startToSign,
   delete,
+  custom;
 }
 
 enum CPDFFormPushButtonMenuKey {
   options,
   properties,
   delete,
+  custom;
 }
 
 class CPDFContextMenuOpacityKey {
-
 
   static const opacity25 = '25%';
   static const opacity50 = '50%';

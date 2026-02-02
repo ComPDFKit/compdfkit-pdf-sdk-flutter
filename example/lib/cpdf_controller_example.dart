@@ -1,16 +1,18 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:compdfkit_flutter/compdfkit.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
+import 'package:compdfkit_flutter_example/page/cpdf_outline_list_page.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_reader_widget_display_setting_page.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_reader_widget_switch_preview_mode_page.dart';
 import 'package:compdfkit_flutter_example/utils/file_util.dart';
@@ -209,6 +211,14 @@ class _CPDFControllerExampleState extends CPDFExampleBaseState<CPDFControllerExa
       icon: Icons.visibility_off,
       group: ActionGroup.view,
     ),
+    CPDFActionItem(
+      key: 'OutlinePage',
+      displayName: 'Outline List',
+      description: 'Show Outline list page',
+      icon: Icons.list,
+      group: ActionGroup.view,
+    ),
+
   ];
 
   static const List<CPDFActionItem> _interactionActions = [
@@ -231,6 +241,13 @@ class _CPDFControllerExampleState extends CPDFExampleBaseState<CPDFControllerExa
       displayName: 'Close Menu',
       description: 'Dismiss context menu',
       icon: Icons.close,
+      group: ActionGroup.interaction,
+    ),
+    CPDFActionItem(
+      key: 'updateImportFontDir',
+      displayName: 'Update Import Font Directory',
+      description: 'Update the directory for importing fonts',
+      icon: Icons.font_download,
       group: ActionGroup.interaction,
     ),
   ];
@@ -391,6 +408,17 @@ class ActionHandler {
         case 'dismissContextMenu':
           await controller.dismissContextMenu();
           break;
+        case 'OutlinePage':
+          int? pageIndex = await Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return CPDFOutlineListPage(document: controller.document);
+          }));
+          if(pageIndex != null){
+            await controller.setDisplayPageIndex(pageIndex: pageIndex, animated: true);
+          }
+          break;
+        case 'updateImportFontDir':
+          await _handleUpdateImportFontDir(context, controller);
+          break;  
       }
     } catch (e) {
       debugPrint('Action failed: ${action.displayName}, Error: $e');
@@ -434,6 +462,13 @@ class ActionHandler {
     debugPrint('  Is image doc: ${await document.isImageDoc()}');
     debugPrint('  Permissions: ${await document.getPermissions()}');
     debugPrint('  Page count: ${await document.getPageCount()}');
+    debugPrint('   getInfo() -----> ');
+    final info = await document.getInfo();
+    printJsonString(jsonEncode(info.toJson()));
+    debugPrint('   getPermissionsInfo() -----> ');
+    final permissions = await document.getPermissionsInfo();
+    printJsonString(jsonEncode(permissions.toJson()));
+
   }
 
   Future<void> _handlePrint(CPDFReaderWidgetController controller) async {
@@ -524,7 +559,7 @@ class ActionHandler {
   /// ```
   Future<void> _handleWatermark(BuildContext context, CPDFReaderWidgetController controller) async {
 
-    final imagePath = await extractAsset(context, 'images/ic_logo.png');
+    final imagePath = await extractAsset('images/ic_logo.png');
     await controller.showAddWatermarkView(
       config: CPDFWatermarkConfig(
         saveAsNewFile: true,
@@ -538,5 +573,12 @@ class ActionHandler {
         scale: 2.0
       ),
     );
+  }
+
+  Future<void> _handleUpdateImportFontDir(BuildContext context, CPDFReaderWidgetController controller) async {
+    // Extract the extra fonts from assets to device a local temporary directory
+    final fontDir = await extractAssetFolder(context, 'extraFonts2/');
+    final result = await ComPDFKit.updateImportFontDir(fontDir, addSysFont: false);
+    debugPrint('Update import font directory result: $result');
   }
 }

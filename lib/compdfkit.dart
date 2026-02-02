@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,10 +8,13 @@
 import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/document/cpdf_font_name.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 /// ComPDFKit plugin to load PDF and image documents on both platform iOS and Android.
+///
+/// {@category sdk-core}
 class ComPDFKit {
   static const MethodChannel _methodChannel =
       MethodChannel('com.compdfkit.flutter.plugin');
@@ -75,7 +78,8 @@ class ComPDFKit {
   /// ComPDFKit.initWithPath(licenseFile.path);
   /// ```
   static Future<bool> initWithPath(String licenseFilePath) async {
-    return await _methodChannel.invokeMethod('init_sdk_with_path', licenseFilePath);
+    return await _methodChannel.invokeMethod(
+        'init_sdk_with_path', licenseFilePath);
   }
 
   /// Get the version code of the ComPDFKit SDK.
@@ -110,7 +114,7 @@ class ComPDFKit {
   }
 
   /// Retrieve the path of your operating system's temporary directory.
-  /// Support [Android] and [iOS] only for now.
+  /// Supports Android and iOS only for now.
   static Future<Directory> getTemporaryDirectory() async {
     final String? path =
         await _methodChannel.invokeMethod('get_temporary_directory');
@@ -182,7 +186,65 @@ class ComPDFKit {
     }
   }
 
+  /// Updates the font directory and configures whether to include system fonts.
+  /// This method is primarily used to dynamically update the font directory after initializing the SDK.
+  ///
+  /// - Parameters:
+  ///   - **dirPath**: The directory path where the font files are stored.
+  ///   - **addSysFont**: Whether to include system fonts. Default is `true`, which will show system fonts in the font list.
+  ///
+  /// Note:
+  /// If you have loaded a document using [CPDFReaderWidget], and there are annotations or content edits that use fonts not imported,
+  /// the text may not display correctly. After updating the font directory with this method, you need to reload the document
+  /// to see the updated font list using the [CPDFReaderWidgetController.reloadPages2()] method.
+  ///
+  /// Example:
+  /// ```dart
+  /// ComPDFKit.updateImportFontDir('path/to/your/font', addSysFont: true);
+  /// ```
+  ///
+  /// Returns:
+  /// A [Future] that resolves to `true` if the font directory was successfully updated, or `false` if an error occurred.
+  static Future<bool> updateImportFontDir(String dirPath,
+      {bool addSysFont = true}) async {
+    try {
+      return await _methodChannel.invokeMethod('update_import_font_directory',
+          {'dir_path': dirPath, 'add_sys_font': addSysFont});
+    } catch (e) {
+      debugPrint("updateImportFontDir error: $e");
+      return false;
+    }
+  }
+
   static Future<bool> createDocumentInstance(String id) async {
     return await _methodChannel.invokeMethod('create_document_plugin', id);
+  }
+
+  static Future<bool> createDocument(String id) async {
+    return await _methodChannel.invokeMethod('create_document', id);
+  }
+
+  /// Retrieve the list of available fonts in the ComPDFKit SDK.
+  /// Each font is represented by a [CPDFFontName] object containing the family
+  /// name, PostScript names, and style names.
+  ///
+  /// Example:
+  /// ```dart
+  /// List<CPDFFontName> fonts = await ComPDFKit.getFonts();
+  /// ```
+  static Future<List<CPDFFontName>> getFonts() async {
+    try {
+      final dynamic fontsJson = await _methodChannel.invokeMethod('get_fonts');
+      if (fontsJson is List) {
+        return fontsJson
+            .whereType<Map>()
+            .map<CPDFFontName>((fontMap) =>
+                CPDFFontName.fromJson(Map<String, dynamic>.from(fontMap)))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('getFonts error: $e');
+    }
+    return <CPDFFontName>[];
   }
 }

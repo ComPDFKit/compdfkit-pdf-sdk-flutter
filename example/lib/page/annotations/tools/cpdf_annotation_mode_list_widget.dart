@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -36,9 +36,12 @@ var annotationModeList = [
 ];
 
 class CpdfAnnotationModeListWidget extends StatefulWidget {
+
+  final List<CPDFAnnotationType> availableAnnotationTypes;
+
   final CPDFReaderWidgetController controller;
 
-  const CpdfAnnotationModeListWidget({super.key, required this.controller});
+  const CpdfAnnotationModeListWidget({super.key, required this.controller, this.availableAnnotationTypes = CPDFAnnotationType.values});
 
   @override
   State<CpdfAnnotationModeListWidget> createState() =>
@@ -61,14 +64,21 @@ class _CpdfAnnotationModeListWidgetState extends State<CpdfAnnotationModeListWid
     });
   }
 
+  List<Map<String, Object>> get filteredAnnotationModeList {
+    return annotationModeList
+        .where((item) =>
+            widget.availableAnnotationTypes.contains(item['type'] as CPDFAnnotationType))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
         padding: const EdgeInsets.only(left: 8, right: 8),
-        itemCount: annotationModeList.length,
+        itemCount: filteredAnnotationModeList.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          var item = annotationModeList[index];
+          var item = filteredAnnotationModeList[index];
           var type = item['type'] as CPDFAnnotationType;
           var iconPath = item['icon'] as String;
           return Container(

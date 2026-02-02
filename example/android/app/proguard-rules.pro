@@ -24,3 +24,16 @@
 -keep class com.compdfkit.tools.** {*;}
 -keep interface com.compdfkit.tools.**{*;}
 -keep class org.xmlpull.v1.** { *; }
+
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+
+-keep class **.R$drawable {
+    *;
+}
+
+-keep class com.compdfkit.flutter.example.R$drawable {
+    *;
+}
+

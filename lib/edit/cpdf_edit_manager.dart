@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,9 +9,7 @@
  */
 
 import 'package:compdfkit_flutter/history/cpdf_editor_history_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 
 enum CPDFEditType {
   none(0),
@@ -20,6 +18,7 @@ enum CPDFEditType {
   path(4);
 
   final int value;
+
   const CPDFEditType(this.value);
 }
 
@@ -60,13 +59,14 @@ enum CPDFEditType {
 /// final editManager = controller.editManager;
 /// final historyManager = editManager.historyManager;
 /// ```
+///
+/// {@category edit}
 class CPDFEditManager {
-
   late final MethodChannel _channel;
 
   late final CPDFEditorHistoryManager _historyManager;
 
-  CPDFEditManager(this._channel){
+  CPDFEditManager(this._channel) {
     _historyManager = CPDFEditorHistoryManager(_channel);
   }
 
@@ -82,12 +82,10 @@ class CPDFEditManager {
   /// ```
   Future<bool> changeEditType(List<CPDFEditType> types) async {
     final typeValues = types.map((e) => e.value).toList();
-    debugPrint('changeEditType: $typeValues');
     final result = await _channel.invokeMethod<bool>(
-      'change_edit_type', typeValues,
+      'change_edit_type',
+      typeValues,
     );
     return result ?? false;
   }
-
-
 }

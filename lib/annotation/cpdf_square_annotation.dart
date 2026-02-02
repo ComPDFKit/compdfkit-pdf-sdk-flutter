@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -11,55 +11,61 @@ import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
-import '../util/cpdf_rectf.dart';
-
+/// Square annotation model.
+///
+/// A rectangle shape annotation that extends [CPDFAnnotation].
+///
+/// Key properties:
+/// - Border: [borderWidth], [borderColor], [borderAlpha].
+/// - Fill: [fillColor], [fillAlpha].
+/// - Border effect: [effectType], [dashGap].
+///
+/// Serialization:
+/// - Use [CPDFSquareAnnotation.fromJson] to create an instance from a JSON map.
+/// - Use [toJson] to convert this instance to a JSON map.
+///
+/// {@category annotations}
 class CPDFSquareAnnotation extends CPDFAnnotation {
-  final double borderWidth;
-  final Color borderColor;
-  final double borderAlpha;
-  final Color fillColor;
-  final double fillAlpha;
-  final CPDFBorderEffectType effectType;
+  double borderWidth;
+  Color borderColor;
+  double borderAlpha;
+  Color fillColor;
+  double fillAlpha;
+  CPDFBorderEffectType effectType;
+  double dashGap;
 
-  CPDFSquareAnnotation(
-      {required CPDFAnnotationType type,
-      required String title,
-      required int page,
-      required String content,
-      required String uuid,
-      DateTime? createDate,
-      required CPDFRectF rect,
-      required this.borderWidth,
-      required this.borderColor,
-      required this.borderAlpha,
-      required this.fillColor,
-      required this.fillAlpha,
-      required this.effectType})
-      : super(
-            type: type,
-            title: title,
-            page: page,
-            content: content,
-            uuid: uuid,
-            createDate: createDate,
-            rect: rect);
+  CPDFSquareAnnotation({
+    super.title,
+    required super.page,
+    super.content,
+    super.uuid = '',
+    super.createDate,
+    required super.rect,
+    this.borderWidth = 0,
+    required this.borderColor,
+    this.borderAlpha = 255,
+    required this.fillColor,
+    this.fillAlpha = 255,
+    this.effectType = CPDFBorderEffectType.solid,
+    this.dashGap = 0,
+  }) : super(type: CPDFAnnotationType.square);
 
   factory CPDFSquareAnnotation.fromJson(Map<String, dynamic> json) {
     final common = CPDFAnnotation.fromJson(json);
     return CPDFSquareAnnotation(
-      type: common.type,
       title: common.title,
       page: common.page,
       content: common.content,
       uuid: common.uuid,
       createDate: common.createDate,
       rect: common.rect,
-      borderWidth: json['borderWidth'] ?? 0,
+      borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 0,
       borderColor: HexColor.fromHex(json['borderColor'] ?? '#000000'),
-      borderAlpha: json['borderAlpha'] ?? 255,
+      borderAlpha: (json['borderAlpha'] as num?)?.toDouble() ?? 255,
       fillColor: HexColor.fromHex(json['fillColor'] ?? '#000000'),
-      fillAlpha: json['fillAlpha'] ?? 255,
-      effectType: CPDFBorderEffectType.fromString(json['bordEffectType'])
+      fillAlpha: (json['fillAlpha'] as num?)?.toDouble() ?? 255,
+      effectType: CPDFBorderEffectType.fromString(json['bordEffectType']),
+      dashGap: (json['dashGap'] as num?)?.toDouble() ?? 0,
     );
   }
 
@@ -72,7 +78,8 @@ class CPDFSquareAnnotation extends CPDFAnnotation {
       'borderAlpha': borderAlpha,
       'fillColor': fillColor.toHex(),
       'fillAlpha': fillAlpha,
-      'bordEffectType': effectType.name
+      'bordEffectType': effectType.name,
+      'dashGap': dashGap,
     };
   }
 }

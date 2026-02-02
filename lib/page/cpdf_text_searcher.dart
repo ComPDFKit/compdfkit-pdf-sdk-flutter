@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -14,8 +14,23 @@ import 'package:flutter/services.dart';
 
 import 'cpdf_search_options.dart';
 
+/// Text search helper for a PDF document.
+///
+/// This class communicates with the native viewer via a [MethodChannel] bound
+/// to a specific `viewId`.
+///
+/// Typical usage:
+/// 1. Call [searchText] to search for keywords and populate [searchResults].
+/// 2. Call [selection] to highlight/select a specific result.
+/// 3. Call [clearSearch] to clear current results and native search state.
+///
+/// Notes:
+/// - Each [CPDFTextSearcher] instance is tied to the viewer identified by the
+///   `viewId` passed to the constructor.
+/// - Search results are cached in-memory and updated on each [searchText] call.
+///
+/// {@category viewer-ui}
 class CPDFTextSearcher {
-
   late final MethodChannel _channel;
 
   final List<CPDFTextRange> _searchResults = List.empty(growable: true);
@@ -83,5 +98,4 @@ class CPDFTextSearcher {
     _searchResults.clear();
     return await _channel.invokeMethod('search_text_clear');
   }
-
 }

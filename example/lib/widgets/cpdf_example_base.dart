@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,7 +8,9 @@
  *
  */
 // base/cpdf_example_base.dart
+import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
 import 'package:flutter/material.dart';
@@ -18,32 +20,46 @@ abstract class CPDFExampleBase extends StatefulWidget {
   final String? title;
   final String? password;
 
-  const CPDFExampleBase({
-    super.key,
-    required this.documentPath,
-    this.title,
-    this.password
-  });
+  const CPDFExampleBase(
+      {super.key, required this.documentPath, this.title, this.password});
 }
 
-abstract class CPDFExampleBaseState<T extends CPDFExampleBase> extends State<T> {
+abstract class CPDFExampleBaseState<T extends CPDFExampleBase>
+    extends State<T> {
   CPDFReaderWidgetController? _controller;
 
   CPDFReaderWidgetController? get controller => _controller;
 
   String get pageTitle;
+
   CPDFConfiguration get configuration;
+
   List<Widget> Function(CPDFReaderWidgetController)? get appBarActions => null;
+
   List<String>? get menuActions => null;
 
   void onControllerCreated(CPDFReaderWidgetController controller) {}
+
   void onPageChanged(int pageIndex) => debugPrint('Page changed: $pageIndex');
+
   void onSaveCallback() => debugPrint('Save successful');
-  void onFillScreenChanged(bool isFillScreen) => debugPrint('Full screen: $isFillScreen');
+
+  void onFillScreenChanged(bool isFillScreen) =>
+      debugPrint('Full screen: $isFillScreen');
+
   void onTapMainDocArea() => debugPrint('Tap main doc area');
+
   void onIOSClickBackPressed() => Navigator.pop(context);
 
   void handleMenuAction(String action, CPDFReaderWidgetController controller) {}
+
+  void onCustomToolbarItemTapped(String identifier) {}
+
+  void onEventsCallback(Object? data) {}
+
+  void onAnnotationCreationPrepared(CPDFAnnotationType type, CPDFAnnotation? annotation) {}
+
+  void onCustomContextMenuItemTapped(String identifier, dynamic event) {}
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +84,9 @@ abstract class CPDFExampleBaseState<T extends CPDFExampleBase> extends State<T> 
       onTapMainDocAreaCallback: onTapMainDocArea,
       onIOSClickBackPressed: onIOSClickBackPressed,
       appBarActions: _buildAppBarActions,
+      onCustomToolbarItemTappedCallback: onCustomToolbarItemTapped,
+      onAnnotationCreationPreparedCallback: onAnnotationCreationPrepared,
+      onCustomContextMenuItemTappedCallback: onCustomContextMenuItemTapped,
     );
   }
 
@@ -91,9 +110,9 @@ abstract class CPDFExampleBaseState<T extends CPDFExampleBase> extends State<T> 
       onSelected: (value) => handleMenuAction(value, controller),
       itemBuilder: (context) => menuActions!
           .map((action) => PopupMenuItem<String>(
-        value: action,
-        child: Text(action),
-      ))
+                value: action,
+                child: Text(action),
+              ))
           .toList(),
     );
   }

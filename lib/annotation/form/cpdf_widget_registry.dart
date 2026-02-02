@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -16,10 +16,14 @@ import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 
 import 'cpdf_text_widget.dart';
-
-
 typedef CPDFWidgetFactory = CPDFWidget Function(Map<String, dynamic> json);
 
+/// Registry that maps [CPDFFormType] to concrete [CPDFWidget] implementations.
+///
+/// Use [fromJson] to create the right widget subtype based on the `type` field
+/// in the JSON map. If the type is unknown, it falls back to [CPDFWidget].
+///
+/// {@category forms}
 class CPDFWidgetRegistry {
   static final Map<CPDFFormType, CPDFWidgetFactory> _factories = {
     CPDFFormType.textField: CPDFTextWidget.fromJson,

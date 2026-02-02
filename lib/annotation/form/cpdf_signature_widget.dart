@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,39 +8,33 @@
  *
  */
 
-
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 
-import '../../util/cpdf_rectf.dart';
-
+/// Signature form widget.
+///
+/// A signature field placeholder that extends [CPDFWidget].
+///
+/// Serialization:
+/// - Use [CPDFSignatureWidget.fromJson] to create an instance from a JSON map.
+/// - Use [toJson] inherited from [CPDFWidget] to convert this instance to JSON.
+///
+/// {@category forms}
 class CPDFSignatureWidget extends CPDFWidget {
-
   CPDFSignatureWidget({
-    required CPDFFormType type,
-    required String title,
-    required int page,
-    required String uuid,
-    DateTime? createDate,
-    required CPDFRectF rect,
-    required borderColor,
-    required fillColor,
-    required borderWidth
-  }) : super(
-            type: type,
-            title: title,
-            page: page,
-            uuid: uuid,
-            createDate: createDate,
-            rect: rect,
-            borderColor: borderColor,
-            borderWidth: borderWidth,
-            fillColor: fillColor);
+    required super.title,
+    required super.page,
+    required super.rect,
+    required super.borderColor,
+    required super.fillColor,
+    super.uuid,
+    super.createDate,
+    super.borderWidth = 2,
+  }) : super(type: CPDFFormType.signaturesFields);
 
   factory CPDFSignatureWidget.fromJson(Map<String, dynamic> json) {
     CPDFWidget common = CPDFWidget.fromJson(json);
     return CPDFSignatureWidget(
-      type: common.type,
       title: common.title,
       page: common.page,
       uuid: common.uuid,

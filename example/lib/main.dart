@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initLicense() async {
     File licenseFile = await CPDFFileUtil.extractAsset('assets/license_key_flutter.xml', shouldOverwrite: false);
     final initResult = await ComPDFKit.initWithPath(licenseFile.path);
-    debugPrint('AAA-ComPDFKit SDK init result: $initResult');
+    debugPrint('ComPDFKit-Flutter: SDK init result: $initResult');
   }
 
   @override

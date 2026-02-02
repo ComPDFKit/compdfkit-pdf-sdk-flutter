@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  * <p>
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,8 +9,10 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_DOCUMENT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_DOCUMENT_PLUGIN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_URI;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_FONTS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
@@ -21,35 +23,36 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_BUILD_TAG;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SDK_VERSION_CODE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_IMPORT_FONT_DIRECTORY;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_IMPORT_FONT_DIRECTORY;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
-
 import androidx.annotation.Nullable;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.CPDFSdk;
 import com.compdfkit.core.font.CPDFFont;
+import com.compdfkit.core.font.CPDFFontName;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
 import com.compdfkit.tools.common.utils.CFileUtils;
-
 import com.compdfkit.tools.common.utils.CUriUtil;
-import io.flutter.plugin.common.PluginRegistry;
-import java.io.File;
-
+import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-
+import io.flutter.plugin.common.PluginRegistry;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements PluginRegistry.ActivityResultListener {
     private static final int REQUEST_CODE = (ComPDFKitSDKPlugin.class.hashCode() + 43) & 0x0000ffff;
@@ -129,16 +132,16 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 String fileName = call.argument("file_name");
                 String mimeType = call.argument("mime_type");
                 String childDirectoryName = call.argument("child_directory_name");
-                String dir = Environment.DIRECTORY_DOWNLOADS ;
-                if (!TextUtils.isEmpty(childDirectoryName)){
+                String dir = Environment.DIRECTORY_DOWNLOADS;
+                if (!TextUtils.isEmpty(childDirectoryName)) {
                     dir += File.separator + childDirectoryName;
                 }
                 Uri uri = CUriUtil.createFileUri(context,
-                    dir,
-                    fileName, mimeType);
-                if (uri != null){
+                        dir,
+                        fileName, mimeType);
+                if (uri != null) {
                     result.success(uri.toString());
-                }else {
+                } else {
                     result.error("CREATE_URI_FAIL", "create uri fail", "");
                 }
                 break;
@@ -148,12 +151,47 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
                 CPDFSdk.setImportFontDir(importFontDir, addSysFont);
                 result.success(true);
                 break;
-            case CREATE_DOCUMENT_PLUGIN:
+            case UPDATE_IMPORT_FONT_DIRECTORY:
+                CThreadPoolUtils.getInstance().executeIO(()->{
+                    String updateFontDir = call.argument("dir_path");
+                    boolean addSysFont1 = call.argument("add_sys_font");
+                    File file = new File(updateFontDir);
+                    if (file.isDirectory()){
+                        CPDFDocument.importFontDir(updateFontDir, addSysFont1);
+                        result.success(true);
+                    } else {
+                        result.error("UPDATE_IMPORT_FONT_DIR_FAIL", "update import font dir fail", "dir path is not exist or not directory");
+                    }
+                });
+                break;
+            case CREATE_DOCUMENT_PLUGIN: {
                 String id = (String) call.arguments;
                 CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
                 documentPlugin.setDocument(new CPDFDocument(context));
                 documentPlugin.register();
                 result.success(true);
+                break;
+            }
+            case CREATE_DOCUMENT: {
+                String id = (String) call.arguments;
+                CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
+                documentPlugin.setDocument(CPDFDocument.createDocument(context));
+                documentPlugin.register();
+                result.success(true);
+                break;
+            }
+            case GET_FONTS:
+                CThreadPoolUtils.getInstance().executeIO(() -> {
+                    List<CPDFFontName> fontNames = CPDFFont.getFontName();
+                    List<Map<String, Object>> fontList = new ArrayList<>();
+                    for (CPDFFontName fontName : fontNames) {
+                        Map<String, Object> fontMap = new HashMap<>();
+                        fontMap.put("familyName", fontName.getFamilyName());
+                        fontMap.put("styleNames", fontName.getStyleName());
+                        fontList.add(fontMap);
+                    }
+                    result.success(fontList);
+                });
                 break;
             default:
                 break;
@@ -162,21 +200,21 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            if(data != null && data.getData() != null){
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null) {
                 Uri uri = data.getData();
                 CFileUtils.takeUriPermission(context, uri);
                 successResult(uri.toString());
             }
             return true;
-        } else if (requestCode == REQUEST_CODE && resultCode != Activity.RESULT_OK){
+        } else if (requestCode == REQUEST_CODE && resultCode != Activity.RESULT_OK) {
             successResult(null);
         }
         return false;
     }
 
-    private void successResult(String uri){
-        if(pendingResult != null){
+    private void successResult(String uri) {
+        if (pendingResult != null) {
             pendingResult.success(uri);
         }
         clearPendingResult();

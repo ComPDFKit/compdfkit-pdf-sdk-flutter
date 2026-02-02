@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -20,7 +20,7 @@ import 'package:compdfkit_flutter_example/model/cpdf_search_item.dart';
 import 'package:compdfkit_flutter_example/page/cpdf_search_text_list_page.dart';
 import 'package:flutter/material.dart';
 
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -153,6 +153,7 @@ class _CpdfSearchExampleState extends State<CpdfSearchExample> {
   }
 
   void toSearchTextListPage() async {
+    final navigator = Navigator.of(context);
     if (searchResults.isNotEmpty) {
       final list = await Future.wait(searchResults.map((e) async {
         CPDFPage page = _controller!.document.pageAtIndex(e.pageIndex);
@@ -168,16 +169,17 @@ class _CpdfSearchExampleState extends State<CpdfSearchExample> {
       Future.delayed(Duration.zero, () {
         _focusNode.unfocus();
       });
-
-      CPDFSearchItem? item = await Navigator.push<CPDFSearchItem?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CpdfSearchTextListPage(results: list),
-        ),
-      );
-      if(item != null){
-        CPDFTextSearcher? textSearcher = _controller?.document.getTextSearcher();
-        textSearcher?.selection(item.keywordsTextRange);
+      if(context.mounted){
+        CPDFSearchItem? item = await navigator.push<CPDFSearchItem?>(
+          MaterialPageRoute(
+            builder: (context) => CpdfSearchTextListPage(results: list),
+          ),
+        );
+        if (item != null) {
+          CPDFTextSearcher? textSearcher =
+          _controller?.document.getTextSearcher();
+          textSearcher?.selection(item.keywordsTextRange);
+        }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

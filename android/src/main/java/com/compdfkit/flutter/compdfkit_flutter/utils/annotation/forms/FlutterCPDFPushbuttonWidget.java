@@ -1,19 +1,28 @@
 package com.compdfkit.flutter.compdfkit_flutter.utils.annotation.forms;
 
+import android.graphics.Color;
+import android.graphics.RectF;
 import android.text.TextUtils;
 import android.util.Log;
+import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.CPDFTextAttribute;
+import com.compdfkit.core.annotation.form.CPDFCheckboxWidget;
+import com.compdfkit.core.annotation.form.CPDFCheckboxWidget.CheckboxStyle;
 import com.compdfkit.core.annotation.form.CPDFPushbuttonWidget;
 import com.compdfkit.core.annotation.form.CPDFWidget;
+import com.compdfkit.core.annotation.form.CPDFWidget.BorderStyle;
+import com.compdfkit.core.annotation.form.CPDFWidget.WidgetType;
 import com.compdfkit.core.document.CPDFDestination;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.action.CPDFAction;
 import com.compdfkit.core.document.action.CPDFAction.ActionType;
 import com.compdfkit.core.document.action.CPDFGoToAction;
 import com.compdfkit.core.document.action.CPDFUriAction;
-import com.compdfkit.core.font.CPDFFont;
+import com.compdfkit.core.page.CPDFPage;
+import com.compdfkit.core.utils.TTimeUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CAppUtils;
+import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEnumConvertUtil;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -33,15 +42,15 @@ public class FlutterCPDFPushbuttonWidget extends FlutterCPDFBaseWidget {
     CPDFAction action = pushbuttonWidget.getButtonAction();
     if (action != null){
       Map<String, Object> actionMap = new HashMap<>();
-      actionMap.put("actionType", getActionType(action));
+      actionMap.put("actionType", CPDFEnumConvertUtil.actionTypeToString(action));
       if (action.getActionType() == ActionType.PDFActionType_URI){
         CPDFUriAction uriAction = (CPDFUriAction) action;
         actionMap.put("uri", uriAction.getUri());
       } else if (action.getActionType() == ActionType.PDFActionType_GoTo){
         CPDFGoToAction goToAction = (CPDFGoToAction) action;
-        if (document != null){
+        if (document != null && goToAction != null){
           CPDFDestination destination = goToAction.getDestination(document);
-          actionMap.put("pageIndex", destination.getPageIndex());
+          actionMap.put("pageIndex",destination != null ? destination.getPageIndex() : 0);
         }
       }
       map.put("action", actionMap);
@@ -49,74 +58,124 @@ public class FlutterCPDFPushbuttonWidget extends FlutterCPDFBaseWidget {
     map.put("fontColor", CAppUtils.toHexColor(pushbuttonWidget.getFontColor()));
     map.put("fontSize", pushbuttonWidget.getFontSize());
 
-    String fontName = pushbuttonWidget.getFontName();
-    String familyName = CPDFFont.getFamilyName(pushbuttonWidget.getFontName());
-    String styleName = "Regular";
-    if (TextUtils.isEmpty(familyName)){
-      familyName = pushbuttonWidget.getFontName();
-    }else {
-      List<String> styleNames = CPDFFont.getStyleName(familyName);
-      if (styleNames != null) {
-        for (String styleNameItem : styleNames) {
-          if (fontName.endsWith(styleNameItem)){
-            styleName = styleNameItem;
-          }
-        }
-      }
-    }
+    String psName = pushbuttonWidget.getFontName();
+    String[] names = CPDFEnumConvertUtil.parseFamilyAndStyleFromPsName(psName);
 
-    map.put("familyName", familyName);
-    map.put("styleName", styleName);
+    map.put("familyName", names[0]);
+    map.put("styleName", names[1]);
   }
 
+  @Override
+  public void updateWidget(CPDFAnnotation annotation, HashMap<String, Object> annotMap) {
+    super.updateWidget(annotation, annotMap);
+    CPDFPushbuttonWidget pushButtonWidget = (CPDFPushbuttonWidget) annotation;
 
-  public static String getActionType(CPDFAction action) {
-    ActionType actionType = action.getActionType();
-    switch (actionType) {
-      case PDFActionType_Unknown:
-        return "unknown";
-      case PDFActionType_GoTo:
-        return "goTo";
-      case PDFActionType_GoToR:
-        return "goToR";
-      case PDFActionType_GoToE:
-        return "goToE";
-      case PDFActionType_Launch:
-        return "launch";
-      case PDFActionType_Thread:
-        return "thread";
-      case PDFActionType_URI:
-        return "uri";
-      case PDFActionType_Sound:
-        return "sound";
-      case PDFActionType_Movie:
-        return "movie";
-      case PDFActionType_Hide:
-        return "hide";
-      case PDFActionType_Named:
-        return "named";
-      case PDFActionType_SubmitForm:
-        return "submitForm";
-      case PDFActionType_ResetForm:
-        return "resetForm";
-      case PDFActionType_ImportData:
-        return "importData";
-      case PDFActionType_JavaScript:
-        return "javaScript";
-      case PDFActionType_SetOCGState:
-        return "setOCGState";
-      case PDFActionType_Rendition:
-        return "rendition";
-      case PDFActionType_Trans:
-        return "trans";
-      case PDFActionType_GoTo3DView:
-        return "goTo3DView";
-      case PDFActionType_UOP:
-        return "uop";
-      case PDFActionType_Error:
-        return "error";
-      default:
-        return "unknown";
+    String buttonTitle = annotMap.get("buttonTitle").toString();
+    String fontColor = annotMap.get("fontColor").toString();
+    double fontSize = (double) annotMap.get("fontSize");
+    String familyName = annotMap.get("familyName").toString();
+    String styleName = annotMap.get("styleName").toString();
+    String psName = CPDFTextAttribute.FontNameHelper.obtainFontName(familyName, styleName);
+
+    pushButtonWidget.setFontName(psName);
+    pushButtonWidget.setButtonTitle(buttonTitle);
+    pushButtonWidget.setFontSize((float) fontSize);
+    pushButtonWidget.setFontColor(Color.parseColor(fontColor));
+
+    HashMap<String, Object> actionMap = (HashMap<String, Object>) annotMap.get("action");
+    if (actionMap != null){
+      String actionType = actionMap.get("actionType").toString();
+      if (actionType.equals("uri")){
+        String uri = actionMap.get("uri").toString();
+        CPDFUriAction uriAction = new CPDFUriAction();
+        uriAction.setUri(uri);
+        pushButtonWidget.setButtonAction(uriAction);
+      } else if (actionType.equals("goTo")){
+
+        int pageIndex = (int) actionMap.get("pageIndex");
+        float height = annotation.pdfPage.getSize().height();
+        CPDFDestination destination = new CPDFDestination(pageIndex, 0F, height, 1F);
+        CPDFGoToAction goToAction = new CPDFGoToAction();
+        goToAction.setDestination(document, destination);
+        pushButtonWidget.setButtonAction(goToAction);
+      }
     }
+  }
+
+  @Override
+  public CPDFWidget addWidget(CPDFDocument document, HashMap<String, Object> widgetMap) {
+    int pageIndex = (int) widgetMap.get("page");
+    HashMap<String, Object> rectMap = (HashMap<String, Object>) widgetMap.get("rect");
+    double left = (double) rectMap.get("left");
+    double top = (double) rectMap.get("top");
+    double right = (double) rectMap.get("right");
+    double bottom = (double) rectMap.get("bottom");
+    String title = widgetMap.get("title").toString();
+
+    String fillColor = widgetMap.get("fillColor").toString();
+    String borderColor = widgetMap.get("borderColor").toString();
+    double borderWidth = (double) widgetMap.get("borderWidth");
+
+    String buttonTitle = widgetMap.get("buttonTitle").toString();
+    String fontColor = widgetMap.get("fontColor").toString();
+    double fontSize = (double) widgetMap.get("fontSize");
+    String familyName = widgetMap.get("familyName").toString();
+    String styleName = widgetMap.get("styleName").toString();
+    String psName = CPDFTextAttribute.FontNameHelper.obtainFontName(familyName, styleName);
+
+
+    CPDFPage page = document.pageAtIndex(pageIndex);
+    CPDFPushbuttonWidget widget = (CPDFPushbuttonWidget) page.addFormWidget(
+        WidgetType.Widget_PushButton);
+    if (widget != null && widget.isValid()){
+      RectF rectF = new RectF((float) left, (float) top, (float) right, (float) bottom);
+      widget.setRect(rectF);
+      if (TextUtils.isEmpty(title)){
+        widget.setFieldName(CAppUtils.getDefaultFiledName("Push Button_"));
+      } else {
+        widget.setFieldName(title);
+      }
+      if (widgetMap.get("createDate") != null){
+        long createDateTimestamp = (long) widgetMap.get("createDate");
+        widget.setCreationDate(TTimeUtil.fromTimestamp(createDateTimestamp));
+        widget.setRecentlyModifyDate(TTimeUtil.fromTimestamp(createDateTimestamp));
+      } else {
+        widget.setCreationDate(TTimeUtil.getCurrentDate());
+        widget.setRecentlyModifyDate(TTimeUtil.getCurrentDate());
+      }
+
+
+      widget.setFontName(psName);
+      widget.setButtonTitle(buttonTitle);
+      widget.setFontSize((float) fontSize);
+      widget.setFontColor(Color.parseColor(fontColor));
+
+      HashMap<String, Object> actionMap = (HashMap<String, Object>) widgetMap.get("action");
+      if (actionMap != null){
+        String actionType = actionMap.get("actionType").toString();
+        if (actionType.equals("uri")){
+          String uri = actionMap.get("uri").toString();
+          CPDFUriAction uriAction = new CPDFUriAction();
+          uriAction.setUri(uri);
+          widget.setButtonAction(uriAction);
+        } else if (actionType.equals("goTo")){
+
+          int targetPageIndex = (int) actionMap.get("pageIndex");
+          float height = document.pageAtIndex(targetPageIndex).getSize().height();
+          CPDFDestination destination = new CPDFDestination(targetPageIndex, 0F, height, 1F);
+          CPDFGoToAction goToAction = new CPDFGoToAction();
+          goToAction.setDestination(document, destination);
+          widget.setButtonAction(goToAction);
+        }
+      }
+
+      widget.setFillColor(Color.parseColor(fillColor));
+      widget.setBorderColor(Color.parseColor(borderColor));
+      widget.setBorderWidth((float) borderWidth);
+      widget.setBorderStyles(BorderStyle.BS_Solid);
+
+      widget.updateAp();
+    }
+    return widget;
   }
 }

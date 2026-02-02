@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -6,15 +6,36 @@
 // This notice may not be removed from this file.
 
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:compdfkit_flutter/configuration/attributes/cpdf_annot_attr.dart';
 import 'package:compdfkit_flutter/configuration/config/cpdf_page_editor_config.dart';
 import 'package:compdfkit_flutter/configuration/config/cpdf_search_config.dart';
+import 'package:compdfkit_flutter/configuration/config/cpdf_ui_style_config.dart';
 import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_context_menu_config.dart';
+import 'package:compdfkit_flutter/toolbar/cpdf_custom_toolbar_item.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'package:flutter/material.dart';
 
 import 'config/cpdf_bota_config.dart';
+import 'attributes/cpdf_arrow_attr.dart';
+import 'attributes/cpdf_circle_attr.dart';
+import 'attributes/cpdf_editor_text_attr.dart';
+import 'attributes/cpdf_freetext_attr.dart';
+import 'attributes/cpdf_highlight_attr.dart';
+import 'attributes/cpdf_ink_attr.dart';
+import 'attributes/cpdf_line_attr.dart';
+import 'attributes/cpdf_square_attr.dart';
+import 'attributes/cpdf_squiggly_attr.dart';
+import 'attributes/cpdf_strikeout_attr.dart';
+import 'attributes/cpdf_text_attr.dart';
+import 'attributes/cpdf_underline_attr.dart';
+import 'attributes/form/cpdf_checkbox_attr.dart';
+import 'attributes/form/cpdf_combobox_attr.dart';
+import 'attributes/form/cpdf_listbox_attr.dart';
+import 'attributes/form/cpdf_pushbutton_attr.dart';
+import 'attributes/form/cpdf_radiobutton_attr.dart';
+import 'attributes/form/cpdf_signature_widget_attr.dart';
+import 'attributes/form/cpdf_textfield_attr.dart';
 import 'cpdf_options.dart';
 
 /// modeConfig: Configuration of parameters that can be adjusted when opening a PDF interface.
@@ -33,6 +54,8 @@ import 'cpdf_options.dart';
 ///   configuration: CPDFConfiguration());
 ///
 /// ```
+///
+/// {@category configuration}
 class CPDFConfiguration {
   CPDFModeConfig modeConfig;
 
@@ -53,13 +76,15 @@ class CPDFConfiguration {
   CPDFConfiguration(
       {this.modeConfig =
           const CPDFModeConfig(initialViewMode: CPDFViewMode.viewer),
-      this.toolbarConfig = const CPDFToolbarConfig(),
-      this.readerViewConfig = const CPDFReaderViewConfig(),
+      CPDFToolbarConfig? toolbarConfig,
+      CPDFReaderViewConfig? readerViewConfig,
       this.annotationsConfig = const CPDFAnnotationsConfig(),
       this.contentEditorConfig = const CPDFContentEditorConfig(),
       this.formsConfig = const CPDFFormsConfig(),
       this.globalConfig = const CPDFGlobalConfig(),
-      this.contextMenuConfig = const CPDFContextMenuConfig()});
+      this.contextMenuConfig = const CPDFContextMenuConfig()})
+      : toolbarConfig = toolbarConfig ?? CPDFToolbarConfig(),
+        readerViewConfig = readerViewConfig ?? CPDFReaderViewConfig();
 
   String toJson() => jsonEncode({
         'modeConfig': modeConfig.toJson(),
@@ -84,13 +109,12 @@ class CPDFModeConfig {
   /// Configure supported modes
   final List<CPDFViewMode> availableViewModes;
 
-
   final CPDFUIVisibilityMode uiVisibilityMode;
 
-  const CPDFModeConfig({
-    this.initialViewMode = CPDFViewMode.viewer,
-    this.uiVisibilityMode = CPDFUIVisibilityMode.automatic,
-    this.availableViewModes = CPDFViewMode.values});
+  const CPDFModeConfig(
+      {this.initialViewMode = CPDFViewMode.viewer,
+      this.uiVisibilityMode = CPDFUIVisibilityMode.automatic,
+      this.availableViewModes = CPDFViewMode.values});
 
   Map<String, dynamic> toJson() => {
         'initialViewMode': initialViewMode.name,
@@ -101,25 +125,30 @@ class CPDFModeConfig {
 
 /// Configuration for top toolbar functionality.
 class CPDFToolbarConfig {
-  /// Top toolbar actions for Android platform
+  /// Top toolbar actions
   ///
-  /// Default: thumbnail, search, bota, menu.
+  /// Android Default: []
   ///
-  /// [CPDFToolbarAction.BACK] button will be shown only on the far left
-  final List<CPDFToolbarAction> androidAvailableActions;
+  /// iOS Default: `CPDFToolbarAction.back`, `CPDFToolbarAction.thumbnail`
+  final List<CPDFToolbarAction> toolbarLeftItems;
 
-  /// Left toolbar actions for iOS platform
+  /// Top toolbar right actions
   ///
-  /// Default: back, thumbnail
-  final List<CPDFToolbarAction> iosLeftBarAvailableActions;
-
-  /// Right toolbar actions for iOS platform
+  /// Android Default: `CPDFToolbarAction.thumbnail`, `CPDFToolbarAction.search`,
+  /// `CPDFToolbarAction.bota`, `CPDFToolbarAction.menu`
   ///
-  /// Default: search, bota, menu
-  final List<CPDFToolbarAction> iosRightBarAvailableActions;
+  /// iOS Default: `CPDFToolbarAction.search`, `CPDFToolbarAction.bota`,
+  /// `CPDFToolbarAction.menu`
+  final List<CPDFToolbarAction> toolbarRightItems;
 
   /// Configure the menu options opened in the top toolbar [CPDFToolbarAction.menu]
-  final List<CPDFToolbarMenuAction> availableMenus;
+  final List<CPDFToolbarAction> availableMenus;
+
+  final List<CPDFCustomToolbarItem> customToolbarLeftItems;
+
+  final List<CPDFCustomToolbarItem> customToolbarRightItems;
+
+  final List<CPDFCustomToolbarItem> customMoreMenuItems;
 
   final bool mainToolbarVisible;
 
@@ -135,33 +164,23 @@ class CPDFToolbarConfig {
 
   // final bool showFormModeToggleButton;
 
-  const CPDFToolbarConfig({
-    this.androidAvailableActions = const [
-      CPDFToolbarAction.thumbnail,
-      CPDFToolbarAction.search,
-      CPDFToolbarAction.bota,
-      CPDFToolbarAction.menu,
-    ],
-    this.iosLeftBarAvailableActions = const [
-      CPDFToolbarAction.back,
-      CPDFToolbarAction.thumbnail,
-    ],
-    this.iosRightBarAvailableActions = const [
-      CPDFToolbarAction.search,
-      CPDFToolbarAction.bota,
-      CPDFToolbarAction.menu
-    ],
+  CPDFToolbarConfig({
+    List<CPDFToolbarAction>? toolbarLeftItems,
+    List<CPDFToolbarAction>? toolbarRightItems,
+    this.customToolbarLeftItems = const [],
+    this.customToolbarRightItems = const [],
+    this.customMoreMenuItems = const [],
     this.availableMenus = const [
-      CPDFToolbarMenuAction.viewSettings,
-      CPDFToolbarMenuAction.documentEditor,
-      CPDFToolbarMenuAction.security,
-      CPDFToolbarMenuAction.watermark,
-      CPDFToolbarMenuAction.flattened,
-      CPDFToolbarMenuAction.documentInfo,
-      CPDFToolbarMenuAction.save,
-      CPDFToolbarMenuAction.share,
-      CPDFToolbarMenuAction.openDocument,
-      CPDFToolbarMenuAction.snip
+      CPDFToolbarAction.viewSettings,
+      CPDFToolbarAction.documentEditor,
+      CPDFToolbarAction.security,
+      CPDFToolbarAction.watermark,
+      CPDFToolbarAction.flattened,
+      CPDFToolbarAction.documentInfo,
+      CPDFToolbarAction.save,
+      CPDFToolbarAction.share,
+      CPDFToolbarAction.openDocument,
+      CPDFToolbarAction.snip
     ],
     this.mainToolbarVisible = true,
     this.annotationToolbarVisible = true,
@@ -170,16 +189,37 @@ class CPDFToolbarConfig {
     this.formToolbarVisible = true,
     this.signatureToolbarVisible = true,
     // this.showFormModeToggleButton = true
-  });
+  })  : toolbarLeftItems = toolbarLeftItems ??
+            (Platform.isIOS
+                ? const [
+                    CPDFToolbarAction.back,
+                    CPDFToolbarAction.thumbnail,
+                  ]
+                : const []),
+        toolbarRightItems = toolbarRightItems ??
+            (Platform.isIOS
+                ? const [
+                    CPDFToolbarAction.search,
+                    CPDFToolbarAction.bota,
+                    CPDFToolbarAction.menu,
+                  ]
+                : const [
+                    CPDFToolbarAction.thumbnail,
+                    CPDFToolbarAction.search,
+                    CPDFToolbarAction.bota,
+                    CPDFToolbarAction.menu,
+                  ]);
 
   Map<String, dynamic> toJson() => {
-        'androidAvailableActions':
-            androidAvailableActions.map((e) => e.name).toList(),
-        'iosLeftBarAvailableActions':
-            iosLeftBarAvailableActions.map((e) => e.name).toList(),
-        'iosRightBarAvailableActions':
-            iosRightBarAvailableActions.map((e) => e.name).toList(),
+        'toolbarLeftItems': toolbarLeftItems.map((e) => e.name).toList(),
+        'toolbarRightItems': toolbarRightItems.map((e) => e.name).toList(),
         'availableMenus': availableMenus.map((e) => e.name).toList(),
+        'customToolbarLeftItems':
+            customToolbarLeftItems.map((e) => e.toJson()).toList(),
+        'customToolbarRightItems':
+            customToolbarRightItems.map((e) => e.toJson()).toList(),
+        'customMoreMenuItems':
+            customMoreMenuItems.map((e) => e.toJson()).toList(),
         'mainToolbarVisible': mainToolbarVisible,
         'annotationToolbarVisible': annotationToolbarVisible,
         'contentEditorToolbarVisible': contentEditorToolbarVisible,
@@ -242,21 +282,47 @@ class CPDFReaderViewConfig {
 
   final bool enableMinScale;
 
-  const CPDFReaderViewConfig(
-      {this.linkHighlight = true,
-      this.formFieldHighlight = true,
-      this.displayMode = CPDFDisplayMode.singlePage,
-      this.continueMode = true,
-      this.verticalMode = true,
-      this.cropMode = false,
-      this.themes = CPDFThemes.light,
-      this.enableSliderBar = true,
-      this.enablePageIndicator = true,
-      this.pageSpacing = 10,
-      this.pageScale = 1.0,
-      this.pageSameWidth = true,
-      this.margins = const [0, 0, 0, 0],
-      this.enableMinScale = true});
+  /// UI style configuration, such as setting border styles for selected annotations, forms, and content editing text.
+  /// Default: CPDFUiStyleConfig()
+  final CPDFUiStyleConfig uiStyle;
+
+  /// Whether to display the annotation layer.
+  /// Default: true
+  final bool annotationsVisible;
+
+  /// In content editing mode, when only text editing is selected, whether to enable creating a text input box by clicking the page area.
+  /// Default value: true
+  final bool enableCreateEditTextInput;
+
+  /// In content editing mode, when only image editing is selected, whether to enable creating an image picker dialog by clicking the page area.
+  /// Default value: true
+  final bool enableCreateImagePickerDialog;
+
+  /// Whether to enable double-tap zooming functionality.
+  /// Default value: true
+  final bool enableDoubleTapZoom;
+
+  CPDFReaderViewConfig({
+    this.linkHighlight = true,
+    this.formFieldHighlight = true,
+    this.displayMode = CPDFDisplayMode.singlePage,
+    this.continueMode = true,
+    this.verticalMode = true,
+    this.cropMode = false,
+    this.themes = CPDFThemes.light,
+    this.enableSliderBar = true,
+    this.enablePageIndicator = true,
+    this.pageSpacing = 10,
+    this.pageScale = 1.0,
+    this.pageSameWidth = true,
+    this.margins = const [0, 0, 0, 0],
+    this.enableMinScale = true,
+    this.annotationsVisible = true,
+    this.enableCreateEditTextInput = true,
+    this.enableCreateImagePickerDialog = true,
+    this.enableDoubleTapZoom = false,
+    CPDFUiStyleConfig? uiStyle,
+  }) : uiStyle = uiStyle ?? CPDFUiStyleConfig.create();
 
   Map<String, dynamic> toJson() => {
         'linkHighlight': linkHighlight,
@@ -272,7 +338,12 @@ class CPDFReaderViewConfig {
         'pageScale': pageScale,
         'pageSameWidth': pageSameWidth,
         'margins': margins,
-        'enableMinScale': enableMinScale
+        'enableMinScale': enableMinScale,
+        'annotationsVisible': annotationsVisible,
+        'enableCreateEditTextInput': enableCreateEditTextInput,
+        'enableCreateImagePickerDialog': enableCreateImagePickerDialog,
+        'uiStyle': uiStyle.toJson(),
+        'enableDoubleTapZoom': enableDoubleTapZoom
       };
 }
 
@@ -285,24 +356,77 @@ class CPDFAnnotationsConfig {
   /// list of annotation functions shown at the bottom of the view.
   final List<CPDFAnnotationType> availableTypes;
 
-  /// [CPDFViewMode.ANNOTATIONS] mode,
+  /// [CPDFViewMode.annotations] mode,
   /// annotation tools shown at the bottom of the view.
   final List<CPDFConfigTool> availableTools;
 
   /// When adding an annotation, the annotation’s default attributes.
   final CPDFAnnotAttribute initAttribute;
 
+  /// In annotation mode, when tapping the bottom toolbar or calling
+  /// `controller.setAnnotationMode(CPDFAnnotationType.signature)`, whether to
+  /// automatically show the signature picker dialog.
+  /// Default: true. If set to false, the signature picker dialog will not be
+  /// displayed. You can handle signature selection yourself via the
+  /// `CPDFReaderWidget(onAnnotationCreationPreparedCallback: ...)`
+  /// callback. For example, show a custom signature picker, then call
+  /// `controller.prepareNextSignature(String signPath)` with the chosen signature
+  /// path; a subsequent tap will place the custom signature into the PDF.
+  final bool autoShowSignPicker;
+
+  /// In annotation mode, when tapping the bottom toolbar or calling
+  /// `controller.setAnnotationMode(CPDFAnnotationType.picture)`, whether to
+  /// automatically show the picture picker dialog.
+  /// Default: true. If set to false, the picture picker dialog will not be
+  /// displayed. You can handle picture selection yourself via the
+  /// `CPDFReaderWidget(onAnnotationCreationPreparedCallback: ...)`
+  /// callback. For example, show a custom image picker, then call
+  /// `controller.prepareNextPicture(String imagePath)` with the chosen image
+  /// path; a subsequent tap will add the custom image to the PDF.
+  final bool autoShowPicPicker;
+
+  /// In annotation mode, when tapping the bottom toolbar or calling
+  /// `controller.setAnnotationMode(CPDFAnnotationType.stamp)`, whether to
+  /// automatically show the stamp picker dialog.
+  /// Default: true. If set to false, the stamp picker dialog will not be
+  /// displayed. You can handle stamp selection yourself via the
+  /// `CPDFReaderWidget(onAnnotationCreationPreparedCallback: ...)`
+  /// callback. For example, show a custom stamp picker, then call
+  /// `controller.prepareNextStamp(String stampPath)` with the chosen stamp path;
+  /// a subsequent tap will add the custom stamp to the PDF.
+  final bool autoShowStampPicker;
+
+  /// In annotation mode, when tapping the bottom toolbar or calling
+  /// `controller.setAnnotationMode(CPDFAnnotationType.link)`, whether to
+  /// automatically show the link settings dialog after the link area is drawn
+  /// on the screen.
+  /// Default: true. If set to false, the link settings dialog will not be
+  /// displayed. You can handle link configuration yourself via the
+  /// `CPDFReaderWidget(onAnnotationCreationPreparedCallback: ...)`
+  /// callback. For example, show a custom link dialog, then call
+  /// `controller.prepareNextLink(String link)` with the configured link; a
+  /// subsequent tap will add the custom link to the PDF.
+  final bool autoShowLinkDialog;
+
   const CPDFAnnotationsConfig(
       {this.availableTypes = CPDFAnnotationType.values,
       this.availableTools = CPDFConfigTool.values,
       this.initAttribute = const CPDFAnnotAttribute(),
-      this.annotationAuthor = ""});
+      this.annotationAuthor = "",
+      this.autoShowSignPicker = true,
+      this.autoShowPicPicker = true,
+      this.autoShowStampPicker = true,
+      this.autoShowLinkDialog = true});
 
   Map<String, dynamic> toJson() => {
         'availableTypes': availableTypes.map((e) => e.name).toList(),
         'availableTools': availableTools.map((e) => e.name).toList(),
         'initAttribute': initAttribute.toJson(),
-        'annotationAuthor': annotationAuthor
+        'annotationAuthor': annotationAuthor,
+        'autoShowSignPicker': autoShowSignPicker,
+        'autoShowPicPicker': autoShowPicPicker,
+        'autoShowStampPicker': autoShowStampPicker,
+        'autoShowLinkDialog': autoShowLinkDialog
       };
 }
 
@@ -343,6 +467,31 @@ class CPDFAnnotAttribute {
     this.arrowAttr = const CPDFArrowAttr(),
     this.freeTextAttr = const CPDFFreetextAttr(),
   });
+
+  factory CPDFAnnotAttribute.fromJson(Map<String, dynamic> json) {
+    T parse<T>(String key, T Function(Map<String, dynamic>) fromJson) {
+      final value = json[key];
+      if (value is Map) {
+        return fromJson(Map<String, dynamic>.from(value));
+      } else {
+        throw FormatException('Invalid or missing attribute: $key');
+      }
+    }
+
+    return CPDFAnnotAttribute(
+      noteAttr: parse('noteAttr', CPDFTextAttr.fromJson),
+      highlightAttr: parse('highlightAttr', CPDFHighlightAttr.fromJson),
+      underlineAttr: parse('underlineAttr', CPDFUnderlineAttr.fromJson),
+      squigglyAttr: parse('squigglyAttr', CPDFSquigglyAttr.fromJson),
+      strikeoutAttr: parse('strikeoutAttr', CPDFStrikeoutAttr.fromJson),
+      inkAttr: parse('inkAttr', CPDFInkAttr.fromJson),
+      squareAttr: parse('squareAttr', CPDFSquareAttr.fromJson),
+      circleAttr: parse('circleAttr', CPDFCircleAttr.fromJson),
+      lineAttr: parse('lineAttr', CPDFLineAttr.fromJson),
+      arrowAttr: parse('arrowAttr', CPDFArrowAttr.fromJson),
+      freeTextAttr: parse('freetextAttr', CPDFFreetextAttr.fromJson),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'note': noteAttr.toJson(),
@@ -399,15 +548,27 @@ class CPDFFormsConfig {
   /// Form default attribute configuration
   final CPDFFormAttribute initAttribute;
 
+  final bool showCreateListBoxOptionsDialog;
+
+  final bool showCreateComboBoxOptionsDialog;
+
+  final bool showCreatePushButtonOptionsDialog;
+
   const CPDFFormsConfig(
       {this.availableTypes = CPDFFormType.values,
       this.availableTools = const [CPDFConfigTool.undo, CPDFConfigTool.redo],
-      this.initAttribute = const CPDFFormAttribute()});
+      this.initAttribute = const CPDFFormAttribute(),
+      this.showCreateListBoxOptionsDialog = true,
+      this.showCreateComboBoxOptionsDialog = true,
+      this.showCreatePushButtonOptionsDialog = true});
 
   Map<String, dynamic> toJson() => {
         'availableTypes': availableTypes.map((e) => e.name).toList(),
         'availableTools': availableTools.map((e) => e.name).toList(),
-        'initAttribute': initAttribute.toJson()
+        'initAttribute': initAttribute.toJson(),
+        'showCreateListBoxOptionsDialog': showCreateListBoxOptionsDialog,
+        'showCreateComboBoxOptionsDialog': showCreateComboBoxOptionsDialog,
+        'showCreatePushButtonOptionsDialog': showCreatePushButtonOptionsDialog
       };
 }
 
@@ -436,6 +597,28 @@ class CPDFFormAttribute {
     this.signaturesFieldsAttr = const CPDFSignatureWidgetAttr(),
   });
 
+  factory CPDFFormAttribute.fromJson(Map<String, dynamic> json) {
+    T parse<T>(String key, T Function(Map<String, dynamic>) fromJson) {
+      final value = json[key];
+      if (value is Map) {
+        return fromJson(Map<String, dynamic>.from(value));
+      } else {
+        throw FormatException('Invalid or missing attribute: $key');
+      }
+    }
+
+    return CPDFFormAttribute(
+      textFieldAttr: parse('textFieldAttr', CPDFTextFieldAttr.fromJson),
+      checkBoxAttr: parse('checkBoxAttr', CPDFCheckBoxAttr.fromJson),
+      radioButtonAttr: parse('radioButtonAttr', CPDFRadioButtonAttr.fromJson),
+      listBoxAttr: parse('listBoxAttr', CPDFListBoxAttr.fromJson),
+      comboBoxAttr: parse('comboBoxAttr', CPDFComboBoxAttr.fromJson),
+      pushButtonAttr: parse('pushButtonAttr', CPDFPushButtonAttr.fromJson),
+      signaturesFieldsAttr:
+          parse('signaturesFieldsAttr', CPDFSignatureWidgetAttr.fromJson),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'textField': textFieldAttr.toJson(),
         'checkBox': checkBoxAttr.toJson(),
@@ -455,6 +638,14 @@ class CPDFGlobalConfig {
   /// In version V2.1.0, you can set whether to save a subset of fonts when the document is saved.
   /// The default value is true. Saving font subsets may increase file size.
   final bool fileSaveExtraFontSubset;
+
+  /// Whether to use incremental save. Default is true.
+  /// Enabling incremental save can improve save speed and reduce memory usage, but may increase file size.
+  /// If you need to generate a smaller file, set this option to false for a full save.
+  /// This affects all save operations in CPDFReaderWidget, including manual and auto-save,
+  /// such as saving, sharing, and saving on exit.
+  /// Only supported on Android platform.
+  final bool useSaveIncremental;
 
   final CPDFWatermarkConfig watermark;
 
@@ -479,6 +670,7 @@ class CPDFGlobalConfig {
   const CPDFGlobalConfig(
       {this.themeMode = CPDFThemeMode.system,
       this.fileSaveExtraFontSubset = true,
+      this.useSaveIncremental = true,
       this.watermark = const CPDFWatermarkConfig(),
       this.enableExitSaveTips = true,
       this.signatureType = CPDFFillSignatureType.manual,
@@ -486,13 +678,13 @@ class CPDFGlobalConfig {
       this.enableErrorTips = true,
       this.bota = const CPDFBotaConfig(),
       this.search = const CPDFSearchConfig(),
-        this.pageEditor = const CPDFPageEditorConfig(),
-        this.pencilMenus = CPDFPencilMenus.values
-      });
+      this.pageEditor = const CPDFPageEditorConfig(),
+      this.pencilMenus = CPDFPencilMenus.values});
 
   Map<String, dynamic> toJson() => {
         'themeMode': themeMode.name,
         'fileSaveExtraFontSubset': fileSaveExtraFontSubset,
+        'useSaveIncremental': useSaveIncremental,
         'watermark': watermark.toJson(),
         'enableExitSaveTips': enableExitSaveTips,
         'signatureType': signatureType.name,
@@ -504,7 +696,6 @@ class CPDFGlobalConfig {
         'pencilMenus': pencilMenus.map((e) => e.name).toList()
       };
 }
-
 
 /// Configuration options for adding a watermark.
 ///
@@ -575,20 +766,19 @@ class CPDFWatermarkConfig {
   /// Defaults to `false`.
   final bool isTilePage;
 
-  const CPDFWatermarkConfig({
-    this.saveAsNewFile = true,
-    this.outsideBackgroundColor,
-    this.types = const [CPDFWatermarkType.text, CPDFWatermarkType.image],
-    this.text = "Watermark",
-    this.image = "",
-    this.textSize = 30,
-    this.textColor = Colors.black,
-    this.scale = 1.5,
-    this.rotation = -45,
-    this.opacity = 255,
-    this.isFront = false,
-    this.isTilePage = false
-  });
+  const CPDFWatermarkConfig(
+      {this.saveAsNewFile = true,
+      this.outsideBackgroundColor,
+      this.types = const [CPDFWatermarkType.text, CPDFWatermarkType.image],
+      this.text = "Watermark",
+      this.image = "",
+      this.textSize = 30,
+      this.textColor = Colors.black,
+      this.scale = 1.5,
+      this.rotation = -45,
+      this.opacity = 255,
+      this.isFront = false,
+      this.isTilePage = false});
 
   Map<String, dynamic> toJson() => {
         "saveAsNewFile": saveAsNewFile,

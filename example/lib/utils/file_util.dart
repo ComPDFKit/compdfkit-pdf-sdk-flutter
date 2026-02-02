@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -13,9 +13,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-Future<File> extractAsset(BuildContext context, String assetPath,
+Future<File> extractAsset(String assetPath,
     {bool shouldOverwrite = false, String prefix = ''}) async {
-  final bytes = await DefaultAssetBundle.of(context).load(assetPath);
+  final bytes = await rootBundle.load(assetPath);
   final list = bytes.buffer.asUint8List();
 
   final tempDir = await ComPDFKit.getTemporaryDirectory();
@@ -33,8 +33,11 @@ Future<String> extractAssetFolder(BuildContext context, String folder) async {
   final tempDir = await ComPDFKit.getTemporaryDirectory();
   final assetPaths = await getAssetPaths(folder);
   for (var path in assetPaths) {
+    if(path.endsWith('.DS_Store')){
+      continue;
+    }
     if (context.mounted) {
-      await extractAsset(context, path);
+      await extractAsset(path);
     }
   }
   String dir = '${tempDir.path}/$folder';

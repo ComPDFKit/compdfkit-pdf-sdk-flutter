@@ -1,8 +1,8 @@
 ext {
     android = [
-            COMPILESDK: 35,
-            MINSDK: 21,
-            TARGETSDK: 35,
+            COMPILESDK: 36,
+            MINSDK: 24,
+            TARGETSDK: 36,
             VERSIONCODE: 25
     ]
 }

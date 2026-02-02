@@ -1,4 +1,4 @@
-//  Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+//  Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 //  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 //  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -156,11 +156,68 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 print("Error copying Font directory: \(error)")
             }
             result(true)
+        case "update_import_font_directory":
+            let initInfo = call.arguments as? [String: Any]
+    
+            let dirPath = initInfo?["dir_path"] as? String ?? ""
+        
+            let addSysFont = initInfo?["add_sys_font"] as? Bool ?? true
+            
+            let fileManager = FileManager.default
+            let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let destinationPath = documentDirectory.appendingPathComponent("chineseFonts")
+
+            do {
+                if fileManager.fileExists(atPath: destinationPath.path) {
+                    try fileManager.removeItem(at: destinationPath)
+                }
+
+                try fileManager.copyItem(atPath: dirPath, toPath: destinationPath.path)
+                let reloadResult = CPDFFont.reloadImportDir(destinationPath.path, isContainSysFont: addSysFont)
+                result(reloadResult)
+            } catch {
+                result(FlutterError(code: "UPDATE_FONT_DIR_FAIL", message: "update import font directory fail", details: error))
+            }
         case "create_document_plugin":
             let uId = call.arguments as? String ?? "";
-            var documentPlugin = CPDFDocumentPlugin(uid: uId, binaryMessager: self.messager!)
+            var _ = CPDFDocumentPlugin(uid: uId, binaryMessager: self.messager!)
             result(true)
             break;
+        case "create_document":
+            guard let uId = call.arguments as? String else {
+                result(false)
+                return
+            }
+
+            guard let document = CPDFDocument.init() else {
+                result(false)
+                return
+            }
+
+            let _ = CPDFDocumentPlugin(
+                document: document,
+                uid: uId,
+                binaryMessager: self.messager!
+            )
+
+            result(true)
+            break;
+        case "get_fonts":
+            var fontDicts:[Dictionary<String, Any>] = []
+            let familyNames = CPDFFont.familyNames
+            familyNames.forEach { familyName in
+                var fontDict: Dictionary<String, Any> = [:]
+                fontDict["familyName"] = familyName
+                let fontNames = CPDFFont.fontNames(forFamilyName: familyName)
+                var styleNames = []
+                fontNames.forEach { styleName in
+                    styleNames.append(styleName)
+                }
+                fontDict["styleNames"] = styleNames
+                fontDicts.append(fontDict)
+            }
+            result(fontDicts)
+            
         default:
             result(FlutterMethodNotImplemented)
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  * <p>
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,14 +9,10 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
-
-
 import android.content.Context;
 import android.util.Log;
-
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
-
 
 public abstract class BaseMethodChannelPlugin implements MethodChannel.MethodCallHandler {
 
@@ -35,7 +31,7 @@ public abstract class BaseMethodChannelPlugin implements MethodChannel.MethodCal
 
     public abstract String methodName();
 
-    public void register(){
+    public void register() {
         Log.e(LOG_TAG, "create MethodChannel:" + methodName());
         methodChannel = new MethodChannel(binaryMessenger, methodName());
         methodChannel.setMethodCallHandler(this);

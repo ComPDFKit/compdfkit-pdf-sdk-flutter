@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -9,7 +9,6 @@
  */
 
 package com.compdfkit.flutter.compdfkit_flutter.constants;
-
 
 public class CPDFConstants {
 
@@ -152,7 +151,9 @@ public class CPDFConstants {
     public static final String REMOVE_ALL_WATERMARKS = "remove_all_watermarks";
     public static final String GET_ENCRYPT_ALGORITHM = "get_encrypt_algorithm";
     public static final String SET_IMPORT_FONT_DIRECTORY = "set_import_font_directory";
+    public static final String UPDATE_IMPORT_FONT_DIRECTORY = "update_import_font_directory";
     public static final String CREATE_DOCUMENT_PLUGIN = "create_document_plugin";
+    public static final String CREATE_DOCUMENT = "create_document";
     public static final String IMPORT_WIDGETS = "import_widgets";
     public static final String EXPORT_WIDGETS = "export_widgets";
     public static final String FLATTEN_ALL_PAGES = "flatten_all_pages";
@@ -177,12 +178,38 @@ public class CPDFConstants {
     public static final String ANNOTATION_CAN_REDO = "annotation_can_redo";
     public static final String ANNOTATION_UNDO = "annotation_undo";
     public static final String ANNOTATION_REDO = "annotation_redo";
+    public static final String GET_OUTLINE_ROOT = "get_outline_root";
+    public static final String NEW_OUTLINE_ROOT = "new_outline_root";
+    public static final String ADD_OUTLINE = "add_outline";
+    public static final String REMOVE_OUTLINE = "remove_outline";
+    public static final String UPDATE_OUTLINE = "update_outline";
+    public static final String MOVE_TO_OUTLINE = "move_to_outline";
+    public static final String HAS_BOOKMARK = "has_bookmark";
+    public static final String GET_BOOKMARKS = "get_bookmarks";
+    public static final String REMOVE_BOOKMARK = "remove_bookmark";
+    public static final String ADD_BOOKMARK = "add_bookmark";
+    public static final String UPDATE_BOOKMARK = "update_bookmark";
+    public static final String RENDER_PAGE = "render_page";
     public static final String SET_WIDGET_BACKGROUND_COLOR = "set_widget_background_color";
 
+    public static final String INSERT_IMAGE_WITH_PATH = "insert_page_with_image_path";
+    public static final String GET_PAGE_ROTATION = "get_page_rotation";
+    public static final String SET_PAGE_ROTATION = "set_page_rotation";
+    public static final String REMOVE_PAGES = "remove_pages";
+    public static final String MOVE_PAGE = "move_page";
+    public static final String GET_DOCUMENT_INFO = "get_document_info";
+    public static final String GET_MAJOR_VERSION = "get_major_version";
+    public static final String GET_MINOR_VERSION = "get_minor_version";
+    public static final String GET_PERMISSIONS_INFO = "get_permissions_info";
+    public static final String IS_LOCKED = "is_locked";
     public static final String SEARCH_TEXT = "search_text";
     public static final String SEARCH_TEXT_SELECTION = "search_text_selection";
     public static final String SEARCH_TEXT_CLEAR = "search_text_clear";
     public static final String GET_SEARCH_TEXT = "get_search_text";
+    public static final String GET_DEFAULT_ANNOTATION_ATTR = "get_default_annotation_attr";
+    public static final String SET_DEFAULT_ANNOTATION_ATTR = "set_default_annotation_attr";
+    public static final String GET_DEFAULT_WIDGET_ATTR = "get_default_widget_attr";
+    public static final String SET_DEFAULT_WIDGET_ATTR = "set_default_widget_attr";
     public static final String CHANGE_EDIT_TYPE = "change_edit_type";
     public static final String CONTENT_EDITOR_CAN_REDO = "content_editor_can_redo";
     public static final String CONTENT_EDITOR_CAN_UNDO = "content_editor_can_undo";
@@ -197,12 +224,27 @@ public class CPDFConstants {
     public static final String DISMISS_CONTEXT_MENU = "dismiss_context_menu";
     public static final String SHOW_TEXT_SEARCH_VIEW = "show_text_search_view";
     public static final String HIDE_TEXT_SEARCH_VIEW = "hide_text_search_view";
-    public static final String INSERT_IMAGE_WITH_PATH = "insert_page_with_image_path";
-    public static final String GET_PAGE_ROTATION = "get_page_rotation";
-    public static final String SET_PAGE_ROTATION = "set_page_rotation";
-    public static final String REMOVE_PAGES = "remove_pages";
-    public static final String RENDER_PAGE = "render_page";
     public static final String SAVE_CURRENT_INK = "save_current_ink";
+
+    public static final String UPDATE_ANNOTATION = "update_annotation";
+    public static final String GET_FONTS = "get_fonts";
+    public static final String ANNOTATIONS_VISIBLE = "annotations_visible";
+    public static final String IS_ANNOTATIONS_VISIBLE = "is_annotations_visible";
+
+    public static final String SHOW_DEFAULT_ANNOTATION_PROPERTIES_VIEW = "show_default_annotation_properties_view";
+    public static final String SHOW_ANNOTATION_PROPERTIES_VIEW = "show_annotation_properties_view";
+    public static final String SHOW_WIDGET_PROPERTIES_VIEW = "show_widget_properties_view";
+    public static final String SHOW_EDIT_AREA_PROPERTIES_VIEW = "show_edit_area_properties_view";
+    public static final String PREPARE_NEXT_SIGNATURE = "prepare_next_signature";
+    public static final String PREPARE_NEXT_IMAGE = "prepare_next_image";
+    public static final String PREPARE_NEXT_STAMP = "prepare_next_stamp";
+    public static final String PREPARE_NEXT_LINK = "prepare_next_link";
+    public static final String UPDATE_WIDGET = "update_widget";
+    public static final String REMOVE_EDIT_AREA = "remove_edit_area";
+    public static final String ADD_ANNOTATIONS = "add_annotations";
+    public static final String ADD_WIDGETS = "add_widgets";
+    public static final String CREATE_NEW_TEXT_AREA = "create_new_text_area";
+    public static final String CREATE_NEW_IMAGE_AREA = "create_new_image_area";
   }
 
 }

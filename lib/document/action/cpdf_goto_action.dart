@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,14 +10,23 @@
 
 import 'package:compdfkit_flutter/document/action/cpdf_action.dart';
 
+/// A class representing a GoTo action in a PDF document.
+/// This action navigates to a specified page within the document when triggered.
+/// It extends the [CPDFAction] class.
+/// The [pageIndex] property holds the index of the page to navigate to.
+/// Example usage:
+/// ```dart
+/// // Create a GoTo action to navigate to page index 2
+/// CPDFGoToAction action = CPDFGoToAction(pageIndex: 2);
+/// ```
 class CPDFGoToAction extends CPDFAction {
-  final int pageIndex;
 
-  CPDFGoToAction({required super.actionType, required this.pageIndex});
+  int pageIndex;
+
+  CPDFGoToAction({required this.pageIndex}) : super(actionType: CPDFActionType.goTo);
 
   factory CPDFGoToAction.fromJson(Map<String, dynamic> json) {
-    return CPDFGoToAction(
-        actionType: CPDFActionType.goTo, pageIndex: json["pageIndex"]);
+    return CPDFGoToAction(pageIndex: json["pageIndex"] ?? 0);
   }
 
   @override

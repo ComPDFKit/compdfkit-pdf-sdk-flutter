@@ -1,4 +1,4 @@
-// Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 // THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 // AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -8,35 +8,44 @@
 import 'dart:ui';
 
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
-import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
-import '../util/cpdf_rectf.dart';
-
+/// Markup annotation model.
+///
+/// A text markup annotation (highlight/underline/strikeout/squiggly) that
+/// extends [CPDFAnnotation].
+///
+/// Key properties:
+/// - [markedText]: The text content that is marked up.
+/// - [color]/[alpha]: Markup color and opacity.
+///
+/// Note: This class may represent different markup types via [type] (e.g.
+/// highlight/underline/strikeout/squiggly).
+///
+/// Serialization:
+/// - Use [CPDFMarkupAnnotation.fromJson] to create an instance from a JSON map.
+/// - Use [toJson] to convert this instance to a JSON map.
+///
+/// {@category annotations}
 class CPDFMarkupAnnotation extends CPDFAnnotation {
   final String markedText;
-  final Color color;
-  final double alpha;
 
-  CPDFMarkupAnnotation(
-      {required CPDFAnnotationType type,
-      required String title,
-      required int page,
-      required String content,
-      required String uuid,
-      DateTime? createDate,
-      required CPDFRectF rect,
-      required this.markedText,
-      required this.color,
-      required this.alpha})
-      : super(
-            type: type,
-            title: title,
-            page: page,
-            content: content,
-            uuid: uuid,
-            createDate: createDate,
-            rect: rect);
+  Color color;
+
+  double alpha;
+
+  CPDFMarkupAnnotation({
+    required super.type,
+    super.title,
+    required super.page,
+    super.content,
+    super.uuid = '',
+    super.createDate,
+    required super.rect,
+    required this.markedText,
+    required this.color,
+    this.alpha = 255,
+  });
 
   factory CPDFMarkupAnnotation.fromJson(Map<String, dynamic> json) {
     final common = CPDFAnnotation.fromJson(json);
@@ -50,7 +59,7 @@ class CPDFMarkupAnnotation extends CPDFAnnotation {
       rect: common.rect,
       markedText: json['markedText'] ?? '',
       color: HexColor.fromHex(json['color'] ?? '#000000'),
-      alpha: json['alpha'] ?? 255,
+      alpha: (json['alpha'] as num?)?.toDouble() ?? 255.0,
     );
   }
 

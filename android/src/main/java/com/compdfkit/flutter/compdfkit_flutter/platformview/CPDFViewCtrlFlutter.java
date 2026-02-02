@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+ * Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
  *
  * THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
  * AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -10,31 +10,25 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.platformview;
 
-
 import android.content.Context;
 import android.content.MutableContextWrapper;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentContainerView;
-
-
 import com.compdfkit.flutter.compdfkit_flutter.plugin.CPDFViewCtrlPlugin;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
-
-import java.util.Map;
-
+import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventCallbackHelper;
 import io.flutter.plugin.common.BinaryMessenger;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.platform.PlatformView;
+import java.util.Map;
 
 public class CPDFViewCtrlFlutter implements PlatformView {
 
@@ -49,7 +43,8 @@ public class CPDFViewCtrlFlutter implements PlatformView {
 
     private CPDFViewCtrlPlugin methodChannel;
 
-    public CPDFViewCtrlFlutter(Context context, BinaryMessenger binaryMessenger, int viewId, Map<String, Object> creationParams) {
+    public CPDFViewCtrlFlutter(Context context, BinaryMessenger binaryMessenger, int viewId,
+            Map<String, Object> creationParams) {
         this.binaryMessenger = binaryMessenger;
         this.viewId = viewId;
 
@@ -58,13 +53,13 @@ public class CPDFViewCtrlFlutter implements PlatformView {
         initCPDFViewCtrl(context, creationParams);
 
         // Register plug-ins related to interaction with the document
-        // interface to control document display, such as setting the document scrolling direction.
+        // interface to control document display, such as setting the document scrolling
+        // direction.
         methodChannel = new CPDFViewCtrlPlugin(context, binaryMessenger, viewId);
         methodChannel.register();
         methodChannel.setDocumentFragment(documentFragment);
 
     }
-
 
     private void initCPDFViewCtrl(Context context, Map<String, Object> creationParams) {
         fragmentContainerView = new FragmentContainerView(context);
@@ -73,43 +68,74 @@ public class CPDFViewCtrlFlutter implements PlatformView {
         String password = (String) creationParams.get("password");
 
         String configurationJson = (String) creationParams.get("configuration");
-        CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
-        if (filePath.startsWith(FileUtils.CONTENT_SCHEME) || filePath.startsWith(FileUtils.FILE_SCHEME)){
-            documentFragment = CPDFDocumentFragment.newInstance(Uri.parse(filePath), password, configuration);
-        }else {
-            documentFragment = CPDFDocumentFragment.newInstance(filePath, password, configuration);
-        }
-        fragmentContainerView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(@NonNull View v) {
-                Log.e(LOG_TAG, "CPDFViewCtrlFlutter: Attached CPDFDocumentFragment to window");
-                FragmentActivity fragmentActivity = getFragmentActivity(context);
-                if (fragmentActivity != null) {
-                    fragmentActivity.getSupportFragmentManager()
-                            .beginTransaction()
-                            .add(fragmentContainerView.getId(), documentFragment, "documentFragment")
-                            .setReorderingAllowed(true)
-                            .commit();
-                }
-            }
+        int pageIndex = (int) creationParams.get("pageIndex");
 
-            @Override
-            public void onViewDetachedFromWindow(@NonNull View v) {
-                detachedFragment(context);
-            }
-        });
+        CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
+
+        Bundle args = new Bundle();
+        args.putString(CPDFDocumentFragment.EXTRA_FILE_PASSWORD, password);
+        args.putSerializable(CPDFDocumentFragment.EXTRA_CONFIGURATION, configuration);
+        args.putInt(CPDFDocumentFragment.EXTRA_PAGE_INDEX, pageIndex);
+        if (filePath.startsWith(FileUtils.CONTENT_SCHEME) || filePath.startsWith(
+                FileUtils.FILE_SCHEME)) {
+            args.putParcelable(CPDFDocumentFragment.EXTRA_FILE_URI, Uri.parse(filePath));
+        } else {
+            args.putString(CPDFDocumentFragment.EXTRA_FILE_PATH, filePath);
+        }
+        documentFragment = CPDFDocumentFragment.newInstance(args);
+        fragmentContainerView.addOnAttachStateChangeListener(
+                new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(@NonNull View v) {
+                        Log.e(LOG_TAG, "CPDFViewCtrlFlutter: Attached CPDFDocumentFragment to window");
+                        FragmentActivity fragmentActivity = getFragmentActivity(context);
+                        if (fragmentActivity == null) {
+                            throw new RuntimeException(
+                                    "Please use FlutterFragmentActivity to host MainActivity");
+                        }
+                        fragmentActivity.getSupportFragmentManager()
+                                .beginTransaction()
+                                // .setCustomAnimations(
+                                // R.anim.fade_in, // enter
+                                // R.anim.fade_out, // exit
+                                // R.anim.fade_in, // popEnter
+                                // R.anim.fade_out // popExit
+                                // )
+                                .add(fragmentContainerView.getId(), documentFragment, "documentFragment")
+                                .setReorderingAllowed(true)
+                                .commitAllowingStateLoss();
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(@NonNull View v) {
+                        detachedFragment(context);
+                    }
+                });
     }
 
     private void detachedFragment(Context context) {
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter: Detached CPDFDocumentFragment from window");
+
+        if (documentFragment == null || fragmentContainerView == null) return;
+
         FragmentActivity fragmentActivity = getFragmentActivity(context);
-        if (fragmentActivity != null) {
-            fragmentActivity.getSupportFragmentManager()
+        if (fragmentActivity == null) return;
+
+        fragmentContainerView.post(() -> {
+            if (fragmentActivity.isFinishing() || fragmentActivity.isDestroyed()) return;
+
+            try {
+                fragmentActivity.getSupportFragmentManager()
                     .beginTransaction()
                     .remove(documentFragment)
                     .setReorderingAllowed(true)
-                    .commit();
-        }
+                    .commitAllowingStateLoss();
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error removing CPDFDocumentFragment", e);
+            } finally {
+                documentFragment = null;
+            }
+        });
     }
 
     @Nullable
@@ -132,6 +158,7 @@ public class CPDFViewCtrlFlutter implements PlatformView {
     public void dispose() {
         Log.e(LOG_TAG, "CPDFViewCtrlFlutter: dispose()");
         fragmentContainerView = null;
+        CPDFCustomEventCallbackHelper.getInstance().removeCustomEventCallback(methodChannel);
     }
 
     @Override

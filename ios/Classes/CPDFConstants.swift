@@ -1,7 +1,7 @@
 //
 //  CPDFDocumentPlugin.swift
 //  compdfkit_flutter
-//  Copyright © 2014-2025 PDF Technologies, Inc. All Rights Reserved.
+//  Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
 //
 //  THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
 //  AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
@@ -83,9 +83,9 @@ class CPDFConstants {
     static let getCurrentPageIndex = "get_current_page_index"
     
     static let dismissContextMenu = "dismiss_context_menu"
-    
+
     static let clearDisplayRect = "clear_display_rect"
-    
+
     static let set_preview_mode = "set_preview_mode"
     
     static let get_preview_mode = "get_preview_mode"
@@ -141,11 +141,11 @@ class CPDFConstants {
     static let getAnnotations = "get_annotations"
     
     static let getWidgets = "get_widgets"
-    
+
     static let showTextSearchView = "show_text_search_view"
-    
+
     static let hideTextSearchView = "hide_text_search_view"
-    
+
     static let annotationRedo = "annotation_redo"
     static let annotationUndo = "annotation_undo"
 
@@ -153,9 +153,10 @@ class CPDFConstants {
     static let getAnnotationMode = "get_annotation_mode"
     static let annotationCanRedo = "annotation_can_redo"
     static let annotationCanUndo = "annotation_can_undo"
+    
     static let saveCurrentInk = "save_current_ink"
     static let saveCurrentPencil = "save_current_pencil"
-    
+
     static let changeEditType = "change_edit_type";
     static let contentEditorCanRedo = "content_editor_can_redo";
     static let contentEditorCanUndo = "content_editor_can_undo";
@@ -164,27 +165,68 @@ class CPDFConstants {
 
     static let setFormMode = "set_form_creation_mode"
     static let getFormMode = "get_form_creation_mode"
-    
+
     static let verifyDigitalSignature = "verify_digital_signature_status"
     static let hideDigitalSignature = "hide_digital_sign_status_view"
-    
+
     static let setWidgetBackgroundColor = "set_widget_background_color"
+    
+    static let getDocumentInfo = "get_document_info"
+    static let getMajorVersion = "get_major_version"
+    static let getMinorVersion = "get_minor_version"
+    static let getReVision = "get_re_version"
+    static let getPermissionsInfo = "get_permissions_info"
+    static let isLocked = "is_locked"
+    
     static let searchText = "search_text"
     static let searchTextSelection = "search_text_selection"
     static let searchTextClear = "search_text_clear"
     static let getSearchText = "get_search_text"
+    
     static let getOutlineRoot = "get_outline_root"
+    static let newOutlineRoot = "new_outline_root"
+    static let addOutline = "add_outline"
+    static let removeOutline = "remove_outline"
+    static let updateOutline = "update_outline"
+    static let moveToOutline = "move_to_outline"
+    
     static let hasBookmark = "has_bookmark"
     static let getBookmark = "get_bookmarks"
     static let addBookmark = "add_bookmark"
     static let removeBookmark = "remove_bookmark"
     static let updateBookmark = "update_bookmark"
+    
     static let getPageSize = "get_page_size"
     static let renderPage = "render_page"
     static let insertPageWithImagePath = "insert_page_with_image_path"
     static let getPageRotaion = "get_page_rotation"
     static let setPageRotation = "set_page_rotation"
     static let removePages = "remove_pages"
-
+    static let movePage = "move_page"
+    
+    static let getDefaultAnnotAttr = "get_default_annotation_attr"
+    static let setDefaultAnnotAttr = "set_default_annotation_attr"
+    static let getDefaultWidgetAttr = "get_default_widget_attr"
+    static let setDefaultWidgetAttr = "set_default_widget_attr"
+    
+    static let showDefaultAnnotPropertiesView = "show_default_annotation_properties_view"
+    static let showAnnotPropertiesView = "show_annotation_properties_view"
+    static let showWidgetPropertiesView = "show_widget_properties_view"
+    static let showEditAreaPropertiesView = "show_edit_area_properties_view"
+    static let prepareNextSignature = "prepare_next_signature"
+    static let prepareNextStamp = "prepare_next_stamp"
+    static let prepareNextImage = "prepare_next_image"
+    static let prepareNextLink = "prepare_next_link"
+    
+    static let updateAnnotation = "update_annotation"
+    static let updateWidget = "update_widget"
+    
+    static let annotationsVisible = "annotations_visible"
+    static let isAnnotationsVisible = "is_annotations_visible"
+    
+    static let removeEditArea = "remove_edit_area"
+    
+    static let addAnnotations = "add_annotations"
+    static let addWidgets = "add_widgets"
 
 }
