@@ -47,11 +47,10 @@ class CPDFSquareAttr extends CPDFShapeAttr {
       borderWidth: json['borderWidth'] ?? 2.0,
       borderStyle: json['borderStyle'] != null
           ? CPDFBorderStyle(
-          style: CPDFAnnotBorderStyle.values.firstWhere(
-                  (e) => e.name == json['borderStyle']['style']),
-          dashGap: json['borderStyle']['dashGap'] ?? 0)
+              style: CPDFAnnotBorderStyle.values
+                  .firstWhere((e) => e.name == json['borderStyle']['style']),
+              dashGap: json['borderStyle']['dashGap'] ?? 0)
           : const CPDFBorderStyle.solid(),
     );
   }
-
 }

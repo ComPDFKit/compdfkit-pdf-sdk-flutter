@@ -20,10 +20,10 @@ import 'package:compdfkit_flutter/document/action/cpdf_action.dart';
 /// CPDFGoToAction action = CPDFGoToAction(pageIndex: 2);
 /// ```
 class CPDFGoToAction extends CPDFAction {
-
   int pageIndex;
 
-  CPDFGoToAction({required this.pageIndex}) : super(actionType: CPDFActionType.goTo);
+  CPDFGoToAction({required this.pageIndex})
+      : super(actionType: CPDFActionType.goTo);
 
   factory CPDFGoToAction.fromJson(Map<String, dynamic> json) {
     return CPDFGoToAction(pageIndex: json["pageIndex"] ?? 0);

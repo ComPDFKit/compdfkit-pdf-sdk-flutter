@@ -8,23 +8,26 @@
  *
  */
 
+import 'package:compdfkit_flutter/document/action/cpdf_named_action.dart';
 import 'package:compdfkit_flutter/document/action/cpdf_uri_action.dart';
 
 import 'cpdf_goto_action.dart';
 
 class CPDFAction {
-
   CPDFActionType actionType;
 
   CPDFAction({required this.actionType});
 
   factory CPDFAction.fromJson(Map<String, dynamic> json) {
-    CPDFActionType actionType = CPDFActionType.values.firstWhere((element) => element.name == json["actionType"]);
+    CPDFActionType actionType = CPDFActionType.values
+        .firstWhere((element) => element.name == json["actionType"]);
     switch (actionType) {
       case CPDFActionType.goTo:
         return CPDFGoToAction.fromJson(json);
       case CPDFActionType.uri:
         return CPDFUriAction.fromJson(json);
+      case CPDFActionType.named:
+        return CPDFNamedAction.fromJson(json);  
       default:
         return CPDFAction(actionType: actionType);
     }
@@ -35,11 +38,9 @@ class CPDFAction {
       "actionType": actionType.name,
     };
   }
-
 }
 
 enum CPDFActionType {
-
   unknown,
 
   goTo,
@@ -81,7 +82,4 @@ enum CPDFActionType {
   uop,
 
   error;
-
-
 }
-

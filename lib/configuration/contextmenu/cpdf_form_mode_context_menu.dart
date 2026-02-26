@@ -13,7 +13,6 @@ import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_context_menu_op
 import 'cpdf_context_menu_item.dart';
 
 class CPDFFormModeContextMenu {
-
   final List<CPDFContextMenuItem<CPDFFormTextFieldMenuKey>> textField;
   final List<CPDFContextMenuItem<CPDFFormCheckBoxMenuKey>> checkBox;
   final List<CPDFContextMenuItem<CPDFFormRadioButtonMenuKey>> radioButton;
@@ -66,5 +65,4 @@ class CPDFFormModeContextMenu {
       'pushButton': pushButton.map((item) => item.toJson()).toList(),
     };
   }
-
 }

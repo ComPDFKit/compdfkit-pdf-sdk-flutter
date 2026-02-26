@@ -10,15 +10,12 @@ import 'dart:ui';
 import '../../util/extension/cpdf_color_extension.dart';
 import 'cpdf_annot_attr_base.dart';
 
-
 /// Represents the attributes for markup annotations in a PDF document.
 /// This class extends [CPDFAnnotAttrBase] and includes properties for
 /// the color and transparency of the markup annotation.
 /// The [color] property defines the color of the markup annotation,
 /// while the [alpha] property defines its transparency level.
 class CPDFMarkupAttr extends CPDFAnnotAttrBase {
-
-
   /// The color of the annotation. Defaults to blue (#1460F3).
   final Color color;
 
@@ -41,7 +38,8 @@ class CPDFMarkupAttr extends CPDFAnnotAttrBase {
   }
 
   @override
-  Map<String, dynamic> toJson() => {'type' : type, 'color': color.toHex(), 'alpha': alpha};
+  Map<String, dynamic> toJson() =>
+      {'type': type, 'color': color.toHex(), 'alpha': alpha};
 
   @override
   String get type => throw UnimplementedError();

@@ -13,7 +13,6 @@ import '../../cpdf_options.dart';
 import '../cpdf_annot_attr_base.dart';
 
 class CPDFSignatureWidgetAttr extends CPDFAnnotAttrBase {
-
   @override
   String get type => CPDFFormType.signaturesFields.name;
 

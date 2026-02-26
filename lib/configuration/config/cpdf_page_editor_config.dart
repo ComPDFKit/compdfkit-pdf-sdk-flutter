@@ -8,25 +8,23 @@
  *
  */
 
-
 import '../cpdf_options.dart';
 
 class CPDFPageEditorConfig {
-
   final List<CPDFPageEditorMenus> menus;
 
-  const CPDFPageEditorConfig({this.menus = const [
-    CPDFPageEditorMenus.insertPage,
-    CPDFPageEditorMenus.replacePage,
-    CPDFPageEditorMenus.extractPage,
-    CPDFPageEditorMenus.copyPage,
-    CPDFPageEditorMenus.rotatePage,
-    CPDFPageEditorMenus.deletePage,
-  ]});
+  const CPDFPageEditorConfig(
+      {this.menus = const [
+        CPDFPageEditorMenus.insertPage,
+        CPDFPageEditorMenus.replacePage,
+        CPDFPageEditorMenus.extractPage,
+        CPDFPageEditorMenus.copyPage,
+        CPDFPageEditorMenus.rotatePage,
+        CPDFPageEditorMenus.deletePage,
+      ]});
 
   /// toJson
   Map<String, dynamic> toJson() => {
-    'menus': menus.map((e) => e.name).toList(),
-  };
-
+        'menus': menus.map((e) => e.name).toList(),
+      };
 }

@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'package:compdfkit_flutter/annotation/cpdf_text_attribute.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
@@ -25,7 +24,6 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 ///
 /// {@category annotations}
 class CPDFFreeTextAnnotation extends CPDFAnnotation {
-
   CPDFTextAttribute textAttribute;
 
   double alpha;

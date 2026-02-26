@@ -12,7 +12,6 @@ import 'cpdf_context_menu_item.dart';
 import 'cpdf_context_menu_options.dart';
 
 class CPDFGlobalContextMenu {
-
   final List<CPDFContextMenuItem<CPDFScreenShotMenuKey>> screenshot;
 
   const CPDFGlobalContextMenu({

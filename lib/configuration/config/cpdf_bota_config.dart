@@ -84,11 +84,10 @@ class CPDFBotaAnnotationMenuConfig {
       CPDFBotaMenuItem(
           id: CPDFBotaAnnotItemMenu.reviewStatus,
           subMenus: ['accepted', 'rejected', 'cancelled', 'completed', 'none']),
+      CPDFBotaMenuItem(id: CPDFBotaAnnotItemMenu.markedStatus),
       CPDFBotaMenuItem(
-          id: CPDFBotaAnnotItemMenu.markedStatus),
-      CPDFBotaMenuItem(id: CPDFBotaAnnotItemMenu.more, subMenus: [
-        'addReply', 'viewReply', 'delete'
-      ]),
+          id: CPDFBotaAnnotItemMenu.more,
+          subMenus: ['addReply', 'viewReply', 'delete']),
     ],
   });
 

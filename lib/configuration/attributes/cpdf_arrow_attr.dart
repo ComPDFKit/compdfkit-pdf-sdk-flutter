@@ -34,14 +34,14 @@ class CPDFArrowAttr extends CPDFAnnotAttrBase {
   /// Arrow tail position shape.
   final CPDFLineType? tailType;
 
-  const CPDFArrowAttr(
-      {
-        this.borderColor = Colors.black,
-        this.borderAlpha = 128,
-        this.borderWidth = 2,
-        this.borderStyle = const CPDFBorderStyle.solid(),
-        this.headType = CPDFLineType.none,
-        this.tailType = CPDFLineType.openArrow,});
+  const CPDFArrowAttr({
+    this.borderColor = Colors.black,
+    this.borderAlpha = 128,
+    this.borderWidth = 2,
+    this.borderStyle = const CPDFBorderStyle.solid(),
+    this.headType = CPDFLineType.none,
+    this.tailType = CPDFLineType.openArrow,
+  });
 
   CPDFArrowAttr copyWith({
     Color? borderColor,
@@ -68,9 +68,9 @@ class CPDFArrowAttr extends CPDFAnnotAttrBase {
       borderWidth: json['borderWidth'] ?? 2.0,
       borderStyle: json['borderStyle'] != null
           ? CPDFBorderStyle(
-          style: CPDFAnnotBorderStyle.values.firstWhere(
-                  (e) => e.name == json['borderStyle']['style']),
-          dashGap: json['borderStyle']['dashGap'] ?? 0)
+              style: CPDFAnnotBorderStyle.values
+                  .firstWhere((e) => e.name == json['borderStyle']['style']),
+              dashGap: json['borderStyle']['dashGap'] ?? 0)
           : const CPDFBorderStyle.solid(),
       headType: CPDFLineType.fromString(json['startLineType']),
       tailType: CPDFLineType.fromString(json['tailLineType']),
@@ -79,12 +79,12 @@ class CPDFArrowAttr extends CPDFAnnotAttrBase {
 
   @override
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'borderColor': borderColor.toHex(),
-    'borderAlpha': borderAlpha,
-    'borderWidth': borderWidth,
-    'borderStyle': borderStyle?.toJson(),
-    'startLineType': headType?.name,
-    'tailLineType': tailType?.name,
-  };
+        'type': type,
+        'borderColor': borderColor.toHex(),
+        'borderAlpha': borderAlpha,
+        'borderWidth': borderWidth,
+        'borderStyle': borderStyle?.toJson(),
+        'startLineType': headType?.name,
+        'tailLineType': tailType?.name,
+      };
 }

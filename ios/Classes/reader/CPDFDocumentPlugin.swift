@@ -68,35 +68,64 @@ public class CPDFDocumentPlugin {
                         result(true)
                         return
                     }
+                    // UI operations must be on main thread
                     pdfListView.exitDrawing()
                     pdfListView.becomeFirstResponder()
-                    var isSuccess = false
-                    if (pdfListView.isEditing() == true) {
-                        if pdfListView.isEdited() == true {
-                            pdfListView.commitEditing()
-                        }
+
+                    let isEditing = pdfListView.isEditing()
+                    let isEdited = pdfListView.isEdited()
+
+                    if isEditing == true && isEdited == true {
+                        pdfListView.commitEditing()
+                    }
+                    if isEditing == true {
                         pdfListView.endOfEditing()
-                        if pdfListView.document.isModified() == true {
-                            isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL, isSaveFontSubset: fontSubset)
+                    }
+
+                    guard let document = pdfListView.document else {
+                        result(false)
+                        return
+                    }
+
+                    let isModified = document.isModified()
+                    let documentURL = document.documentURL
+
+                    // Perform file I/O on background thread
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        var isSuccess = false
+                        if isModified == true {
+                            isSuccess = document.write(to: documentURL, isSaveFontSubset: fontSubset)
                         }
-                    } else {
-                        if(pdfListView.document != nil) {
-                            if pdfListView.document.isModified() == true {
-                                isSuccess = pdfListView.document.write(to: pdfListView.document.documentURL, isSaveFontSubset: fontSubset)
+
+                        // Return result on main thread
+                        DispatchQueue.main.async {
+                            if isSuccess {
+                                self._methodChannel.invokeMethod("saveDocument", arguments: nil)
                             }
+                            result(isSuccess)
                         }
                     }
-                    
-                    if isSuccess {
-                        self._methodChannel.invokeMethod("saveDocument", arguments: nil)
-                    }
-                    result(isSuccess) // or return false
                 } else {
-                    var isSuccess = false
-                    if(self.document != nil && self.document?.isModified() == true){
-                        isSuccess = self.document?.write(to: self.document!.documentURL, isSaveFontSubset: fontSubset) ?? false
+                    guard let document = self.document else {
+                        result(false)
+                        return
                     }
-                    result(isSuccess)
+
+                    let isModified = document.isModified()
+                    let documentURL = document.documentURL
+
+                    // Perform file I/O on background thread
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        var isSuccess = false
+                        if isModified == true {
+                            isSuccess = document.write(to: documentURL, isSaveFontSubset: fontSubset)
+                        }
+
+                        // Return result on main thread
+                        DispatchQueue.main.async {
+                            result(isSuccess)
+                        }
+                    }
                 }
                 
             case CPDFConstants.openDocument:
@@ -237,26 +266,35 @@ public class CPDFDocumentPlugin {
                 
                 let fontSubSet = self.getValue(from: info, key: "font_sub_set", defaultValue: true)
                 
-                var success = false
-                
-                if removeSecurity {
-                    if (self.pdfViewController?.pdfListView?.isEditing() == true && self.pdfViewController?.pdfListView?.isEdited() == true) {
-                        self.pdfViewController?.pdfListView?.commitEditing()
-                        
-                        success = self.document?.writeDecrypt(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                guard let document = self.document else {
+                    result(false)
+                    return
+                }
+
+                // UI operations on main thread
+                let isEditing = self.pdfViewController?.pdfListView?.isEditing() == true
+                let isEdited = self.pdfViewController?.pdfListView?.isEdited() == true
+
+                if isEditing && isEdited {
+                    self.pdfViewController?.pdfListView?.commitEditing()
+                }
+
+                let saveURL = URL(fileURLWithPath: savePath)
+
+                // Perform file I/O on background thread
+                DispatchQueue.global(qos: .userInitiated).async {
+                    var success = false
+                    if removeSecurity {
+                        success = document.writeDecrypt(to: saveURL, isSaveFontSubset: fontSubSet)
                     } else {
-                        success = self.document?.writeDecrypt(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+                        success = document.write(to: saveURL, isSaveFontSubset: fontSubSet)
                     }
-                } else {
-                    if (self.pdfViewController?.pdfListView?.isEditing() == true && self.pdfViewController?.pdfListView?.isEdited() == true) {
-                        self.pdfViewController?.pdfListView?.commitEditing()
-                        success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
-                    } else {
-                        success = self.document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: fontSubSet) ?? false
+
+                    // Return result on main thread
+                    DispatchQueue.main.async {
+                        result(success)
                     }
                 }
-                
-                result(success)
             case CPDFConstants.print:
                 self.pdfViewController?.enterPrintState()
                 result(nil)
@@ -612,28 +650,26 @@ public class CPDFDocumentPlugin {
                     return
                 }
                 
-                let page = self.document?.page(at: UInt(pageIndex))
+                let page = document.page(at: UInt(pageIndex))
+
                 DispatchQueue.global(qos: .userInitiated).async {
                     let thumbnailSize = CGSize(width: renderWidth, height: renderHeight)
-                    
-                    page?.thumbnail(of: thumbnailSize, needReset: true) { image in
-                        DispatchQueue.main.async {
-                            if(image == nil) {
-                                result(["error": "failed to render thumbnail"])
-                                return;
-                            }
-                            var data: Data
-                            switch(compression) {
-                            case "png":
-                                data = image!.pngData()!
-                            case "jpeg":
-                                data = image!.jpegData(compressionQuality: 0.85)!
-                            default:
-                                data = image!.pngData()!
-                            }
-                            result(data)
-                        }
+                    let image = page?.thumbnail(of: thumbnailSize)
+                    if(image == nil) {
+                        result(["error": "failed to render thumbnail"])
+                        return;
                     }
+                    var data: Data
+                    switch(compression) {
+                    case "png":
+                        data = image!.pngData()!
+                    case "jpeg":
+                        data = image!.jpegData(compressionQuality: 0.85)!
+                    default:
+                        data = image!.pngData()!
+                    }
+                    result(data)
+
                 }
             case CPDFConstants.getPageRotaion:
                 let pageIndex = call.arguments as? Int ?? 0

@@ -11,9 +11,7 @@
 import 'cpdf_context_menu_item.dart';
 import 'cpdf_context_menu_options.dart';
 
-
 class CPDFViewModeContextMenu {
-
   final List<CPDFContextMenuItem<CPDFViewModeTextSelectKey>> textSelect;
 
   const CPDFViewModeContextMenu({

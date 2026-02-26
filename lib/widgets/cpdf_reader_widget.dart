@@ -67,6 +67,10 @@ class CPDFReaderWidget extends StatefulWidget {
 
   final CPDFOnCustomContextMenuItemTappedCallback?
       onCustomContextMenuItemTappedCallback;
+  
+  final CPDFOnInterceptAnnotationActionCallback? onInterceptAnnotationActionCallback;
+  
+  final CPDFOnInterceptWidgetActionCallback? onInterceptWidgetActionCallback;
 
   /// init callback
   const CPDFReaderWidget(
@@ -85,7 +89,9 @@ class CPDFReaderWidget extends StatefulWidget {
       this.onTapMainDocAreaCallback,
       this.onCustomToolbarItemTappedCallback,
       this.onAnnotationCreationPreparedCallback,
-      this.onCustomContextMenuItemTappedCallback})
+      this.onCustomContextMenuItemTappedCallback,
+      this.onInterceptAnnotationActionCallback,
+      this.onInterceptWidgetActionCallback})
       : super(key: key);
 
   @override
@@ -166,7 +172,9 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
         onAnnotationCreationPrepared:
             widget.onAnnotationCreationPreparedCallback,
         onCustomContextMenuItemTapped:
-            widget.onCustomContextMenuItemTappedCallback);
+            widget.onCustomContextMenuItemTappedCallback,
+            onInterceptAnnotationActionCallback: widget.onInterceptAnnotationActionCallback,
+            onInterceptWidgetActionCallback: widget.onInterceptWidgetActionCallback);
 
     _controller = controller;
     try {

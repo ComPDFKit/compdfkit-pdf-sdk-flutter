@@ -35,6 +35,9 @@ class CPDFViewCtrlPlugin {
     
     private var pdfViewController : CPDFViewController
     
+    // Track which events are subscribed by Flutter side to optimize performance
+    var subscribedEvents: Set<String> = []
+    
     init(viewId: Int64, binaryMessenger messenger: FlutterBinaryMessenger, controller : CPDFViewController) {
         self.pdfViewController = controller
         _methodChannel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.ui.pdfviewer.\(viewId)", binaryMessenger: messenger)
@@ -670,6 +673,19 @@ class CPDFViewCtrlPlugin {
                         self.pdfViewController.pdfListView?.addAnnotation = annotation
                     }
                 }
+            case CPDFConstants.updateEventSubscription:
+                if let args = call.arguments as? [String: Any],
+                   let eventName = args["event"] as? String,
+                   let subscribe = args["subscribe"] as? Bool {
+                    if subscribe {
+                        self.subscribedEvents.insert(eventName)
+                        print("ComPDFKit-Flutter: Event subscribed: \(eventName)")
+                    } else {
+                        self.subscribedEvents.remove(eventName)
+                        print("ComPDFKit-Flutter: Event unsubscribed: \(eventName)")
+                    }
+                }
+                result(nil)
 
             default:
                 result(FlutterMethodNotImplemented)

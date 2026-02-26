@@ -397,6 +397,53 @@ public class CPDFEnumConvertUtil {
         }
     }
 
+    public static ActionType stringToActionType(String actionTypeStr) {
+        switch (actionTypeStr) {
+            case "goTo":
+                return ActionType.PDFActionType_GoTo;
+            case "goToR":
+                return ActionType.PDFActionType_GoToR;
+            case "goToE":
+                return ActionType.PDFActionType_GoToE;
+            case "launch":
+                return ActionType.PDFActionType_Launch;
+            case "thread":
+                return ActionType.PDFActionType_Thread;
+            case "uri":
+                return ActionType.PDFActionType_URI;
+            case "sound":
+                return ActionType.PDFActionType_Sound;
+            case "movie":
+                return ActionType.PDFActionType_Movie;
+            case "hide":
+                return ActionType.PDFActionType_Hide;
+            case "named":
+                return ActionType.PDFActionType_Named;
+            case "submitForm":
+                return ActionType.PDFActionType_SubmitForm;
+            case "resetForm":
+                return ActionType.PDFActionType_ResetForm;
+            case "importData":
+                return ActionType.PDFActionType_ImportData;
+            case "javaScript":
+                return ActionType.PDFActionType_JavaScript;
+            case "setOCGState":
+                return ActionType.PDFActionType_SetOCGState;
+            case "rendition":
+                return ActionType.PDFActionType_Rendition;
+            case "trans":
+                return ActionType.PDFActionType_Trans;
+            case "goTo3DView":
+                return ActionType.PDFActionType_GoTo3DView;
+            case "uop":
+                return ActionType.PDFActionType_UOP;
+            case "error":
+                return ActionType.PDFActionType_Error;
+            default:
+                return ActionType.PDFActionType_Unknown;
+        }
+    }
+
     public static CPDFAnnotation.Type stringToCPDFAnnotType(String typeStr) {
         try {
             if ("note".equals(typeStr)) {
@@ -548,4 +595,28 @@ public class CPDFEnumConvertUtil {
                 return StampType.UNKNOWN_STAMP;
         }
     }
+
+    public static String namedActionToString(String namedAction){
+        switch (namedAction) {
+            case "NextPage":
+                return "nextPage";
+            case "PrevPage" : return  "prevPage";
+            case "FirstPage" : return "firstPage";
+            case "LastPage" : return  "lastPage";
+            case "Print" : return  "print";
+            default: return "none";
+        }
+    }
+
+    public static String stringToNamedAction(String namedActionStr){
+        switch (namedActionStr) {
+            case "nextPage" : return "NextPage";
+            case "prevPage" : return  "PrevPage";
+            case "firstPage" : return  "FirstPage";
+            case "lastPage" : return  "LastPage";
+            case "print": return  "Print";
+            default: return "none";
+        }
+    }
+
 }

@@ -28,19 +28,15 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 /// human-friendly name that is unlikely to collide.
 /// {@category util}
 class CPDFWidgetUtil {
-
   static String createFieldName(CPDFFormType widgetType) {
     final now = DateTime.now();
-    final dateStr =
-        '${now.year}${_twoDigits(now.month)}${_twoDigits(now.day)} '
+    final dateStr = '${now.year}${_twoDigits(now.month)}${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}.${now.millisecond.toString().padLeft(3, '0')}';
     final name = widgetType.name;
-    final capitalized = name.isNotEmpty
-        ? name[0].toUpperCase() + name.substring(1)
-        : '';
+    final capitalized =
+        name.isNotEmpty ? name[0].toUpperCase() + name.substring(1) : '';
     return '${capitalized}_$dateStr';
   }
+
   static String _twoDigits(int n) => n.toString().padLeft(2, '0');
 }
-
-

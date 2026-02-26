@@ -14,12 +14,12 @@ enum CPDFContextMenuShowType {
   // only support Android platform.
   icon;
 }
+
 /// Represents a context menu item in the PDF viewer.
 ///
 /// [T] is the enum type of the menu key,
 /// such as `CPDFScreenShotMenuKey`, `CPDFViewModeTextSelectKey`, etc.
 class CPDFContextMenuItem<T> {
-
   /// The unique key identifying this menu item.
   ///
   /// If this is a custom menu item, the key **must be** `custom`.
@@ -48,13 +48,13 @@ class CPDFContextMenuItem<T> {
   final CPDFContextMenuShowType showType;
 
   const CPDFContextMenuItem(
-      this.key, {
-        this.subItems,
-        this.identifier = '',
-        this.title = '',
-        this.icon = '',
-        this.showType = CPDFContextMenuShowType.text,
-      });
+    this.key, {
+    this.subItems,
+    this.identifier = '',
+    this.title = '',
+    this.icon = '',
+    this.showType = CPDFContextMenuShowType.text,
+  });
 
   /// Creates a menu item with only a key and optional sub-items.
   static CPDFContextMenuItem<T> of<T>(T key, {List<String>? subItems}) {

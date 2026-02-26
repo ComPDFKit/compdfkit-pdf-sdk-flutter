@@ -29,16 +29,19 @@ Future<File> extractAsset(String assetPath,
   return file;
 }
 
-Future<String> extractAssetFolder(BuildContext context, String folder) async {
+Future<String> extractAssetFolder(String folder,
+    {BuildContext? context}) async {
   final tempDir = await ComPDFKit.getTemporaryDirectory();
   final assetPaths = await getAssetPaths(folder);
   for (var path in assetPaths) {
-    if(path.endsWith('.DS_Store')){
+    if (path.endsWith('.DS_Store')) {
       continue;
     }
-    if (context.mounted) {
-      await extractAsset(path);
+    // Skip if context is provided and widget is unmounted
+    if (context != null && !context.mounted) {
+      continue;
     }
+    await extractAsset(path);
   }
   String dir = '${tempDir.path}/$folder';
   debugPrint('ComPDFKit-fontDir: $dir');
@@ -46,10 +49,11 @@ Future<String> extractAssetFolder(BuildContext context, String folder) async {
 }
 
 Future<List<String>> getAssetPaths(String folderPath) async {
-  final manifestJson = await rootBundle.loadString('AssetManifest.json');
-  final Map<String, dynamic> manifestMap = json.decode(manifestJson);
-  final assetPaths =
-      manifestMap.keys.where((key) => key.startsWith(folderPath)).toList();
+  final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+  final assetPaths = assetManifest
+      .listAssets()
+      .where((key) => key.startsWith(folderPath))
+      .toList();
   return assetPaths;
 }
 

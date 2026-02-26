@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'dart:ui';
 
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
@@ -19,9 +18,9 @@ import 'cpdf_annot_attr_base.dart';
 /// The [color] property defines the color of the text annotation,
 /// while the [alpha] property defines its transparency level.
 class CPDFTextAttr extends CPDFAnnotAttrBase {
-
   @override
   String get type => CPDFAnnotationType.note.name;
+
   /// note icon color
   final Color color;
 

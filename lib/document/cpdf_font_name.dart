@@ -11,7 +11,6 @@
 import 'dart:core';
 
 class CPDFFontName {
-
   final String familyName;
 
   final List<String> styleNames;
@@ -22,20 +21,17 @@ class CPDFFontName {
   });
 
   /// Create a [CPDFFontName] from a JSON-like map returned by the platform channel.
-  /// Expected keys: `familyName` (String), `psNames` (List<String>), `styleNames` (List<String>)
+  /// Expected keys: `familyName` (String), `psNames` (`List<String>`), `styleNames` (`List<String>`)
   factory CPDFFontName.fromJson(Map<String, dynamic> json) {
     return CPDFFontName(
       familyName: json['familyName'] as String? ?? '',
-      styleNames: (json['styleNames'] as List?)
-              ?.whereType<String>()
-              .toList() ?? <String>[],
+      styleNames: (json['styleNames'] as List?)?.whereType<String>().toList() ??
+          <String>[],
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'familyName': familyName,
-    'styleNames': styleNames,
-  };
-
+        'familyName': familyName,
+        'styleNames': styleNames,
+      };
 }
-

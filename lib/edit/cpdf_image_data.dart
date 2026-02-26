@@ -10,7 +10,6 @@
 
 /// Represents different types of image data for inserting into PDF
 class CPDFImageData {
-
   final CPDFImageType type;
 
   final String data;

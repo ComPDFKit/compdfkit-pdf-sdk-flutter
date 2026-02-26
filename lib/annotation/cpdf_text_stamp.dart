@@ -19,7 +19,6 @@
 ///
 /// {@category annotations}
 class CPDFTextStamp {
-
   final String content;
 
   final String date;
@@ -38,9 +37,13 @@ class CPDFTextStamp {
   factory CPDFTextStamp.fromJson(Map<String, dynamic> json) {
     return CPDFTextStamp(
       content: json['content'] ?? '',
-      date: json['date'] ??'',
-      shape: CPDFTextStampShape.values.firstWhere((e) => e.name == json['shape'], orElse: () => CPDFTextStampShape.rect),
-      color: CPDFTextStampColor.values.firstWhere((e) => e.name == json['color'], orElse: () => CPDFTextStampColor.white),
+      date: json['date'] ?? '',
+      shape: CPDFTextStampShape.values.firstWhere(
+          (e) => e.name == json['shape'],
+          orElse: () => CPDFTextStampShape.rect),
+      color: CPDFTextStampColor.values.firstWhere(
+          (e) => e.name == json['color'],
+          orElse: () => CPDFTextStampColor.white),
     );
   }
 
@@ -52,11 +55,9 @@ class CPDFTextStamp {
       'color': color.name,
     };
   }
-
 }
 
 enum CPDFTextStampShape {
-
   /// Rectangle background.
 
   rect,
@@ -72,7 +73,6 @@ enum CPDFTextStampShape {
 }
 
 enum CPDFTextStampColor {
-
   /// White.
 
   white,
@@ -85,5 +85,4 @@ enum CPDFTextStampColor {
 
   /// Blue.
   blue;
-
 }

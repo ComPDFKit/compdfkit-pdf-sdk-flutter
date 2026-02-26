@@ -19,7 +19,6 @@ import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'cpdf_global_context_menu.dart';
 
 class CPDFContextMenuConfig {
-
   // set context menu background color, only for android platform.
   final Color? backgroundColor;
 
@@ -42,7 +41,7 @@ class CPDFContextMenuConfig {
   const CPDFContextMenuConfig({
     this.backgroundColor,
     this.fontSize = 14.0,
-    this.padding = const [0,0,0,0],
+    this.padding = const [0, 0, 0, 0],
     this.iconSize = 36,
     this.global = const CPDFGlobalContextMenu(),
     this.viewMode = const CPDFViewModeContextMenu(),

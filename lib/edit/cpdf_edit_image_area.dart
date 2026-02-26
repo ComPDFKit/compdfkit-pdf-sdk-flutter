@@ -8,18 +8,17 @@
  *
  */
 
-
 import 'dart:typed_data';
 
 import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 
 class CPDFEditImageArea extends CPDFEditArea {
-
   final double alpha;
 
   final Uint8List? image;
 
-  CPDFEditImageArea({required super.uuid, required super.page, this.alpha = 255, this.image})
+  CPDFEditImageArea(
+      {required super.uuid, required super.page, this.alpha = 255, this.image})
       : super(type: CPDFEditAreaType.image);
 
   factory CPDFEditImageArea.fromJson(Map<String, dynamic> json) {
@@ -41,5 +40,4 @@ class CPDFEditImageArea extends CPDFEditArea {
         'alpha': alpha,
         'image': image
       };
-
 }

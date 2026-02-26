@@ -408,6 +408,18 @@ class CPDFAnnotationsConfig {
   /// subsequent tap will add the custom link to the PDF.
   final bool autoShowLinkDialog;
 
+  /// Intercept click actions on existing note annotations.
+  /// Default is false (not intercepted). Clicking a note annotation will directly pop up the note content editing dialog.
+  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptAnnotationActionCallback].
+  /// Developers can handle custom note content editing dialogs through the callback.
+  final bool interceptNoteAction;
+
+  /// Intercept click actions on existing link annotations.
+  /// Default is false (not intercepted). Clicking a link annotation will directly execute the link jump action.
+  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptAnnotationActionCallback].
+  /// Developers can handle custom link jump actions through the callback.
+  final bool interceptLinkAction;
+
   const CPDFAnnotationsConfig(
       {this.availableTypes = CPDFAnnotationType.values,
       this.availableTools = CPDFConfigTool.values,
@@ -416,7 +428,9 @@ class CPDFAnnotationsConfig {
       this.autoShowSignPicker = true,
       this.autoShowPicPicker = true,
       this.autoShowStampPicker = true,
-      this.autoShowLinkDialog = true});
+      this.autoShowLinkDialog = true,
+      this.interceptNoteAction = false,
+      this.interceptLinkAction = false});
 
   Map<String, dynamic> toJson() => {
         'availableTypes': availableTypes.map((e) => e.name).toList(),
@@ -426,7 +440,9 @@ class CPDFAnnotationsConfig {
         'autoShowSignPicker': autoShowSignPicker,
         'autoShowPicPicker': autoShowPicPicker,
         'autoShowStampPicker': autoShowStampPicker,
-        'autoShowLinkDialog': autoShowLinkDialog
+        'autoShowLinkDialog': autoShowLinkDialog,
+        'interceptNoteAction': interceptNoteAction,
+        'interceptLinkAction': interceptLinkAction
       };
 }
 
@@ -554,13 +570,37 @@ class CPDFFormsConfig {
 
   final bool showCreatePushButtonOptionsDialog;
 
+  /// Intercept list box click event.
+  /// Default is false (not intercepted), clicking the list box directly shows the list box options dialog.
+  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
+  /// Developers can handle displaying a custom list box options dialog via the callback.
+  /// Note: only support android platform in version 2.6.2
+  final bool interceptListBoxAction;
+
+  /// Intercept combo box click event.
+  /// Default is false (not intercepted), clicking the combo box directly shows the combo box options dialog.
+  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
+  /// Developers can handle displaying a custom combo box options dialog via the callback.
+  /// Note: only support android platform in version 2.6.2
+  final bool interceptComboBoxAction;
+
+  /// Intercept button click event.
+  /// Default is false (not intercepted), clicking the button directly triggers the button action.
+  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
+  /// Developers can handle button click actions via the callback.
+  /// Note: only support android platform in version 2.6.2
+  final bool interceptPushButtonAction;
+
   const CPDFFormsConfig(
       {this.availableTypes = CPDFFormType.values,
       this.availableTools = const [CPDFConfigTool.undo, CPDFConfigTool.redo],
       this.initAttribute = const CPDFFormAttribute(),
       this.showCreateListBoxOptionsDialog = true,
       this.showCreateComboBoxOptionsDialog = true,
-      this.showCreatePushButtonOptionsDialog = true});
+      this.showCreatePushButtonOptionsDialog = true,
+      this.interceptListBoxAction = false,
+      this.interceptComboBoxAction = false,
+      this.interceptPushButtonAction = false});
 
   Map<String, dynamic> toJson() => {
         'availableTypes': availableTypes.map((e) => e.name).toList(),
@@ -568,7 +608,10 @@ class CPDFFormsConfig {
         'initAttribute': initAttribute.toJson(),
         'showCreateListBoxOptionsDialog': showCreateListBoxOptionsDialog,
         'showCreateComboBoxOptionsDialog': showCreateComboBoxOptionsDialog,
-        'showCreatePushButtonOptionsDialog': showCreatePushButtonOptionsDialog
+        'showCreatePushButtonOptionsDialog': showCreatePushButtonOptionsDialog,
+        'interceptListBoxAction': interceptListBoxAction,
+        'interceptComboBoxAction': interceptComboBoxAction,
+        'interceptPushButtonAction': interceptPushButtonAction
       };
 }
 

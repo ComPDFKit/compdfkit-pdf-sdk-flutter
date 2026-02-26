@@ -888,12 +888,16 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                     result.error("UPDATE_ANNOTATION_FAIL", "not found this annotation", "");
                     return;
                 }
-                pageUtil.updateAnnotation(pageIndex1, annotPtr, properties);
+                boolean updateResult = pageUtil.updateAnnotation(annotation, properties);
                 CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
                         .getChild(pageIndex1);
                 if (pageView != null) {
                     CPDFBaseAnnotImpl annotImpl = pageView.getAnnotImpl(annotation);
-                    annotImpl.onAnnotAttrChange();
+                    if (annotImpl != null){
+                        annotImpl.onAnnotAttrChange();
+                    } else if (updateResult && annotation.isValid()){
+                        pageView.addAnnotation(annotation, false);
+                    }
                     pageView.invalidate();
                 }
                 result.success(true);

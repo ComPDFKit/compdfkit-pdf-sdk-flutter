@@ -5,13 +5,10 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 abstract class CPDFAnnotAttrBase {
-
   const CPDFAnnotAttrBase();
 
   String get type;
 
   Map<String, dynamic> toJson();
-
 }

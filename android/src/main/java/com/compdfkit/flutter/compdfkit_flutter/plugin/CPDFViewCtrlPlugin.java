@@ -82,6 +82,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_TEXT_SEARCH_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_THUMBNAIL_VIEW;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SHOW_WIDGET_PROPERTIES_VIEW;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_EVENT_SUBSCRIPTION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.VERIFY_DIGITAL_SIGNATURE_STATUS;
 
 import android.content.Context;
@@ -115,6 +116,8 @@ import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
 import com.compdfkit.tools.common.pdf.config.CPDFWatermarkConfig;
 import com.compdfkit.tools.common.utils.annotation.CPDFAnnotationManager;
 import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventCallbackHelper;
+import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventField;
+import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventType;
 import com.compdfkit.tools.common.views.pdfproperties.CAnnotationType;
 import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.CAnnotStyle;
 import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.CStyleType;
@@ -133,8 +136,10 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFCustomEventCallback {
 
@@ -143,6 +148,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
     private CPDFDocumentFragment documentFragment;
 
     private CPDFDocumentPlugin documentPlugin;
+
+    // Track which events are subscribed by Flutter side to optimize performance
+    private final Set<String> subscribedEvents = new HashSet<>();
 
     public CPDFViewCtrlPlugin(Context context, BinaryMessenger binaryMessenger, int viewId) {
         super(context, binaryMessenger);
@@ -221,14 +229,15 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 }
             });
             documentFragment.setAddAnnotCallback((cpdfPageView, cpdfBaseAnnot) -> {
-                HashMap<String, Object> annotData = getAnnotData(
-                        documentFragment.pdfView.getCPdfReaderView()
-                                .getPDFDocument(),
-                        cpdfBaseAnnot.onGetAnnotation());
-                if (cpdfBaseAnnot.getAnnotType() == Type.WIDGET) {
-                    methodChannel.invokeMethod("formFieldsCreated", annotData);
-                } else {
-                    methodChannel.invokeMethod("annotationsCreated", annotData);
+                String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
+                        ? "formFieldsCreated" : "annotationsCreated";
+                // Only parse and send data when event is subscribed
+                if (subscribedEvents.contains(eventName)) {
+                    HashMap<String, Object> annotData = getAnnotData(
+                            documentFragment.pdfView.getCPdfReaderView()
+                                    .getPDFDocument(),
+                            cpdfBaseAnnot.onGetAnnotation());
+                    methodChannel.invokeMethod(eventName, annotData);
                 }
             });
 
@@ -236,14 +245,15 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 @Override
                 public void onAnnotationSelected(CPDFPageView cpdfPageView,
                         CPDFBaseAnnotImpl<CPDFAnnotation> cpdfBaseAnnot) {
-                    HashMap<String, Object> annotData = getAnnotData(
-                            documentFragment.pdfView.getCPdfReaderView()
-                                    .getPDFDocument(),
-                            cpdfBaseAnnot.onGetAnnotation());
-                    if (cpdfBaseAnnot.getAnnotType() == Type.WIDGET) {
-                        methodChannel.invokeMethod("formFieldsSelected", annotData);
-                    } else {
-                        methodChannel.invokeMethod("annotationsSelected", annotData);
+                    String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
+                            ? "formFieldsSelected" : "annotationsSelected";
+                    // Only parse and send data when event is subscribed
+                    if (subscribedEvents.contains(eventName)) {
+                        HashMap<String, Object> annotData = getAnnotData(
+                                documentFragment.pdfView.getCPdfReaderView()
+                                        .getPDFDocument(),
+                                cpdfBaseAnnot.onGetAnnotation());
+                        methodChannel.invokeMethod(eventName, annotData);
                     }
                 }
 
@@ -251,14 +261,15 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 public void onAnnotationDeselected(CPDFPageView cpdfPageView,
                         @Nullable CPDFBaseAnnotImpl<CPDFAnnotation> cpdfBaseAnnot) {
                     if (cpdfBaseAnnot != null) {
-                        HashMap<String, Object> annotData = getAnnotData(
-                                documentFragment.pdfView.getCPdfReaderView()
-                                        .getPDFDocument(),
-                                cpdfBaseAnnot.onGetAnnotation());
-                        if (cpdfBaseAnnot.getAnnotType() == Type.WIDGET) {
-                            methodChannel.invokeMethod("formFieldsDeselected", annotData);
-                        } else {
-                            methodChannel.invokeMethod("annotationsDeselected", annotData);
+                        String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
+                                ? "formFieldsDeselected" : "annotationsDeselected";
+                        // Only parse and send data when event is subscribed
+                        if (subscribedEvents.contains(eventName)) {
+                            HashMap<String, Object> annotData = getAnnotData(
+                                    documentFragment.pdfView.getCPdfReaderView()
+                                            .getPDFDocument(),
+                                    cpdfBaseAnnot.onGetAnnotation());
+                            methodChannel.invokeMethod(eventName, annotData);
                         }
                     }
                 }
@@ -266,7 +277,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
 
             pdfView.addSelectEditAreaChangeListener(type -> {
                 if (type == CEditToolbar.SELECT_AREA_NONE) {
-                    methodChannel.invokeMethod("editorSelectionDeselected", null);
+                    // Only send event when subscribed
+                    if (subscribedEvents.contains("editorSelectionDeselected")) {
+                        methodChannel.invokeMethod("editorSelectionDeselected", null);
+                    }
+                    return;
+                }
+                // Only parse and send data when editorSelectionSelected is subscribed
+                if (!subscribedEvents.contains("editorSelectionSelected")) {
                     return;
                 }
                 CPDFEditArea editArea = readerView.getSelectEditArea();
@@ -316,14 +334,43 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
     public void click(Map<String, Object> extraMap) {
         String customEventType = extraMap.get("customEventType").toString();
         switch (customEventType) {
-            case "CustomToolbarItemTapped":
+            case CPDFCustomEventType.TOOLBAR_ITEM_TAPPED:
                 // click CPDFToolbar custom action.
                 methodChannel.invokeMethod("onCustomToolbarItemTapped", extraMap.get("identifier"));
                 break;
-            case "ContextMenuItem":
+            case CPDFCustomEventType.CONTEXT_MENU_ITEM_TAPPED:
+                CPDFPageUtil pageUtil = documentPlugin.pageUtil;
+                CPDFReaderView readerView = documentFragment.pdfView.getCPdfReaderView();
+                if (readerView != null && readerView.getPDFDocument() != null){
+                    pageUtil.setDocument(readerView.getPDFDocument());
+                }
+                Map<String, Object> eventData = pageUtil.parseCustomContextMenuEvent(extraMap);
                 // click context menu custom item.
-                methodChannel.invokeMethod("onCustomContextMenuItemTapped",
-                        documentPlugin.pageUtil.parseCustomContextMenuEvent(extraMap));
+                methodChannel.invokeMethod("onCustomContextMenuItemTapped", eventData);
+                break;
+            case CPDFCustomEventType.INTERCEPT_ANNOTATION_DO_ACTION:
+                if (extraMap.containsKey(CPDFCustomEventField.ANNOTATION)){
+                    CPDFAnnotation annotation = (CPDFAnnotation) extraMap.get(CPDFCustomEventField.ANNOTATION);
+                    if (annotation != null){
+                        HashMap<String, Object> annotData = getAnnotData(
+                            documentFragment.pdfView.getCPdfReaderView()
+                                .getPDFDocument(),
+                            annotation);
+                        methodChannel.invokeMethod("onInterceptAnnotationAction", annotData);
+                    }
+                }
+                break;
+            case CPDFCustomEventType.INTERCEPT_WIDGET_DO_ACTION:
+                if (extraMap.containsKey(CPDFCustomEventField.WIDGET)){
+                    CPDFAnnotation annotation = (CPDFAnnotation) extraMap.get(CPDFCustomEventField.WIDGET);
+                    if (annotation != null){
+                        HashMap<String, Object> annotData = getAnnotData(
+                            documentFragment.pdfView.getCPdfReaderView()
+                                .getPDFDocument(),
+                            annotation);
+                        methodChannel.invokeMethod("onInterceptWidgetAction", annotData);
+                    }
+                }
                 break;
             default:
                 // methodChannel.invokeMethod("onCustomEvent", extraMap);
@@ -892,12 +939,27 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                     result.error("PREPARE_NEXT_LINK_ERROR", "Link annotation not found", null);
                     return;
                 }
-                boolean updateResult = documentPlugin.pageUtil.updateAnnotation(pageIndex, annotPtr, linkAnnotationMap);
+                boolean updateResult = documentPlugin.pageUtil.updateAnnotation(annotation, linkAnnotationMap);
                 CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView().getChild(pageIndex);
                 if (pageView != null && updateResult) {
                     pageView.addAnnotation(annotation, false);
                     pageView.invalidate();
                 }
+                break;
+            }
+            case UPDATE_EVENT_SUBSCRIPTION: {
+                String eventName = call.argument("event");
+                Boolean subscribe = call.argument("subscribe");
+                if (eventName != null && subscribe != null) {
+                    if (subscribe) {
+                        subscribedEvents.add(eventName);
+                        Log.d(LOG_TAG, "Event subscribed: " + eventName);
+                    } else {
+                        subscribedEvents.remove(eventName);
+                        Log.d(LOG_TAG, "Event unsubscribed: " + eventName);
+                    }
+                }
+                result.success(null);
                 break;
             }
             default:

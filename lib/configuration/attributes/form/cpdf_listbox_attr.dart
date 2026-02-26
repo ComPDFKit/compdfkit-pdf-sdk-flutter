@@ -11,7 +11,6 @@ import '../../cpdf_options.dart';
 import '../cpdf_annot_attr_base.dart';
 
 class CPDFListBoxAttr extends CPDFAnnotAttrBase {
-
   @override
   String get type => CPDFFormType.listBox.name;
 
@@ -52,28 +51,26 @@ class CPDFListBoxAttr extends CPDFAnnotAttrBase {
     double? fontSize,
     String? familyName,
     String? styleName,
-  }){
+  }) {
     return CPDFListBoxAttr(
-      fillColor: fillColor ?? this.fillColor,
-      borderColor: borderColor ?? this.borderColor,
-      borderWidth: borderWidth ?? this.borderWidth,
-      fontColor: fontColor ?? this.fontColor,
-      fontSize: fontSize ?? this.fontSize,
-      familyName: familyName ?? this.familyName,
-      styleName:  styleName ?? this.styleName
-    );
+        fillColor: fillColor ?? this.fillColor,
+        borderColor: borderColor ?? this.borderColor,
+        borderWidth: borderWidth ?? this.borderWidth,
+        fontColor: fontColor ?? this.fontColor,
+        fontSize: fontSize ?? this.fontSize,
+        familyName: familyName ?? this.familyName,
+        styleName: styleName ?? this.styleName);
   }
 
   factory CPDFListBoxAttr.fromJson(Map<String, dynamic> json) {
     return CPDFListBoxAttr(
-      fillColor: HexColor.fromHex(json['fillColor']),
-      borderColor: HexColor.fromHex(json['borderColor']),
-      borderWidth: json['borderWidth'] ?? 2,
-      fontColor: HexColor.fromHex(json['fontColor']),
-      fontSize: json['fontSize'] ?? 20,
-      familyName: json['familyName'] ?? 'Helvetica',
-      styleName: json['styleName'] ?? ''
-    );
+        fillColor: HexColor.fromHex(json['fillColor']),
+        borderColor: HexColor.fromHex(json['borderColor']),
+        borderWidth: json['borderWidth'] ?? 2,
+        fontColor: HexColor.fromHex(json['fontColor']),
+        fontSize: json['fontSize'] ?? 20,
+        familyName: json['familyName'] ?? 'Helvetica',
+        styleName: json['styleName'] ?? '');
   }
 
   @override

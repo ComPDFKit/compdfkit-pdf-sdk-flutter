@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'package:compdfkit_flutter/annotation/form/cpdf_checkbox_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_combobox_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_listbox_widget.dart';
@@ -16,6 +15,7 @@ import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 
 import 'cpdf_text_widget.dart';
+
 typedef CPDFWidgetFactory = CPDFWidget Function(Map<String, dynamic> json);
 
 /// Registry that maps [CPDFFormType] to concrete [CPDFWidget] implementations.

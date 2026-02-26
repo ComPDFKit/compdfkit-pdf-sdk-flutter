@@ -6,9 +6,9 @@
 // This notice may not be removed from this file.
 
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
-
 
 /// {@category viewer-ui}
 /// Called when the [CPDFReaderWidgetController] is ready.
@@ -184,3 +184,51 @@ typedef CPDFOnCustomContextMenuItemTappedCallback = void Function(
   String identifier,
   dynamic event,
 );
+
+
+/// Callback for intercepting annotation actions (note and hyperlink annotations).
+///
+/// Used to configure interception of note and hyperlink annotation tap actions
+/// in CPDFConfiguration, and dispatch the events to the Flutter side for handling.
+///
+/// **Configuration Example:**
+/// ```dart
+/// CPDFConfiguration config = CPDFConfiguration(
+///   annotationsConfig: CPDFAnnotationsConfig(
+///     annotationAuthor: PreferencesService.documentAuthor,
+///     interceptLinkAction: true,
+///     interceptNoteAction: true
+///   ),
+/// );
+///
+/// CPDFReaderWidget(
+///   document: widget.documentPath,
+///   configuration: config,
+///   onInterceptAnnotationActionCallback: (CPDFAnnotation annotation) {
+///     // Handle annotation tap event
+///   }
+/// );
+/// ```
+typedef CPDFOnInterceptAnnotationActionCallback = void Function(CPDFAnnotation annotation);
+
+/// Callback for intercepting widget actions (list box, combo box, etc.).
+/// Used to configure interception of form field widget actions in CPDFConfiguration, and dispatch the events to the Flutter side for handling.
+///
+/// Only support android platform in v2.6.2. iOS support will be added in future releases.
+///
+/// **Configuration Example:**
+/// ```dart
+/// CPDFConfiguration config = CPDFConfiguration(
+///         formsConfig: CPDFFormsConfig(
+///          interceptComboBoxAction: true,
+///         interceptListBoxAction: true,
+///       );
+/// 
+/// CPDFReaderWidget(
+///   document: widget.documentPath,
+///   configuration: config,
+///   onInterceptWidgetActionCallback: (CPDFWidget widget) {
+///     // Handle widget action event
+///   }
+/// );
+typedef CPDFOnInterceptWidgetActionCallback = void Function(CPDFWidget widget);

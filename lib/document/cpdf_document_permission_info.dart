@@ -8,7 +8,6 @@
  *
  */
 
-
 class CPDFDocumentPermissionInfo {
   /// Printing the document
   final bool allowsPrinting;
@@ -41,19 +40,18 @@ class CPDFDocumentPermissionInfo {
   });
 
   CPDFDocumentPermissionInfo.empty()
-    : allowsPrinting = false,
-      allowsHighQualityPrinting = false,
-      allowsCopying = false,
-      allowsDocumentChanges = false,
-      allowsDocumentAssembly = false,
-      allowsCommenting = false,
-      allowsFormFieldEntry = false;
+      : allowsPrinting = false,
+        allowsHighQualityPrinting = false,
+        allowsCopying = false,
+        allowsDocumentChanges = false,
+        allowsDocumentAssembly = false,
+        allowsCommenting = false,
+        allowsFormFieldEntry = false;
 
   factory CPDFDocumentPermissionInfo.fromJson(Map<String, dynamic> json) {
     return CPDFDocumentPermissionInfo(
       allowsPrinting: json['allowsPrinting'] ?? false,
-      allowsHighQualityPrinting:
-          json['allowsHighQualityPrinting'] ?? false,
+      allowsHighQualityPrinting: json['allowsHighQualityPrinting'] ?? false,
       allowsCopying: json['allowsCopying'] ?? false,
       allowsDocumentChanges: json['allowsDocumentChanges'] ?? false,
       allowsDocumentAssembly: json['allowsDocumentAssembly'] ?? false,
@@ -73,5 +71,4 @@ class CPDFDocumentPermissionInfo {
       'allowsFormFieldEntry': allowsFormFieldEntry,
     };
   }
-
 }

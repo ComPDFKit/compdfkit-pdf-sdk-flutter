@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'compdfkit_flutter'
-  s.version          = '2.6.1'
+  s.version          = '2.6.2'
   s.summary          = 'Flutter PDF Library by ComPDFKit'
   s.description      = <<-DESC
 A new Flutter plugin project.

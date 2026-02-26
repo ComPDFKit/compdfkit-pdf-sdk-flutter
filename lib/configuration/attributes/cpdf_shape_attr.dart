@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'package:flutter/material.dart';
 
 import '../../annotation/cpdf_border_style.dart';
@@ -13,15 +12,13 @@ import '../../util/extension/cpdf_color_extension.dart';
 import '../cpdf_options.dart';
 import 'cpdf_annot_attr_base.dart';
 
-
-
 /// PDF Shape annotation attribute model.
 ///
 /// Includes fill and border color, transparency, border thickness and style.
 class CPDFShapeAttr extends CPDFAnnotAttrBase {
-
   @override
   String get type => '';
+
   /// The fill color of the shape.
   final Color fillColor;
 
@@ -40,10 +37,10 @@ class CPDFShapeAttr extends CPDFAnnotAttrBase {
 
   const CPDFShapeAttr(
       {this.fillColor = const Color(0xFF1460F3),
-        this.borderColor = Colors.black,
-        this.colorAlpha = 128,
-        this.borderWidth = 2,
-        this.borderStyle = const CPDFBorderStyle.solid()});
+      this.borderColor = Colors.black,
+      this.colorAlpha = 128,
+      this.borderWidth = 2,
+      this.borderStyle = const CPDFBorderStyle.solid()});
 
   /// Creates a [CPDFShapeAttr] instance from a JSON map.
   /// example:
@@ -67,21 +64,21 @@ class CPDFShapeAttr extends CPDFAnnotAttrBase {
       borderWidth: json['borderWidth'] ?? 2.0,
       borderStyle: json['borderStyle'] != null
           ? CPDFBorderStyle(
-          style: CPDFAnnotBorderStyle.values.firstWhere(
-                  (e) => e.name == json['borderStyle']['style']),
-          dashGap: json['borderStyle']['dashGap'] ?? 0)
+              style: CPDFAnnotBorderStyle.values
+                  .firstWhere((e) => e.name == json['borderStyle']['style']),
+              dashGap: json['borderStyle']['dashGap'] ?? 0)
           : const CPDFBorderStyle.solid(),
     );
   }
 
   @override
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'fillColor': fillColor.toHex(),
-    'borderColor': borderColor.toHex(),
-    'colorAlpha': colorAlpha,
-    'borderAlpha': colorAlpha,
-    'borderWidth': borderWidth,
-    'borderStyle': borderStyle?.toJson()
-  };
+        'type': type,
+        'fillColor': fillColor.toHex(),
+        'borderColor': borderColor.toHex(),
+        'colorAlpha': colorAlpha,
+        'borderAlpha': colorAlpha,
+        'borderWidth': borderWidth,
+        'borderStyle': borderStyle?.toJson()
+      };
 }

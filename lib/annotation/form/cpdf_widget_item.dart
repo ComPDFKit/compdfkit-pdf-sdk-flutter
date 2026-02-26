@@ -50,5 +50,4 @@ class CPDFWidgetItem {
   String toString() {
     return jsonEncode(toJson());
   }
-
 }

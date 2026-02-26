@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 
 class CPDFSearchConfig {
-
   final CPDFKeywordConfig normalKeyword;
   final CPDFKeywordConfig focusKeyword;
 
@@ -44,7 +43,6 @@ class CPDFSearchConfig {
 }
 
 class CPDFKeywordConfig {
-
   final Color borderColor;
   final Color fillColor;
 
@@ -56,7 +54,7 @@ class CPDFKeywordConfig {
   factory CPDFKeywordConfig.fromJson(Map<String, dynamic> json) {
     return CPDFKeywordConfig(
       borderColor: HexColor.fromHex(json['borderColor']),
-      fillColor:  HexColor.fromHex(json['fillColor']),
+      fillColor: HexColor.fromHex(json['fillColor']),
     );
   }
 

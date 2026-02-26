@@ -49,7 +49,7 @@ class CPDFDocument {
 
   bool _isValid = false;
 
-  get isValid => _isValid;
+  bool get isValid => _isValid;
 
   CPDFTextSearcher? _textSearcher;
 
@@ -942,7 +942,7 @@ class CPDFDocument {
       bool drawAnnot = true,
       bool drawForm = true,
       CPDFPageCompression compression = CPDFPageCompression.png}) async {
-    Uint8List imageData = await _channel.invokeMethod('render_page', {
+    final result = await _channel.invokeMethod('render_page', {
       'page_index': pageIndex,
       'width': width,
       'height': height,
@@ -951,7 +951,13 @@ class CPDFDocument {
       'draw_form': drawForm,
       'compression': compression.name,
     });
-    return imageData;
+    if (result is Uint8List) {
+      return result;
+    } else if (result is Map && result.containsKey('error')) {
+      throw Exception('renderPage failed: ${result['error']}');
+    } else {
+      throw Exception('renderPage failed: unexpected result type ${result.runtimeType}');
+    }
   }
 
   /// Gets the size of the specified page in the document.

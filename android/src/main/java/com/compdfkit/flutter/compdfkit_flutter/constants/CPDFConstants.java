@@ -239,6 +239,7 @@ public class CPDFConstants {
     public static final String PREPARE_NEXT_IMAGE = "prepare_next_image";
     public static final String PREPARE_NEXT_STAMP = "prepare_next_stamp";
     public static final String PREPARE_NEXT_LINK = "prepare_next_link";
+    public static final String UPDATE_EVENT_SUBSCRIPTION = "update_event_subscription";
     public static final String UPDATE_WIDGET = "update_widget";
     public static final String REMOVE_EDIT_AREA = "remove_edit_area";
     public static final String ADD_ANNOTATIONS = "add_annotations";

@@ -8,7 +8,6 @@
 import 'package:compdfkit_flutter/page/cpdf_text_range.dart';
 
 class CPDFSearchItem {
-
   final CPDFTextRange keywordsTextRange;
 
   final CPDFTextRange contentTextRange;
@@ -23,5 +22,4 @@ class CPDFSearchItem {
     required this.keywords,
     required this.content,
   });
-
 }

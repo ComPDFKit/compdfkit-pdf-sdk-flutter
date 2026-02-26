@@ -5,20 +5,17 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 class CPDFBookmark {
-
   String title;
   final int pageIndex;
   final DateTime? date;
   final String uuid;
 
-  CPDFBookmark({
-    required this.title,
-    required this.pageIndex,
-    this.date,
-    this.uuid = ''
-  });
+  CPDFBookmark(
+      {required this.title,
+      required this.pageIndex,
+      this.date,
+      this.uuid = ''});
 
   factory CPDFBookmark.fromJson(Map<String, dynamic> json) {
     return CPDFBookmark(

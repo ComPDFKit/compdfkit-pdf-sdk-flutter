@@ -8,7 +8,6 @@
  *
  */
 
-
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 
@@ -25,7 +24,6 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 ///
 /// {@category annotations}
 class CPDFSoundAnnotation extends CPDFAnnotation {
-
   final String? soundPath;
 
   CPDFSoundAnnotation(
@@ -55,5 +53,4 @@ class CPDFSoundAnnotation extends CPDFAnnotation {
   Map<String, dynamic> toJson() {
     return {...super.toJson(), 'soundPath': soundPath};
   }
-
 }

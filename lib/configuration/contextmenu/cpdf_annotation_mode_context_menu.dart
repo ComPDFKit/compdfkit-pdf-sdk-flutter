@@ -8,12 +8,10 @@
  *
  */
 
-
 import 'cpdf_context_menu_item.dart';
 import 'cpdf_context_menu_options.dart';
 
 class CPDFAnnotationModeContextMenu {
-
   final List<CPDFContextMenuItem<CPDFAnnotationTextSelectMenuKey>> textSelect;
   final List<CPDFContextMenuItem<CPDFAnnotationLongPressMenuKey>> longPress;
   final List<CPDFContextMenuItem<CPDFAnnotationMarkupMenuKey>> markup;
@@ -24,8 +22,6 @@ class CPDFAnnotationModeContextMenu {
   final List<CPDFContextMenuItem<CPDFAnnotationSignMenuKey>> signStamp;
   final List<CPDFContextMenuItem<CPDFAnnotationStampMenuKey>> stamp;
   final List<CPDFContextMenuItem<CPDFAnnotationLinkMenuKey>> link;
-
-
 
   const CPDFAnnotationModeContextMenu({
     this.textSelect = const [

@@ -9,7 +9,6 @@
  */
 
 abstract class CPDFHistoryManagerBase {
-
   Future<bool> canUndo();
 
   Future<bool> canRedo();
@@ -17,5 +16,4 @@ abstract class CPDFHistoryManagerBase {
   Future<void> undo();
 
   Future<void> redo();
-
 }

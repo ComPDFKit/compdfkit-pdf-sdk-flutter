@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-
 import 'dart:ui';
 
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
@@ -13,10 +12,7 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import '../../util/extension/cpdf_color_extension.dart';
 import 'cpdf_markup_attr.dart';
 
-
-
 class CPDFUnderlineAttr extends CPDFMarkupAttr {
-
   @override
   String get type => CPDFAnnotationType.underline.name;
 

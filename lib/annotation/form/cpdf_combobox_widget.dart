@@ -8,7 +8,6 @@
  *
  */
 
-
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget_item.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
@@ -76,7 +75,7 @@ class CPDFComboBoxWidget extends CPDFWidget {
                     CPDFWidgetItem.fromJson(Map<String, dynamic>.from(e)))
                 .toList()
             : null,
-        selectItemAtIndex: json['selectedIndexes'] ?? 0,
+        selectItemAtIndex: json['selectItemAtIndex'] ?? 0,
         fontColor: HexColor.fromHex(json['fontColor'] ?? '#000000'),
         fontSize: (json['fontSize'] as num?)?.toDouble() ?? 20.0,
         familyName: json['familyName'] ?? 'Helvetica',

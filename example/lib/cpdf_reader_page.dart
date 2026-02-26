@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
+import 'widgets/app_toolbar.dart';
 
 class CPDFReaderPage extends StatefulWidget {
   final String title;
@@ -30,7 +31,8 @@ class CPDFReaderPage extends StatefulWidget {
   final void Function(CPDFAnnotationType type, CPDFAnnotation? annotation)?
       onAnnotationCreationPreparedCallback;
 
-  final CPDFOnCustomContextMenuItemTappedCallback? onCustomContextMenuItemTappedCallback;
+  final CPDFOnCustomContextMenuItemTappedCallback?
+      onCustomContextMenuItemTappedCallback;
 
   final List<Widget> Function(CPDFReaderWidgetController controller)?
       appBarActions;
@@ -78,26 +80,26 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: Text(
-            widget.title,
-            style: Theme.of(context).textTheme.titleSmall,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: SafeArea(
+            bottom: false,
+            child: AppToolbar(
+              title: widget.title,
+              onBack: () async {
+                if (_controller != null) {
+                  bool saveResult = await _controller!.document.save();
+                  debugPrint('ComPDFKit: saveResult: $saveResult');
+                }
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              actions: _controller == null
+                  ? null
+                  : widget.appBarActions?.call(_controller!),
+            ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              if (_controller != null) {
-                bool saveResult = await _controller!.document.save();
-                debugPrint('ComPDFKit: saveResult: $saveResult');
-              }
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-          ),
-          actions: _controller == null
-              ? null
-              : widget.appBarActions?.call(_controller!) ?? [],
         ),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
@@ -109,31 +111,32 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
     return SafeArea(
         bottom: widget.safeBottom,
         child: CPDFReaderWidget(
-            document: widget.documentPath,
-            password: widget.password,
-            configuration: widget.configuration,
-            pageIndex: 0,
-            onCreated: (controller) {
-              setState(() {
-                _controller = controller;
-              });
-              widget.onCreated?.call(controller);
-            },
-            onPageChanged: widget.onPageChanged,
-            onSaveCallback: widget.onSaveCallback,
-            onFillScreenChanged: widget.onFillScreenChanged,
-            onIOSClickBackPressed: widget.onIOSClickBackPressed,
-            onCustomToolbarItemTappedCallback:
-                widget.onCustomToolbarItemTappedCallback,
-            onAnnotationCreationPreparedCallback:
-                widget.onAnnotationCreationPreparedCallback,
-            onPageEditDialogBackPress: () {
-              debugPrint('CPDFReaderWidget: onPageEditDialogBackPress');
-            },
-            onTapMainDocAreaCallback: () {
-              widget.onTapMainDocAreaCallback?.call();
-            },
-            onCustomContextMenuItemTappedCallback: widget.onCustomContextMenuItemTappedCallback,
+          document: widget.documentPath,
+          password: widget.password,
+          configuration: widget.configuration,
+          pageIndex: 0,
+          onCreated: (controller) {
+            setState(() {
+              _controller = controller;
+            });
+            widget.onCreated?.call(controller);
+          },
+          onPageChanged: widget.onPageChanged,
+          onSaveCallback: widget.onSaveCallback,
+          onFillScreenChanged: widget.onFillScreenChanged,
+          onIOSClickBackPressed: widget.onIOSClickBackPressed,
+          onCustomToolbarItemTappedCallback:
+              widget.onCustomToolbarItemTappedCallback,
+          onAnnotationCreationPreparedCallback:
+              widget.onAnnotationCreationPreparedCallback,
+          onPageEditDialogBackPress: () {
+            debugPrint('CPDFReaderWidget: onPageEditDialogBackPress');
+          },
+          onTapMainDocAreaCallback: () {
+            widget.onTapMainDocAreaCallback?.call();
+          },
+          onCustomContextMenuItemTappedCallback:
+              widget.onCustomContextMenuItemTappedCallback,
         ));
   }
 

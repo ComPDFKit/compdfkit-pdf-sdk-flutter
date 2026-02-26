@@ -9,18 +9,9 @@
  */
 
 /// contextMenuConfig - global - screen menu key
-enum CPDFScreenShotMenuKey {
-  exit,
-  share,
-  custom
-}
+enum CPDFScreenShotMenuKey { exit, share, custom }
 
-
-enum CPDFViewModeTextSelectKey {
-  copy,
-  custom
-}
-
+enum CPDFViewModeTextSelectKey { copy, custom }
 
 enum CPDFAnnotationTextSelectMenuKey {
   copy,
@@ -107,7 +98,6 @@ enum CPDFAnnotationLinkMenuKey {
   custom;
 }
 
-
 enum CPDFContentEditorEditTextAreaMenuKey {
   properties,
   edit,
@@ -182,11 +172,7 @@ enum CPDFContentEditorSearchReplaceMenuKey {
 }
 
 /// FormMode
-enum CPDFFormTextFieldMenuKey {
-  properties,
-  delete,
-  custom
-}
+enum CPDFFormTextFieldMenuKey { properties, delete, custom }
 
 enum CPDFFormCheckBoxMenuKey {
   properties,
@@ -228,10 +214,8 @@ enum CPDFFormPushButtonMenuKey {
 }
 
 class CPDFContextMenuOpacityKey {
-
   static const opacity25 = '25%';
   static const opacity50 = '50%';
   static const opacity75 = '75%';
   static const opacity100 = '100%';
-
 }

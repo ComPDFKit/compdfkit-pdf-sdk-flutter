@@ -217,6 +217,7 @@ class CPDFConstants {
     static let prepareNextStamp = "prepare_next_stamp"
     static let prepareNextImage = "prepare_next_image"
     static let prepareNextLink = "prepare_next_link"
+    static let updateEventSubscription = "update_event_subscription"
     
     static let updateAnnotation = "update_annotation"
     static let updateWidget = "update_widget"

@@ -516,6 +516,9 @@ class CPDFPageUtil: NSObject {
                             actionDict["actionType"] = "goTo"
                             actionDict["pageIndex"] = gotoAction
                                 .destination().pageIndex
+                        } else if let namedAction = action as? CPDFNamedAction {
+                            actionDict["actionType"] = "named"
+                            actionDict["namedAction"] = CPDFEnumConvertUtil.namedActionToString(namedAction.name())
                         }
                         formDict["action"] = actionDict
                     }
@@ -1040,6 +1043,11 @@ class CPDFPageUtil: NSObject {
                                     )
                                 )
                                 pushButtonWidget.action = gotoAction
+                            }
+                        case "named":
+                            if let namedAction = actionDict["namedAction"] as? String {
+                                let action = CPDFNamedAction(name: CPDFEnumConvertUtil.stringToNamedAction(namedAction))
+                                pushButtonWidget.action = action
                             }
                         default:
                             break;
@@ -1774,7 +1782,7 @@ class CPDFPageUtil: NSObject {
                 overallSuccess = false
                 continue
             }
-            
+        
             switch type {
             case "textField":
                 guard let textWidget = CPDFTextWidgetAnnotation(document: document) else {
@@ -1948,6 +1956,11 @@ class CPDFPageUtil: NSObject {
                     case "uri":
                         if let urlStr = actionDict["uri"] as? String {
                             let action = CPDFURLAction(url: urlStr)
+                            pushButtonWidget.action = action
+                        }
+                    case "named":
+                        if let namedAction = actionDict["namedAction"] as? String {
+                            let action = CPDFNamedAction(name: CPDFEnumConvertUtil.stringToNamedAction(namedAction))
                             pushButtonWidget.action = action
                         }
                     default:

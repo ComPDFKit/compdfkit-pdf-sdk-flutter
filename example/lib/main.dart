@@ -6,16 +6,18 @@
 // This notice may not be removed from this file.
 // example/lib/main.dart
 
-import 'dart:io';
-import 'package:compdfkit_flutter/compdfkit.dart';
-import 'package:compdfkit_flutter/util/cpdf_file_util.dart';
-import 'package:compdfkit_flutter_example/examples.dart';
-import 'package:compdfkit_flutter_example/theme/themes.dart';
-import 'package:compdfkit_flutter_example/utils/file_util.dart';
-import 'package:compdfkit_flutter_example/widgets/cpdf_app_bar.dart';
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
-void main() {
+import 'package:compdfkit_flutter_example/app/global_initializer.dart';
+import 'package:compdfkit_flutter_example/app/home_page.dart';
+import 'package:compdfkit_flutter_example/theme/themes.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:compdf_viewer/compdf_viewer.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GlobalInitializer.instance.initialize();
   runApp(const MyApp());
 }
 
@@ -27,68 +29,34 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'ComPDFKit SDK for Flutter',
       theme: _getLightTheme(),
       darkTheme: _getDarkTheme(),
       themeMode: ThemeMode.system,
+      // Localization
+      translations: _AppTranslations(),
+      locale: _getDeviceLocale(),
+      fallbackLocale: const Locale('en', 'US'),
+      // Routes
+      getPages: PdfViewerPages.routes,
       home: const HomePage(),
     );
   }
-}
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    _initializeComPDFKit();
-  }
-
-  Future<void> _initializeComPDFKit() async {
-    await _initFontDir();
-    await _initLicense();
-  }
-
-  Future<void> _initFontDir() async {
-    final fontDir = await extractAssetFolder(context, 'extraFonts/');
-    await ComPDFKit.setImportFontDir(fontDir, addSysFont: true);
-  }
-
-  Future<void> _initLicense() async {
-    File licenseFile = await CPDFFileUtil.extractAsset('assets/license_key_flutter.xml', shouldOverwrite: false);
-    final initResult = await ComPDFKit.initWithPath(licenseFile.path);
-    debugPrint('ComPDFKit-Flutter: SDK init result: $initResult');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CAppBar(),
-      body: ExampleListView(widgets: examples(context)),
-    );
+  /// Get device locale, defaults to en_US if not supported
+  Locale _getDeviceLocale() {
+    final deviceLocale = PlatformDispatcher.instance.locale;
+    // Check if device locale is supported
+    if (deviceLocale.languageCode == 'zh') {
+      return const Locale('zh', 'CN');
+    }
+    return const Locale('en', 'US');
   }
 }
 
-class ExampleListView extends StatelessWidget {
-  final List<Widget> widgets;
-
-  const ExampleListView({super.key, required this.widgets});
-
+/// App translations combining pdf_viewer translations
+class _AppTranslations extends Translations {
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListView.builder(
-        itemCount: widgets.length,
-        itemBuilder: (context, index) => widgets[index],
-      ),
-    );
-  }
+  Map<String, Map<String, String>> get keys => PdfViewerTranslations.keys;
 }

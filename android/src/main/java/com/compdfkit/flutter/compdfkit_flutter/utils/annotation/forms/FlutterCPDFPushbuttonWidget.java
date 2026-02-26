@@ -17,6 +17,7 @@ import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.action.CPDFAction;
 import com.compdfkit.core.document.action.CPDFAction.ActionType;
 import com.compdfkit.core.document.action.CPDFGoToAction;
+import com.compdfkit.core.document.action.CPDFNamedAction;
 import com.compdfkit.core.document.action.CPDFUriAction;
 import com.compdfkit.core.page.CPDFPage;
 import com.compdfkit.core.utils.TTimeUtil;
@@ -43,15 +44,24 @@ public class FlutterCPDFPushbuttonWidget extends FlutterCPDFBaseWidget {
     if (action != null){
       Map<String, Object> actionMap = new HashMap<>();
       actionMap.put("actionType", CPDFEnumConvertUtil.actionTypeToString(action));
-      if (action.getActionType() == ActionType.PDFActionType_URI){
-        CPDFUriAction uriAction = (CPDFUriAction) action;
-        actionMap.put("uri", uriAction.getUri());
-      } else if (action.getActionType() == ActionType.PDFActionType_GoTo){
-        CPDFGoToAction goToAction = (CPDFGoToAction) action;
-        if (document != null && goToAction != null){
-          CPDFDestination destination = goToAction.getDestination(document);
-          actionMap.put("pageIndex",destination != null ? destination.getPageIndex() : 0);
-        }
+      switch (action.getActionType()){
+          case PDFActionType_URI:
+              CPDFUriAction uriAction = (CPDFUriAction) action;
+              actionMap.put("uri", uriAction.getUri());
+              break;
+          case PDFActionType_GoTo:
+              CPDFGoToAction goToAction = (CPDFGoToAction) action;
+              if (document != null && goToAction != null){
+                  CPDFDestination destination = goToAction.getDestination(document);
+                  actionMap.put("pageIndex",destination != null ? destination.getPageIndex() : 0);
+              }
+              break;
+          case PDFActionType_Named:
+              CPDFNamedAction namedAction = (CPDFNamedAction) action;
+              actionMap.put("namedAction", CPDFEnumConvertUtil.namedActionToString(namedAction.getNamedAction()));
+              break;
+          default:
+              break;
       }
       map.put("action", actionMap);
     }
@@ -84,20 +94,31 @@ public class FlutterCPDFPushbuttonWidget extends FlutterCPDFBaseWidget {
 
     HashMap<String, Object> actionMap = (HashMap<String, Object>) annotMap.get("action");
     if (actionMap != null){
-      String actionType = actionMap.get("actionType").toString();
-      if (actionType.equals("uri")){
-        String uri = actionMap.get("uri").toString();
-        CPDFUriAction uriAction = new CPDFUriAction();
-        uriAction.setUri(uri);
-        pushButtonWidget.setButtonAction(uriAction);
-      } else if (actionType.equals("goTo")){
-
-        int pageIndex = (int) actionMap.get("pageIndex");
-        float height = annotation.pdfPage.getSize().height();
-        CPDFDestination destination = new CPDFDestination(pageIndex, 0F, height, 1F);
-        CPDFGoToAction goToAction = new CPDFGoToAction();
-        goToAction.setDestination(document, destination);
-        pushButtonWidget.setButtonAction(goToAction);
+      String actionTypeStr = actionMap.get("actionType").toString();
+      ActionType actionType = CPDFEnumConvertUtil.stringToActionType(actionTypeStr);
+      switch(actionType){
+          case PDFActionType_URI:
+              String uri = actionMap.get("uri").toString();
+              CPDFUriAction uriAction = new CPDFUriAction();
+              uriAction.setUri(uri);
+              pushButtonWidget.setButtonAction(uriAction);
+              break;
+          case PDFActionType_GoTo:
+              int pageIndex = (int) actionMap.get("pageIndex");
+              float height = annotation.pdfPage.getSize().height();
+              CPDFDestination destination = new CPDFDestination(pageIndex, 0F, height, 1F);
+              CPDFGoToAction goToAction = new CPDFGoToAction();
+              goToAction.setDestination(document, destination);
+              pushButtonWidget.setButtonAction(goToAction);
+              break;
+          case PDFActionType_Named:
+                String namedActionStr = actionMap.get("namedAction").toString();
+                CPDFNamedAction namedAction = new CPDFNamedAction();
+                namedAction.setNamedAction(CPDFEnumConvertUtil.stringToNamedAction(namedActionStr));
+                pushButtonWidget.setButtonAction(namedAction);
+                break;
+          default:
+              break;
       }
     }
   }
@@ -152,23 +173,31 @@ public class FlutterCPDFPushbuttonWidget extends FlutterCPDFBaseWidget {
 
       HashMap<String, Object> actionMap = (HashMap<String, Object>) widgetMap.get("action");
       if (actionMap != null){
-        String actionType = actionMap.get("actionType").toString();
-        if (actionType.equals("uri")){
-          String uri = actionMap.get("uri").toString();
-          CPDFUriAction uriAction = new CPDFUriAction();
-          uriAction.setUri(uri);
-          widget.setButtonAction(uriAction);
-        } else if (actionType.equals("goTo")){
-
-          int targetPageIndex = (int) actionMap.get("pageIndex");
-          float height = document.pageAtIndex(targetPageIndex).getSize().height();
-          CPDFDestination destination = new CPDFDestination(targetPageIndex, 0F, height, 1F);
-          CPDFGoToAction goToAction = new CPDFGoToAction();
-          goToAction.setDestination(document, destination);
-          widget.setButtonAction(goToAction);
+        String actionTypeStr = actionMap.get("actionType").toString();
+        ActionType actionType = CPDFEnumConvertUtil.stringToActionType(actionTypeStr);
+        switch (actionType){
+            case PDFActionType_URI:
+                String uri = actionMap.get("uri").toString();
+                CPDFUriAction uriAction = new CPDFUriAction();
+                uriAction.setUri(uri);
+                widget.setButtonAction(uriAction);
+                break;
+            case PDFActionType_GoTo:
+                int targetPageIndex = (int) actionMap.get("pageIndex");
+                float height = document.pageAtIndex(targetPageIndex).getSize().height();
+                CPDFDestination destination = new CPDFDestination(targetPageIndex, 0F, height, 1F);
+                CPDFGoToAction goToAction = new CPDFGoToAction();
+                goToAction.setDestination(document, destination);
+                widget.setButtonAction(goToAction);
+                break;
+            case PDFActionType_Named:
+                String namedActionStr = actionMap.get("namedAction").toString();
+                CPDFNamedAction namedAction = new CPDFNamedAction();
+                namedAction.setNamedAction(CPDFEnumConvertUtil.stringToNamedAction(namedActionStr));
+                widget.setButtonAction(namedAction);
+                break;
         }
       }
-
       widget.setFillColor(Color.parseColor(fillColor));
       widget.setBorderColor(Color.parseColor(borderColor));
       widget.setBorderWidth((float) borderWidth);

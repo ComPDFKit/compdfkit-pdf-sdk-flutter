@@ -260,9 +260,8 @@ public class CPDFPageUtil {
         }
     }
 
-    public boolean updateAnnotation(int pageIndex, String annotPtr,
+    public boolean updateAnnotation(CPDFAnnotation annotation,
             HashMap<String, Object> properties) {
-        CPDFAnnotation annotation = getAnnotation(pageIndex, annotPtr);
         if (annotation != null) {
             FlutterCPDFAnnotation rcpdfAnnotation = annotImpls.get(annotation.getType());
             if (rcpdfAnnotation != null) {

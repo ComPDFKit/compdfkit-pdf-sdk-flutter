@@ -62,7 +62,7 @@ class CPDFInkAnnotation extends CPDFAnnotation {
             if (point is List && point.length >= 2) {
               final double x = _toDouble(point[0], fallback: 0.0);
               final double y = _toDouble(point[1], fallback: 0.0);
-              points.add([x,y]);
+              points.add([x, y]);
             }
           }
         }

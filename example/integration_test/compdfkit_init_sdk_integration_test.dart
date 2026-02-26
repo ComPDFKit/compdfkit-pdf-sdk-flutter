@@ -24,9 +24,11 @@ Future<File> _copyAssetToTemp(String assetPath, String fileName) async {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Initialize SDK using initWithPath (offline license file)', (tester) async {
+  testWidgets('Initialize SDK using initWithPath (offline license file)',
+      (tester) async {
     // Copy the license XML from assets to a temporary file
-    final licenseFile = await _copyAssetToTemp('assets/license_key_flutter.xml', 'compdfkit_license.xml');
+    final licenseFile = await _copyAssetToTemp(
+        'assets/license_key_flutter.xml', 'compdfkit_license.xml');
 
     // Initialize the SDK using ComPDFKit.initWithPath and the license file path
     final initWithPath = await ComPDFKit.initWithPath(licenseFile.path);
@@ -39,9 +41,11 @@ void main() {
     expect(initWithPath, true);
   });
 
-  testWidgets('Initialize SDK using initialize (online license key from asset)', (tester) async {
+  testWidgets('Initialize SDK using initialize (online license key from asset)',
+      (tester) async {
     // Load the license XML content from assets
-    final xmlString = await rootBundle.loadString('assets/license_key_flutter.xml');
+    final xmlString =
+        await rootBundle.loadString('assets/license_key_flutter.xml');
     // Extract the <key> value from the XML
     final keyReg = RegExp(r'<key>(.*?)<\/key>', dotAll: true);
     final match = keyReg.firstMatch(xmlString);

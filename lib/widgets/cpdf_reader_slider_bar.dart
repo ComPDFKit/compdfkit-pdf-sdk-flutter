@@ -41,7 +41,6 @@ import 'package:flutter/material.dart';
 /// ```
 
 class CPDFReaderSliderBar extends StatefulWidget {
-
   final int currentPage;
 
   final int pageCount;
@@ -58,17 +57,16 @@ class CPDFReaderSliderBar extends StatefulWidget {
 
   final Axis axis;
 
-  const CPDFReaderSliderBar({
-    super.key,
-    required this.currentPage,
-    required this.pageCount,
-    required this.onJumpToPage,
-    this.thumbHeight = 40.0,
-    this.showPageIndicator = true,
-    this.thumbBuilder,
-    this.axis = Axis.vertical,
-    this.thumbColor = Colors.blue
-  });
+  const CPDFReaderSliderBar(
+      {super.key,
+      required this.currentPage,
+      required this.pageCount,
+      required this.onJumpToPage,
+      this.thumbHeight = 40.0,
+      this.showPageIndicator = true,
+      this.thumbBuilder,
+      this.axis = Axis.vertical,
+      this.thumbColor = Colors.blue});
 
   @override
   State<CPDFReaderSliderBar> createState() => _CpdfReaderSliderBarState();
@@ -83,23 +81,30 @@ class _CpdfReaderSliderBarState extends State<CPDFReaderSliderBar> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isVertical = widget.axis == Axis.vertical;
-        final totalLength = isVertical ? constraints.maxHeight : constraints.maxWidth;
+        final totalLength =
+            isVertical ? constraints.maxHeight : constraints.maxWidth;
         final thumbSize = widget.thumbHeight;
 
         final thumbOffset = _dragPosition ??
             ((widget.pageCount <= 1)
                 ? 0.0
                 : (widget.currentPage / (widget.pageCount - 1)) *
-                (totalLength - thumbSize));
+                    (totalLength - thumbSize));
 
         return Listener(
-          onPointerMove: (event) => _handlePointerEvent(event, totalLength, isVertical, isFinal: false),
-          onPointerUp: (event) => _handlePointerEvent(event, totalLength, isVertical, isFinal: true),
+          onPointerMove: (event) => _handlePointerEvent(
+              event, totalLength, isVertical,
+              isFinal: false),
+          onPointerUp: (event) => _handlePointerEvent(
+              event, totalLength, isVertical,
+              isFinal: true),
           child: GestureDetector(
             onVerticalDragStart: isVertical ? (_) => _setDragging(true) : null,
             onVerticalDragEnd: isVertical ? (_) => _setDragging(false) : null,
-            onHorizontalDragStart: !isVertical ? (_) => _setDragging(true) : null,
-            onHorizontalDragEnd: !isVertical ? (_) => _setDragging(false) : null,
+            onHorizontalDragStart:
+                !isVertical ? (_) => _setDragging(true) : null,
+            onHorizontalDragEnd:
+                !isVertical ? (_) => _setDragging(false) : null,
             child: Stack(
               children: [
                 if (_isDragging &&
@@ -120,12 +125,12 @@ class _CpdfReaderSliderBarState extends State<CPDFReaderSliderBar> {
                         ),
                         child: Text(
                           '${((_dragPosition! / (totalLength - thumbSize)) * (widget.pageCount - 1)).round() + 1}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 12),
                         ),
                       ),
                     ),
                   ),
-
                 AnimatedPositioned(
                   duration: _isDragging
                       ? Duration.zero
@@ -156,7 +161,9 @@ class _CpdfReaderSliderBarState extends State<CPDFReaderSliderBar> {
     }
   }
 
-  void _handlePointerEvent(PointerEvent event, double totalLength, bool isVertical, {required bool isFinal}) {
+  void _handlePointerEvent(
+      PointerEvent event, double totalLength, bool isVertical,
+      {required bool isFinal}) {
     final box = context.findRenderObject() as RenderBox;
     final localOffset = box.globalToLocal(event.position);
     final localPos = (isVertical ? localOffset.dy : localOffset.dx)

@@ -13,7 +13,6 @@ import '../../cpdf_options.dart';
 import '../cpdf_annot_attr_base.dart';
 
 class CPDFCheckBoxAttr extends CPDFAnnotAttrBase {
-
   @override
   String get type => CPDFFormType.checkBox.name;
 
@@ -32,11 +31,11 @@ class CPDFCheckBoxAttr extends CPDFAnnotAttrBase {
 
   const CPDFCheckBoxAttr(
       {this.fillColor = const Color(0xFFDDE9FF),
-        this.borderColor = const Color(0xFF1460F3),
-        this.borderWidth = 2,
-        this.checkedColor = const Color(0xFF43474D),
-        this.isChecked = false,
-        this.checkedStyle = CPDFCheckStyle.check});
+      this.borderColor = const Color(0xFF1460F3),
+      this.borderWidth = 2,
+      this.checkedColor = const Color(0xFF43474D),
+      this.isChecked = false,
+      this.checkedStyle = CPDFCheckStyle.check});
 
   CPDFCheckBoxAttr copyWith({
     Color? fillColor,

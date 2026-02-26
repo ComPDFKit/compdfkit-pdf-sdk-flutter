@@ -29,8 +29,7 @@ import 'package:compdfkit_flutter/document/action/cpdf_action.dart';
 class CPDFUriAction extends CPDFAction {
   String uri;
 
-  CPDFUriAction({required this.uri})
-      : super(actionType: CPDFActionType.uri);
+  CPDFUriAction({required this.uri}) : super(actionType: CPDFActionType.uri);
 
   CPDFUriAction.url({required String url})
       : uri = url,

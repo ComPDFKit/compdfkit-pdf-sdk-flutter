@@ -8,14 +8,12 @@
  *
  */
 
-
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:compdfkit_flutter/util/extension/cpdf_color_extension.dart';
 import 'package:flutter/material.dart';
 
 class CPDFEditTextArea extends CPDFEditArea {
-
   final String text;
 
   final CPDFAlignment alignment;

@@ -71,8 +71,10 @@ class CPDFReaderWidgetController {
       CPDFOnTapMainDocAreaCallback? onTapMainDocArea,
       CPDFOnCustomToolbarItemTappedCallback? onCustomToolbarItemTapped,
       CPDFOnAnnotationCreationPreparedCallback? onAnnotationCreationPrepared,
-      CPDFOnCustomContextMenuItemTappedCallback?
-          onCustomContextMenuItemTapped}) {
+      CPDFOnCustomContextMenuItemTappedCallback? onCustomContextMenuItemTapped,
+      CPDFOnInterceptAnnotationActionCallback?
+          onInterceptAnnotationActionCallback,
+      CPDFOnInterceptWidgetActionCallback? onInterceptWidgetActionCallback}) {
     _channel = MethodChannel('com.compdfkit.flutter.ui.pdfviewer.$id');
     _annotationHistoryManager = CPDFAnnotationHistoryManager(_channel);
     _editManager = CPDFEditManager(_channel);
@@ -247,6 +249,22 @@ class CPDFReaderWidgetController {
           }
           final identifier = call.arguments["identifier"];
           onCustomContextMenuItemTapped?.call(identifier, resultMap);
+          break;
+        case 'onInterceptAnnotationAction':
+          if (onInterceptAnnotationActionCallback != null) {
+            dynamic annotationData = call.arguments;
+            final map = Map<String, dynamic>.from(annotationData);
+            final annotation = CPDFAnnotationRegistry.fromJson(map);
+            onInterceptAnnotationActionCallback(annotation);
+          }
+          break;
+        case 'onInterceptWidgetAction':
+          if (onInterceptWidgetActionCallback != null) {
+            dynamic widgetData = call.arguments;
+            final map = Map<String, dynamic>.from(widgetData);
+            final widget = CPDFWidgetRegistry.fromJson(map);
+            onInterceptWidgetActionCallback(widget);
+          }
           break;
       }
     });
@@ -1000,19 +1018,110 @@ class CPDFReaderWidgetController {
         'show_edit_area_properties_view', editArea.toJson());
   }
 
+  /// Notify native side about event subscription changes.
+  /// This is used to optimize performance by only parsing and sending
+  /// event data when there are active listeners.
+  Future<void> _updateEventSubscription(CPDFEvent event, bool subscribe) async {
+    debugPrint(
+        'ComPDFKit-Flutter: _updateEventSubscription event: $event, subscribe: $subscribe');
+    await _channel.invokeMethod('update_event_subscription', {
+      'event': event.name,
+      'subscribe': subscribe,
+    });
+  }
+
   /// Add event listener for specific [event] with [callback].
   /// The [callback] will be invoked when the specified event occurs,
   /// and the event data will be passed as a parameter to the callback function.
+  ///
+  /// When the first listener is added for an event, the native side will be
+  /// notified to start sending event data. This optimizes performance by
+  /// avoiding unnecessary data parsing and transmission.
+  ///
   /// Example:
   /// ```dart
   /// controller.addEventListener(CPDFEvent.annotationsCreated, (event) {
   ///   debugPrint('Annotation created: ${event.toString()}');
   /// });
   /// ```
-  Future<void> addEventListener(
-      CPDFEvent event, Function(dynamic) callback) async {
+  void addEventListener(CPDFEvent event, Function(dynamic) callback) {
     debugPrint('ComPDFKit-Flutter: addEventListener for event: $event');
+    final wasEmpty =
+        !_eventListeners.containsKey(event) || _eventListeners[event]!.isEmpty;
     _eventListeners.putIfAbsent(event, () => []).add(callback);
+
+    // Notify native side to start sending event data when first listener is added
+    if (wasEmpty) {
+      _updateEventSubscription(event, true);
+    }
+  }
+
+  /// Remove a specific event listener for the given [event].
+  /// The [callback] must be the same function reference that was passed to [addEventListener].
+  ///
+  /// When the last listener is removed for an event, the native side will be
+  /// notified to stop sending event data, improving performance.
+  ///
+  /// **Returns:** `true` if the callback was found and removed, `false` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// void onAnnotationCreated(dynamic event) {
+  ///   debugPrint('Annotation created: ${event.toString()}');
+  /// }
+  ///
+  /// // Add listener
+  /// controller.addEventListener(CPDFEvent.annotationsCreated, onAnnotationCreated);
+  ///
+  /// // Remove listener
+  /// controller.removeEventListener(CPDFEvent.annotationsCreated, onAnnotationCreated);
+  /// ```
+  bool removeEventListener(CPDFEvent event, Function(dynamic) callback) {
+    debugPrint('ComPDFKit-Flutter: removeEventListener for event: $event');
+    final listeners = _eventListeners[event];
+    if (listeners == null) return false;
+
+    final removed = listeners.remove(callback);
+
+    // Notify native side to stop sending event data when last listener is removed
+    if (removed && listeners.isEmpty) {
+      _updateEventSubscription(event, false);
+    }
+    return removed;
+  }
+
+  /// Remove all event listeners for the given [event].
+  /// If [event] is `null`, all listeners for all events will be removed.
+  ///
+  /// Notifies the native side to stop sending event data for the affected events.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Remove all listeners for annotationsCreated event
+  /// controller.removeAllEventListeners(CPDFEvent.annotationsCreated);
+  ///
+  /// // Remove all listeners for all events
+  /// controller.removeAllEventListeners();
+  /// ```
+  void removeAllEventListeners([CPDFEvent? event]) {
+    if (event != null) {
+      debugPrint(
+          'ComPDFKit-Flutter: removeAllEventListeners for event: $event');
+      if (_eventListeners.containsKey(event) &&
+          _eventListeners[event]!.isNotEmpty) {
+        _eventListeners.remove(event);
+        _updateEventSubscription(event, false);
+      }
+    } else {
+      debugPrint('ComPDFKit-Flutter: removeAllEventListeners for all events');
+      // Notify native side to stop all event subscriptions
+      for (final e in _eventListeners.keys) {
+        if (_eventListeners[e]?.isNotEmpty ?? false) {
+          _updateEventSubscription(e, false);
+        }
+      }
+      _eventListeners.clear();
+    }
   }
 
   /// show or hide annotations layer

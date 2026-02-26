@@ -40,7 +40,7 @@ class CPDFBorderStyle {
   factory CPDFBorderStyle.fromJson(Map<String, dynamic> json) {
     return CPDFBorderStyle(
       style: CPDFAnnotBorderStyle.values.firstWhere(
-              (e) => e.name == json['style'],
+          (e) => e.name == json['style'],
           orElse: () => CPDFAnnotBorderStyle.solid),
       dashGap: json['dashGap']?.toDouble() ?? 8.0,
     );

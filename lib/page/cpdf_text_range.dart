@@ -6,7 +6,6 @@
 // This notice may not be removed from this file.
 
 class CPDFTextRange {
-
   final int pageIndex;
 
   final int location;
@@ -19,18 +18,17 @@ class CPDFTextRange {
     required this.pageIndex,
     required this.location,
     required this.length,
-     this.textRangeIndex = 0,
+    this.textRangeIndex = 0,
   });
 
   factory CPDFTextRange.fromJson(Map<String, dynamic> map) {
     return CPDFTextRange(
-      pageIndex: map['page_index']?? 0,
+      pageIndex: map['page_index'] ?? 0,
       location: map['location'] ?? 0,
       length: map['length'] ?? 0,
       textRangeIndex: map['text_range_index'] ?? 0,
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,11 +38,9 @@ class CPDFTextRange {
       'text_range_index': textRangeIndex,
     };
   }
-
 }
 
 extension CPDFTextRangeExtension on CPDFTextRange {
-
   /// Returns a new CPDFTextRange that expands the current range by the given number of characters
   /// before and after the original range.
   ///

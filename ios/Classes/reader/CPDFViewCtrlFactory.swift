@@ -138,7 +138,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
                 }
             }
         }
-
+        
         // selectTextRightImage
         let selectTextRightImageName = configuration?.selectTextRightImageName ?? ""
         if !selectTextRightImageName.isEmpty {
@@ -154,7 +154,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
                 }
             }
         }
-
+        
         // rotationAnnotationImage
         let rotationAnnotationImageName = configuration?.rotationAnnotationImageName ?? ""
         if !rotationAnnotationImageName.isEmpty {
@@ -170,7 +170,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
                 }
             }
         }
-    
+        
         // Create the pdfview controller view
         pdfViewController = CPDFViewController(filePath: documentPath, password: password as? String, configuration: configuration!)
         
@@ -195,7 +195,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         NotificationCenter.default.addObserver(self, selector: #selector(pageChangedNotification(_:)), name: NSNotification.Name(NSNotification.Name("CPDFViewPageChangedNotification").rawValue), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(pageEditingDidChanged(_:)), name: NSNotification.Name(NSNotification.Name("CPDFPageEditingDidChangedNotification").rawValue), object: nil)
     }
-
+    
     func view() -> UIView {
         return navigationController.view
     }
@@ -274,7 +274,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerDigitalSignatureDone(_ baseController: CPDFViewBaseController) {
-
+        
     }
     
     func PDFViewBaseController(_ baseController: CPDFViewBaseController, SaveState success: Bool) {
@@ -306,6 +306,9 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerAnndotationAdded(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation) {
+        // Only parse and send data when event is subscribed
+        guard plugin.subscribedEvents.contains("annotationsCreated") else { return }
+        
         let page = annotation.page
         let pageUtil = CPDFPageUtil(page: page)
         pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
@@ -315,19 +318,22 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerAnndotationSelect(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation, isSelected: Bool) {
+        let eventName = isSelected ? "annotationsSelected" : "annotationsDeselected"
+        // Only parse and send data when event is subscribed
+        guard plugin.subscribedEvents.contains(eventName) else { return }
+        
         let page = annotation.page
         let pageUtil = CPDFPageUtil(page: page)
         pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
         
         let dict = pageUtil.getAnnotation(FormAnnotation: annotation)
-        if isSelected {
-            self.plugin._methodChannel.invokeMethod("annotationsSelected", arguments: dict)
-        } else {
-            self.plugin._methodChannel.invokeMethod("annotationsDeselected", arguments: dict)
-        }
+        self.plugin._methodChannel.invokeMethod(eventName, arguments: dict)
     }
     
     func PDFViewBaseControllerFormFieldAdded(_ baseController: CPDFViewBaseController, forFormField formField: CPDFWidgetAnnotation) {
+        // Only parse and send data when event is subscribed
+        guard plugin.subscribedEvents.contains("formFieldsCreated") else { return }
+        
         let page = formField.page
         let pageUtil = CPDFPageUtil(page: page)
         pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
@@ -337,16 +343,16 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerFormFieldSelect(_ baseController: CPDFViewBaseController, forFormField formField: CPDFWidgetAnnotation, isSelected: Bool) {
+        let eventName = isSelected ? "formFieldsSelected" : "formFieldsDeselected"
+        // Only parse and send data when event is subscribed
+        guard plugin.subscribedEvents.contains(eventName) else { return }
+        
         let page = formField.page
         let pageUtil = CPDFPageUtil(page: page)
         pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
         
         let dict = pageUtil.getForm(FormAnnotation: formField)
-        if isSelected {
-            self.plugin._methodChannel.invokeMethod("formFieldsSelected", arguments: dict)
-        } else {
-            self.plugin._methodChannel.invokeMethod("formFieldsDeselected", arguments: dict)
-        }
+        self.plugin._methodChannel.invokeMethod(eventName, arguments: dict)
     }
     
     func PDFViewBaseControllerEditingAreaAdded(_ baseController: CPDFViewBaseController, forEditingArea editArea: CPDFEditArea, withAttributes attributes: CEditAttributes?) {
@@ -354,17 +360,17 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerEditingAreaSelect(_ baseController: CPDFViewBaseController, forEditingArea editArea: CPDFEditArea, isSelected: Bool) {
+        let eventName = isSelected ? "editorSelectionSelected" : "editorSelectionDeselected"
+        // Only parse and send data when event is subscribed
+        guard plugin.subscribedEvents.contains(eventName) else { return }
+        
         let page = editArea.page
         let pageUtil = CPDFPageUtil(page: page)
         pageUtil.pdfView = baseController.pdfListView
         pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
         
         let dict = pageUtil.getEditArea(FromEditArea: editArea)
-        if isSelected {
-            self.plugin._methodChannel.invokeMethod("editorSelectionSelected", arguments: dict)
-        } else {
-            self.plugin._methodChannel.invokeMethod("editorSelectionDeselected", arguments: dict)
-        }
+        self.plugin._methodChannel.invokeMethod(eventName, arguments: dict)
     }
     
     func PDFViewBaseControllerAutoShowAnnotationPicker(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode, forAnnotation annotation: CPDFAnnotation?) {
@@ -436,6 +442,19 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
             self.plugin._methodChannel.invokeMethod("onCustomToolbarItemTapped", arguments: value)
         }
     }
+    
+    func PDFViewBaseControllerInterceptAnnotationDoAction(_ baseController: CPDFViewBaseController, forAnnotation annotation:CPDFAnnotation?) {
+        if annotation == nil {
+            return
+        }
+        let page = annotation?.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        let dict = pageUtil.getAnnotation(FormAnnotation: annotation!)
+        self.plugin._methodChannel.invokeMethod("onInterceptAnnotationAction", arguments: dict)
+    }
+    
+    
     
 }
 

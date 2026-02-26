@@ -296,5 +296,43 @@ class CPDFEnumConvertUtil {
             return "none"
         }
     }
+    
+    static func namedActionToString(_ namedAction: CPDFNamedActionName) -> String {
+        switch namedAction {
+        case .firstPage:
+            return "firstPage"
+        case .lastPage:
+            return "lastPage"
+        case .nextPage:
+            return "nextPage"
+        case .previousPage:
+            return "prevPage"
+        case .print:
+            return "print"
+        case .none:
+            return "none"
+        default:
+            return "none"
+        }
+    }
+    
+    static func stringToNamedAction(_ namedActionStr: String) -> CPDFNamedActionName{
+        switch namedActionStr {
+        case "firstPage":
+            return .firstPage
+        case "lastPage":
+            return .lastPage
+        case "nextPage":
+            return .nextPage
+        case "prevPage":
+            return .previousPage
+        case "print":
+            return .print
+        case "none":
+            return .none
+        default:
+            return .none
+        }
+    }
             
 }

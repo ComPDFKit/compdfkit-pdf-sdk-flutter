@@ -61,7 +61,7 @@ class CPDFUiStyleConfig {
     this.defaultBorderStyle = const CPDFUiBorderStyle(
         borderColor: Color(0xFF888888),
         borderWidth: 2,
-        borderDashPattern: [10,10]),
+        borderDashPattern: [10, 10]),
     this.focusBorderStyle = const CPDFUiBorderStyle(
         nodeColor: Color(0xFF6499FF),
         borderColor: Color(0xFF6499FF),
@@ -78,15 +78,13 @@ class CPDFUiStyleConfig {
     this.icons = const CPDFUiStyleIcons(),
     this.selectTextColor = const Color(0x33000000),
     this.displayPageRect = const CPDFUiDisplayPageRectStyle(),
-    this.screenshot = const CPDFUiScreenshotStyle(
-      borderWidth: 5,
-      borderDashPattern: [30,8]
-    ),
+    this.screenshot =
+        const CPDFUiScreenshotStyle(borderWidth: 5, borderDashPattern: [30, 8]),
     this.formPreview = const CPDFUiFormPreviewStyle(),
     this.defaultBorderStyle = const CPDFUiBorderStyle(
         borderColor: Color(0xFF888888),
         borderWidth: 2,
-        borderDashPattern: [20,10]),
+        borderDashPattern: [20, 10]),
     this.focusBorderStyle = const CPDFUiBorderStyle(
         nodeColor: Color(0xFF6499FF),
         borderColor: Color(0xFF6499FF),
@@ -108,7 +106,7 @@ class CPDFUiStyleConfig {
     this.defaultBorderStyle = const CPDFUiBorderStyle(
         borderColor: Color(0xFF888888),
         borderWidth: 1,
-        borderDashPattern: [10,10]),
+        borderDashPattern: [10, 10]),
     this.focusBorderStyle = const CPDFUiBorderStyle(
         nodeColor: Color(0xFF6499FF),
         borderColor: Color(0xFF6499FF),

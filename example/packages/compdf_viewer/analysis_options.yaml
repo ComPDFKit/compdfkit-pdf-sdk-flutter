@@ -1,0 +1,9 @@
+include: package:flutter_lints/flutter.yaml
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  errors:
+    # Radio groupValue/onChanged deprecated in Flutter 3.32+, but we support 3.3.0+
+    deprecated_member_use: ignore

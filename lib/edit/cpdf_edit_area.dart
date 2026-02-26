@@ -13,19 +13,18 @@ enum CPDFEditAreaType { text, image, path, none }
 /// Represents an editable area in a PDF document.
 /// Contains the type of the area, a unique identifier (UUID), and the page number.
 class CPDFEditArea {
-
   final CPDFEditAreaType type;
 
   final String uuid;
 
   final int page;
 
-  const CPDFEditArea({required this.type, required this.uuid, required this.page});
+  const CPDFEditArea(
+      {required this.type, required this.uuid, required this.page});
 
   factory CPDFEditArea.fromJson(Map<String, dynamic> json) {
     return CPDFEditArea(
-      type: CPDFEditAreaType.values.firstWhere(
-          (e) => e.name == json['type'],
+      type: CPDFEditAreaType.values.firstWhere((e) => e.name == json['type'],
           orElse: () => CPDFEditAreaType.none),
       uuid: json['uuid'] ?? '',
       page: json['page'] ?? 0,
@@ -37,6 +36,4 @@ class CPDFEditArea {
         'uuid': uuid,
         'page': page,
       };
-
-
 }
