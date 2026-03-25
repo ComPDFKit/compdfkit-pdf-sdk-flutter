@@ -1,3 +1,7 @@
+## 2.6.4
+1. Optimize URI navigation logic to support custom schemes
+2. Fixed an issue on iOS where controller.addEventListener(CPDFEvent.editorSelectionDeselected, (event) {}) was not working properly.
+
 ## 2.6.2
 1. Added feature support for ComPDFKit PDF SDK for iOS V2.6.2.
 2. Added feature support for ComPDFKit PDF SDK for Android V2.6.2.

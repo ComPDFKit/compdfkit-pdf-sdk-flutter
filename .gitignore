@@ -29,3 +29,5 @@ migrate_working_dir/
 build/
 pubspec.lock
 /.github/
+AGENTS.md
+.vscode/
