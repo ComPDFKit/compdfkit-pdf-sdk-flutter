@@ -427,6 +427,54 @@ enum CPDFPageCompression {
   jpeg;
 }
 
+class CPDFAnnotationRenderOptions {
+  final double scale;
+
+  final int? targetWidth;
+
+  final int? targetHeight;
+
+  final CPDFPageCompression compression;
+
+  final int quality;
+
+  const CPDFAnnotationRenderOptions({
+    this.scale = 3.0,
+    this.targetWidth,
+    this.targetHeight,
+    this.compression = CPDFPageCompression.png,
+    this.quality = 100,
+  });
+
+  void validate() {
+    if (scale <= 0) {
+      throw ArgumentError.value(scale, 'scale', 'Must be greater than 0.');
+    }
+    if (targetWidth != null && targetWidth! <= 0) {
+      throw ArgumentError.value(
+          targetWidth, 'targetWidth', 'Must be greater than 0.');
+    }
+    if (targetHeight != null && targetHeight! <= 0) {
+      throw ArgumentError.value(
+          targetHeight, 'targetHeight', 'Must be greater than 0.');
+    }
+    if (quality < 1 || quality > 100) {
+      throw ArgumentError.value(
+          quality, 'quality', 'Must be between 1 and 100.');
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'scale': scale,
+      'target_width': targetWidth,
+      'target_height': targetHeight,
+      'compression': compression.name,
+      'quality': quality,
+    };
+  }
+}
+
 enum CPDFStandardStamp {
   notApproved,
   approved,

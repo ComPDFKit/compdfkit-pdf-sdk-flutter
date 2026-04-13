@@ -1,3 +1,20 @@
+## 2.6.5
+1. Added the features support for ComPDFKit PDF SDK for iOS V2.6.5.
+2. Added the features support for ComPDFKit PDF SDK for Android V2.6.5.
+3. Added annotation appearance rendering API
+4. Added support for multiple image annotation creation methods
+5. Optimized preloading in iOS non-continuous page mode to reduce blank time during page transitions
+6. Updated the More menu UI on iOS
+7. Adapted to minimum device requirements for newer Xcode versions on iOS
+8. Optimized Android online license verification for improved concurrency safety and stability
+9. Improved touch handling logic in Android editing mode to reduce crash risks
+10. Fixed a potential crash in CPDFPageView on Android caused by invalid page state during touch events
+11. Fixed an issue on Android where images might not be visible when dragged on rotated pages
+12. Fixed an issue on Android where editing text could cause incorrect text layering
+13. Fixed an issue on iOS where page position could be lost after device rotation
+14. Fixed abnormal zoom rendering in iOS non-continuous mode
+15. Fixed an issue where COPY menu content appeared empty on iOS
+
 ## 2.6.4
 1. Optimize URI navigation logic to support custom schemes
 2. Fixed an issue on iOS where controller.addEventListener(CPDFEvent.editorSelectionDeselected, (event) {}) was not working properly.

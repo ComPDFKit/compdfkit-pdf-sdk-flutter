@@ -5,6 +5,7 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
+import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
@@ -22,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../annotation/cpdf_annotation.dart';
+import '../annotation/cpdf_image_annotation.dart';
 import '../annotation/form/cpdf_widget.dart';
 import '../compdfkit.dart';
 import '../configuration/attributes/cpdf_editor_text_attr.dart';
@@ -956,7 +958,45 @@ class CPDFDocument {
     } else if (result is Map && result.containsKey('error')) {
       throw Exception('renderPage failed: ${result['error']}');
     } else {
-      throw Exception('renderPage failed: unexpected result type ${result.runtimeType}');
+      throw Exception(
+          'renderPage failed: unexpected result type ${result.runtimeType}');
+    }
+  }
+
+  /// Renders the current appearance of an annotation to image bytes.
+  ///
+  /// This API renders the annotation appearance from the PDF page. It does not
+  /// return the original source asset for annotations backed by external content.
+  ///
+  /// Parameters:
+  /// - [annotation] The target annotation.
+  /// - [options] Rendering options that control output resolution and compression.
+  ///
+  /// example:
+  /// ```dart
+  /// final annotations = await document.pageAtIndex(0).getAnnotations();
+  /// final annotation = annotations.first;
+  /// final imageBytes = await document.renderAnnotationAppearance(
+  ///   annotation,
+  ///   options: const CPDFAnnotationRenderOptions(scale: 4.0),
+  /// );
+  /// ```
+  Future<Uint8List> renderAnnotationAppearance(CPDFAnnotation annotation,
+      {CPDFAnnotationRenderOptions options =
+          const CPDFAnnotationRenderOptions()}) async {
+    options.validate();
+    final result = await _channel.invokeMethod('render_annotation_appearance', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+      'options': options.toJson(),
+    });
+    if (result is Uint8List) {
+      return result;
+    } else if (result is Map && result.containsKey('error')) {
+      throw Exception('renderAnnotationAppearance failed: ${result['error']}');
+    } else {
+      throw Exception(
+          'renderAnnotationAppearance failed: unexpected result type ${result.runtimeType}');
     }
   }
 
@@ -1065,9 +1105,108 @@ class CPDFDocument {
   /// ```
   Future<bool> addAnnotations(List<CPDFAnnotation> annotations) async {
     List<Map<String, dynamic>> annotationsData =
-        annotations.map((e) => e.toJson()).toList();
+        await Future.wait(annotations.map(_serializeAnnotation));
     return await _channel
         .invokeMethod('add_annotations', {'annotations': annotationsData});
+  }
+
+  Future<Map<String, dynamic>> _serializeAnnotation(
+    CPDFAnnotation annotation,
+  ) async {
+    if (annotation is CPDFImageAnnotation) {
+      return _serializeImageAnnotation(annotation);
+    }
+    return annotation.toJson();
+  }
+
+  Future<Map<String, dynamic>> _serializeImageAnnotation(
+    CPDFImageAnnotation annotation,
+  ) async {
+    final data = annotation.toJson();
+    final normalizedImageData = await _normalizeAnnotationImageData(annotation);
+    if (normalizedImageData != null) {
+      data['imageData'] = normalizedImageData;
+      if (normalizedImageData['type'] == CPDFImageType.base64.name) {
+        data['image'] = normalizedImageData['data'];
+      } else {
+        data.remove('image');
+      }
+    } else if (annotation.image != null) {
+      data['image'] = _stripDataUriPrefix(annotation.image!);
+    }
+    return data;
+  }
+
+  Future<Map<String, dynamic>?> _normalizeAnnotationImageData(
+    CPDFImageAnnotation annotation,
+  ) async {
+    if (annotation.imageData != null) {
+      return _normalizeImageData(annotation.imageData!);
+    }
+    if (annotation.image == null) {
+      return null;
+    }
+    return {
+      'type': CPDFImageType.base64.name,
+      'data': _stripDataUriPrefix(annotation.image!),
+    };
+  }
+
+  Future<Map<String, dynamic>> _normalizeImageData(
+      CPDFImageData imageData) async {
+    switch (imageData.type) {
+      case CPDFImageType.filePath:
+        final bytes = await File(imageData.data).readAsBytes();
+        return {
+          'type': CPDFImageType.base64.name,
+          'data': base64Encode(bytes),
+        };
+      case CPDFImageType.base64:
+        return {
+          'type': CPDFImageType.base64.name,
+          'data': _stripDataUriPrefix(imageData.data),
+        };
+      case CPDFImageType.asset:
+        final byteData = await rootBundle.load(imageData.data);
+        return {
+          'type': CPDFImageType.base64.name,
+          'data': base64Encode(byteData.buffer.asUint8List()),
+        };
+      case CPDFImageType.uri:
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          return imageData.toJson();
+        }
+
+        final uri = Uri.tryParse(imageData.data);
+        if (uri != null && uri.scheme == 'file') {
+          final bytes = await File.fromUri(uri).readAsBytes();
+          return {
+            'type': CPDFImageType.base64.name,
+            'data': base64Encode(bytes),
+          };
+        }
+
+        return imageData.toJson();
+    }
+  }
+
+  String _stripDataUriPrefix(String value) {
+    final trimmed = value.trim();
+    if (!trimmed.startsWith('data:')) {
+      return trimmed;
+    }
+
+    final commaIndex = trimmed.indexOf(',');
+    if (commaIndex <= 0) {
+      return trimmed;
+    }
+
+    final metadata = trimmed.substring(0, commaIndex).toLowerCase();
+    if (!metadata.contains(';base64')) {
+      return trimmed;
+    }
+
+    return trimmed.substring(commaIndex + 1).trim();
   }
 
   /// Adds widgets to the document.

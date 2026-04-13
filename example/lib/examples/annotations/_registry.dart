@@ -16,6 +16,7 @@ import 'custom_annotation_creation_example.dart';
 import 'delete_annotation_example.dart';
 import 'edit_annotation_default_style_example.dart';
 import 'edit_annotation_example.dart';
+import 'flatten_annotations_example.dart';
 import 'intercept_annotation_action_example.dart';
 import 'list_annotations_example.dart';
 import 'xfdf_operations_example.dart';
@@ -82,6 +83,17 @@ final CategoryInfo annotationsCategory = CategoryInfo(
         icon: Icons.delete_outline,
         backgroundColor: Color(0xFFFCE4EC),
         iconColor: Color(0xFF880E4F),
+      ),
+    ),
+    ExampleItem(
+      title: 'Flatten Annotations',
+      description: 'Flatten annotations into document content',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const FlattenAnnotationsExample(),
+      visual: const ExampleVisual(
+        icon: Icons.layers,
+        backgroundColor: Color(0xFFFFF8E1),
+        iconColor: Color(0xFFF9A825),
       ),
     ),
     ExampleItem(

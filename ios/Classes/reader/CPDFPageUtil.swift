@@ -1520,7 +1520,7 @@ class CPDFPageUtil: NSObject {
                         stampAnnotation = nil
                     }
                 case "image":
-                    if let imageBase64 = annot["image"] as? String,
+                                        if let imageBase64 = resolvedBase64Image(from: annot),
                           let imageData = Data(base64Encoded: imageBase64, options: .ignoreUnknownCharacters),
                         let image = UIImage(data: imageData) {
                         let sourceRect = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
@@ -1566,7 +1566,7 @@ class CPDFPageUtil: NSObject {
                     }
                     signature.contents = content
 
-                    if let imageStr = annot["image"] as? String, let imageData = Data(base64Encoded: imageStr, options: .ignoreUnknownCharacters), let image = UIImage(data: imageData) {
+                    if let imageStr = resolvedBase64Image(from: annot), let imageData = Data(base64Encoded: imageStr, options: .ignoreUnknownCharacters), let image = UIImage(data: imageData) {
                         let sourceRect = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
                         let adJustRect = computeAdjustedRect(sourceRect: sourceRect, left: rect.origin.x, top: rect.origin.y, right: rect.origin.x + rect.size.width, bottom: rect.origin.y + rect.size.height)
                         signature.setImage(image)
@@ -2086,6 +2086,37 @@ class CPDFPageUtil: NSObject {
         return CGRect(x: x, y: y, width: w, height: h)
     }
     
+    private static func resolvedBase64Image(from annot: [String: Any]) -> String? {
+        if let imageData = annot["imageData"] as? [String: Any],
+           let type = imageData["type"] as? String,
+           type == "base64",
+           let value = imageData["data"] as? String {
+            return stripDataUriPrefix(value)
+        }
+
+        if let image = annot["image"] as? String {
+            return stripDataUriPrefix(image)
+        }
+
+        return nil
+    }
+
+    private static func stripDataUriPrefix(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("data:"),
+              let commaIndex = trimmed.firstIndex(of: ",") else {
+            return trimmed
+        }
+
+        let metadata = trimmed[..<commaIndex].lowercased()
+        guard metadata.contains(";base64") else {
+            return trimmed
+        }
+
+        let base64StartIndex = trimmed.index(after: commaIndex)
+        return String(trimmed[base64StartIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private static func createFieldName(type: String) -> String {
         let now = Date()
         let calendar = Calendar.current

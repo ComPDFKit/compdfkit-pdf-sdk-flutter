@@ -198,6 +198,7 @@ class CPDFConstants {
     
     static let getPageSize = "get_page_size"
     static let renderPage = "render_page"
+    static let renderAnnotationAppearance = "render_annotation_appearance"
     static let insertPageWithImagePath = "insert_page_with_image_path"
     static let getPageRotaion = "get_page_rotation"
     static let setPageRotation = "set_page_rotation"

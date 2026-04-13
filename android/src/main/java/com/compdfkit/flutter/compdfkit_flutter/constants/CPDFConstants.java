@@ -161,6 +161,7 @@ public class CPDFConstants {
     public static final String INSERT_BLANK_PAGE = "insert_blank_page";
     public static final String SPLIT_DOCUMENT_PAGES = "split_document_pages";
     public static final String GET_ANNOTATIONS = "get_annotations";
+    public static final String RENDER_ANNOTATION_APPEARANCE = "render_annotation_appearance";
     public static final String GET_WIDGETS = "get_widgets";
 
     public static final String RELOAD_PAGES = "reload_pages";

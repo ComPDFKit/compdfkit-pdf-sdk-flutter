@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.util.Log;
+import androidx.annotation.Nullable;
 import com.compdfkit.core.annotation.CPDFTextAttribute.FontNameHelper;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.edit.CPDFEditArea;
@@ -34,7 +35,6 @@ import com.compdfkit.ui.reader.CPDFPageView;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
-import org.jspecify.annotations.Nullable;
 
 public class CPDFEditAreaUtil {
 

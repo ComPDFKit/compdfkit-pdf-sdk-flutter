@@ -37,6 +37,15 @@ class CPDFImageData {
     );
   }
 
+  /// Create from a data URI string.
+  /// example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...'
+  factory CPDFImageData.fromDataUri(String dataUri) {
+    return CPDFImageData._(
+      type: CPDFImageType.base64,
+      data: dataUri,
+    );
+  }
+
   /// Create from asset path
   /// example: 'logo.png'
   factory CPDFImageData.fromAsset(String assetPath) {
@@ -52,6 +61,16 @@ class CPDFImageData {
     return CPDFImageData._(
       type: CPDFImageType.uri,
       data: uri,
+    );
+  }
+
+  factory CPDFImageData.fromJson(Map<String, dynamic> json) {
+    return CPDFImageData._(
+      type: CPDFImageType.values.firstWhere(
+        (type) => type.name == json['type'],
+        orElse: () => CPDFImageType.base64,
+      ),
+      data: json['data']?.toString() ?? '',
     );
   }
 

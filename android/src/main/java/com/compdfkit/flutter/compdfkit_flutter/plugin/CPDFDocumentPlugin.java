@@ -24,6 +24,7 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_WIDGETS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.FLATTEN_ALL_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RENDER_ANNOTATION_APPEARANCE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_BOOKMARKS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_INFO;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_PATH;
@@ -187,6 +188,7 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             document = mDocument;
         }
         pageUtil.setDocument(document);
+        pageUtil.setContext(context);
         if (document == null) {
             result.error("-1", "CPDFReaderView isnull or CPDFDocument is null", null);
             return;
@@ -324,6 +326,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 break;
             case GET_PAGE_COUNT:
                 result.success(document.getPageCount());
+                break;
+            case RENDER_ANNOTATION_APPEARANCE:
+                renderAnnotationAppearance(call, result, document);
                 break;
             case SAVE: {
                 boolean saveIncremental = call.argument("save_incremental");
@@ -1085,6 +1090,123 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
                     }
                 });
+    }
+
+    private void renderAnnotationAppearance(MethodCall call, Result result, CPDFDocument document) {
+        Integer pageIndex = call.argument("page_index");
+        String annotPtr = call.argument("uuid");
+        HashMap<String, Object> options = call.argument("options");
+        if (pageIndex == null || pageIndex < 0 || pageIndex >= document.getPageCount()) {
+            result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
+                    "Invalid page index: " + pageIndex, null);
+            return;
+        }
+        if (TextUtils.isEmpty(annotPtr)) {
+            result.error("RENDER_ANNOTATION_APPEARANCE_FAIL", "Annotation uuid is empty", null);
+            return;
+        }
+        CThreadPoolUtils.getInstance().executeIO(() -> {
+            Bitmap bitmap = null;
+            try {
+                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, annotPtr);
+                if (annotation == null || !annotation.isValid()) {
+                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
+                            "Annotation was not found", null);
+                    return;
+                }
+                RectF rect = annotation.getRect();
+                if (rect == null) {
+                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
+                            "Annotation rect is empty", null);
+                    return;
+                }
+                int[] renderSize = resolveAnnotationAppearanceRenderSize(rect, options);
+                int width = renderSize[0];
+                int height = renderSize[1];
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                if (!annotation.getAppearanceByPixel(bitmap, CPDFAnnotation.AppearanceType.Normal)) {
+                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
+                            "Failed to render annotation appearance", null);
+                    return;
+                }
+                result.success(compressBitmap(bitmap, options));
+            } catch (Exception e) {
+                result.error("RENDER_ANNOTATION_APPEARANCE_FAIL", e.getMessage(), null);
+            } finally {
+                if (bitmap != null && !bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+            }
+        });
+    }
+
+    private byte[] compressBitmap(Bitmap bitmap, HashMap<String, Object> options) {
+        String compression = getStringOption(options, "compression", "png");
+        int quality = getIntOption(options, "quality", 100);
+        Bitmap.CompressFormat format = "jpeg".equals(compression)
+                ? Bitmap.CompressFormat.JPEG
+                : Bitmap.CompressFormat.PNG;
+        int compressedQuality = format == Bitmap.CompressFormat.JPEG ? quality : 100;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        bitmap.compress(format, compressedQuality, outputStream);
+        return outputStream.toByteArray();
+    }
+
+    private int[] resolveAnnotationAppearanceRenderSize(RectF rect, HashMap<String, Object> options) {
+        int baseWidth = Math.max(1, Math.round(Math.abs(rect.width())));
+        int baseHeight = Math.max(1, Math.round(Math.abs(rect.height())));
+        int targetWidth = getIntOption(options, "target_width", 0);
+        int targetHeight = getIntOption(options, "target_height", 0);
+        double scale = getDoubleOption(options, "scale", 3.0);
+
+        if (targetWidth > 0 && targetHeight > 0) {
+            return new int[]{targetWidth, targetHeight};
+        }
+        if (targetWidth > 0) {
+            int resolvedHeight = Math.max(1, Math.round(targetWidth * (baseHeight / (float) baseWidth)));
+            return new int[]{targetWidth, resolvedHeight};
+        }
+        if (targetHeight > 0) {
+            int resolvedWidth = Math.max(1, Math.round(targetHeight * (baseWidth / (float) baseHeight)));
+            return new int[]{resolvedWidth, targetHeight};
+        }
+
+        int scaledWidth = Math.max(1, (int) Math.round(baseWidth * scale));
+        int scaledHeight = Math.max(1, (int) Math.round(baseHeight * scale));
+        return new int[]{scaledWidth, scaledHeight};
+    }
+
+    private int getIntOption(HashMap<String, Object> options, String key, int defaultValue) {
+        if (options == null) {
+            return defaultValue;
+        }
+        Object value = options.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return defaultValue;
+    }
+
+    private double getDoubleOption(HashMap<String, Object> options, String key, double defaultValue) {
+        if (options == null) {
+            return defaultValue;
+        }
+        Object value = options.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        return defaultValue;
+    }
+
+    private String getStringOption(HashMap<String, Object> options, String key, String defaultValue) {
+        if (options == null) {
+            return defaultValue;
+        }
+        Object value = options.get(key);
+        if (value instanceof String && !TextUtils.isEmpty((String) value)) {
+            return (String) value;
+        }
+        return defaultValue;
     }
 
     private void createWatermark(MethodCall call, Result result, CPDFViewCtrl pdfView,

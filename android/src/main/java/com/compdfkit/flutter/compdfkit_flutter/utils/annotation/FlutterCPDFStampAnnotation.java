@@ -1,12 +1,11 @@
 package com.compdfkit.flutter.compdfkit_flutter.utils.annotation;
 
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 import com.compdfkit.core.annotation.CPDFAnnotation;
 import com.compdfkit.core.annotation.CPDFStampAnnotation;
@@ -17,9 +16,17 @@ import com.compdfkit.core.page.CPDFPage;
 import com.compdfkit.core.utils.TTimeUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CAppUtils;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEnumConvertUtil;
+import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import java.util.HashMap;
+import java.util.Map;
 
 public class FlutterCPDFStampAnnotation extends FlutterCPDFBaseAnnotation {
+
+    private Context context;
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
 
     @Override
     public void getAnnotationConvert(CPDFAnnotation annotation, HashMap<String, Object> map) {
@@ -118,15 +125,14 @@ public class FlutterCPDFStampAnnotation extends FlutterCPDFBaseAnnotation {
                 RectF adjusted = computeAdjustedRect(sourceRect, (float) left, (float) top, (float) right, (float) bottom);
                 stampAnnotation.setRect(adjusted);
             } else if (stampType == CPDFStampAnnotation.StampType.IMAGE_STAMP) {
-                // IMAGE_STAMP handling can be implemented here if needed.
-                // Currently, we just set the rect as is.
-                String base64Image = annotMap.get("image").toString();
-                if (!TextUtils.isEmpty(base64Image)){
-                    Bitmap bitmap = CAppUtils.base64ToBitmap(base64Image);
+                Bitmap bitmap = resolveImageBitmap(annotMap);
+                if (bitmap != null) {
                     RectF sourceRect = new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight());
                     stampAnnotation.setRect(computeAdjustedRect(sourceRect,(float) left, (float) top, (float) right, (float) bottom));
-                    //base64Image convert to bitmap
                     stampAnnotation.updateApWithBitmap(bitmap);
+                } else {
+                    Log.e("ComPDFKit", "Failed to decode image annotation payload.");
+                    return null;
                 }
 
                 if (annotMap.containsKey("isStampSignature")){
@@ -148,6 +154,54 @@ public class FlutterCPDFStampAnnotation extends FlutterCPDFBaseAnnotation {
         float aspect = (sourceRect.width() == 0f) ? 1f : Math.abs(sourceRect.height() / sourceRect.width());
         float targetHeight = targetWidth * aspect;
         return new RectF(left, top, left + targetWidth, top + targetHeight);
+    }
+
+    private Bitmap resolveImageBitmap(HashMap<String, Object> annotMap) {
+        Object imageDataObject = annotMap.get("imageData");
+        if (imageDataObject instanceof Map) {
+            return resolveBitmapFromImageData((Map<String, Object>) imageDataObject);
+        }
+
+        Object legacyImageObject = annotMap.get("image");
+        if (legacyImageObject == null) {
+            return null;
+        }
+
+        String base64Image = legacyImageObject.toString();
+        if (TextUtils.isEmpty(base64Image)) {
+            return null;
+        }
+        return CAppUtils.base64ToBitmap(base64Image);
+    }
+
+    private Bitmap resolveBitmapFromImageData(Map<String, Object> imageDataMap) {
+        String type = imageDataMap.get("type") == null ? "base64" : imageDataMap.get("type").toString();
+        String data = imageDataMap.get("data") == null ? "" : imageDataMap.get("data").toString();
+
+        switch (type) {
+            case "filePath":
+                return BitmapFactory.decodeFile(data);
+            case "asset": {
+                if (context == null) {
+                    return null;
+                }
+                String path = FileUtils.assetToTempFile(context, data);
+                return path == null ? null : BitmapFactory.decodeFile(path);
+            }
+            case "uri": {
+                if (context == null) {
+                    return null;
+                }
+                String path = FileUtils.uriToFilePath(context, data);
+                return path == null ? null : BitmapFactory.decodeFile(path);
+            }
+            case "base64":
+            default:
+                if (TextUtils.isEmpty(data)) {
+                    return null;
+                }
+                return CAppUtils.base64ToBitmap(data);
+        }
     }
 
 

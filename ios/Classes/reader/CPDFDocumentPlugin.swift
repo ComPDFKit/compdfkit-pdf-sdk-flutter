@@ -671,6 +671,8 @@ public class CPDFDocumentPlugin {
                     result(data)
 
                 }
+            case CPDFConstants.renderAnnotationAppearance:
+                self.renderAnnotationAppearance(call: call, result: result)
             case CPDFConstants.getPageRotaion:
                 let pageIndex = call.arguments as? Int ?? 0
                 guard let page = self.document?.page(at: UInt(pageIndex)) else {
@@ -938,6 +940,138 @@ public class CPDFDocumentPlugin {
             return defaultValue
         }
         return value
+    }
+
+    private func renderAnnotationAppearance(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let info = call.arguments as? [String: Any]
+        let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: -1)
+        let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+        let options = info?["options"] as? [String: Any]
+
+        guard let document = self.document else {
+            result(FlutterError(
+                code: "RENDER_ANNOTATION_APPEARANCE_FAIL",
+                message: "document is nil",
+                details: nil))
+            return
+        }
+
+        guard pageIndex >= 0 && pageIndex < document.pageCount else {
+            result(FlutterError(
+                code: "RENDER_ANNOTATION_APPEARANCE_FAIL",
+                message: "Invalid page index: \(pageIndex)",
+                details: nil))
+            return
+        }
+
+        guard !uuid.isEmpty else {
+            result(FlutterError(
+                code: "RENDER_ANNOTATION_APPEARANCE_FAIL",
+                message: "Annotation uuid is empty",
+                details: nil))
+            return
+        }
+
+        let page = document.page(at: UInt(pageIndex))
+        let pageUtil = CPDFPageUtil(page: page)
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let annotation = pageUtil.getAnnotation(formUUID: uuid) else {
+                DispatchQueue.main.async {
+                    result(FlutterError(
+                        code: "RENDER_ANNOTATION_APPEARANCE_FAIL",
+                        message: "Annotation was not found",
+                        details: nil))
+                }
+                return
+            }
+
+            let renderSize = self.resolveAnnotationAppearanceRenderSize(
+                bounds: annotation.bounds,
+                options: options)
+
+            guard let data = self.renderAnnotationAppearanceData(
+                annotation: annotation,
+                size: renderSize,
+                options: options) else {
+                DispatchQueue.main.async {
+                    result(FlutterError(
+                        code: "RENDER_ANNOTATION_APPEARANCE_FAIL",
+                        message: "Failed to render annotation appearance",
+                        details: nil))
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                result(data)
+            }
+        }
+    }
+
+    private func renderAnnotationAppearanceData(
+        annotation: CPDFAnnotation,
+        size: CGSize,
+        options: [String: Any]?
+    ) -> Data? {
+        //TODO: 渲染 Markup, Ink, FreeText, Link, Sound类型异常
+        let image : UIImage = annotation.anntationImage()
+        guard size.width > 0, size.height > 0 else {
+            return nil
+        }
+
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let renderedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+
+        let compression = self.getValue(
+            from: options,
+            key: "compression",
+            defaultValue: "png")
+        let quality = min(max(self.getValue(from: options, key: "quality", defaultValue: 100), 1), 100)
+
+        if compression == "jpeg" {
+            return renderedImage.jpegData(compressionQuality: CGFloat(quality) / 100.0)
+        }
+
+        return renderedImage.pngData()
+    }
+
+    private func resolveAnnotationAppearanceRenderSize(
+        bounds: CGRect,
+        options: [String: Any]?
+    ) -> CGSize {
+        let baseWidth = max(1, Int(abs(bounds.width).rounded()))
+        let baseHeight = max(1, Int(abs(bounds.height).rounded()))
+        let targetWidth = self.getValue(from: options, key: "target_width", defaultValue: 0)
+        let targetHeight = self.getValue(from: options, key: "target_height", defaultValue: 0)
+        let scale = self.getValue(from: options, key: "scale", defaultValue: 3.0)
+
+        if targetWidth > 0 && targetHeight > 0 {
+            return CGSize(width: targetWidth, height: targetHeight)
+        }
+
+        if targetWidth > 0 {
+            let resolvedHeight = max(
+                1,
+                Int((Double(targetWidth) * (Double(baseHeight) / Double(baseWidth))).rounded()))
+            return CGSize(width: targetWidth, height: resolvedHeight)
+        }
+
+        if targetHeight > 0 {
+            let resolvedWidth = max(
+                1,
+                Int((Double(targetHeight) * (Double(baseWidth) / Double(baseHeight))).rounded()))
+            return CGSize(width: resolvedWidth, height: targetHeight)
+        }
+
+        let scaledWidth = max(1, Int((Double(baseWidth) * scale).rounded()))
+        let scaledHeight = max(1, Int((Double(baseHeight) * scale).rounded()))
+        return CGSize(width: scaledWidth, height: scaledHeight)
     }
     
     

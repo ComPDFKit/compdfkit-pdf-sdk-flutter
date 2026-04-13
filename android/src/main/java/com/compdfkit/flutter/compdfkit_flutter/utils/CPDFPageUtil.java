@@ -9,6 +9,7 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -58,6 +59,8 @@ public class CPDFPageUtil {
 
     private CPDFDocument document;
 
+    private Context context;
+
     HashMap<Type, FlutterCPDFAnnotation> annotImpls = new HashMap<>();
 
     HashMap<WidgetType, FlutterCPDFWidget> widgetsImpls = new HashMap<>();
@@ -100,6 +103,14 @@ public class CPDFPageUtil {
 
     public void setDocument(CPDFDocument document) {
         this.document = document;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+        FlutterCPDFAnnotation stampAnnotation = annotImpls.get(Type.STAMP);
+        if (stampAnnotation instanceof FlutterCPDFStampAnnotation) {
+            ((FlutterCPDFStampAnnotation) stampAnnotation).setContext(context);
+        }
     }
 
     public HashMap<String, Object> getAnnotationData(CPDFAnnotation annotation) {
