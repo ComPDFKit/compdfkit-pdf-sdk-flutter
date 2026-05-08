@@ -42,17 +42,26 @@ flutter run                # Run on device/emulator
 | Category | Description | Examples |
 |----------|-------------|----------|
 | **Viewer** | PDF open & display | Basic Viewer, Open External File, Modal Viewer, Dark Theme |
-| **Annotations** | Create, edit, delete, import/export | Add/Edit/Delete Annotation, XFDF, Custom Stamps, API Mode |
+| **Annotations** | Create, edit, delete, import/export, render preview | Add/Edit/Delete Annotation, Render Appearance, XFDF, Custom Stamps, API Mode |
 | **Forms** | Form fields & data | Create/Fill Fields, Default Style, Import/Export Data, API Mode |
 | **Pages** | Page operations | Insert, Delete, Rotate, Move, Split, Thumbnails |
 | **Security** | Passwords, watermarks, signatures | Set/Remove Password, Watermark, Permissions, Digital Signature |
 | **Content Editor** | Text & image editing | Text/Image Editing, Edit Mode, Undo/Redo |
 | **Widget Controller** | Viewer controls | Save, Zoom, Display Settings, Thumbnails, Snip/Preview Mode |
 | **Search & Navigation** | Find & navigate | Text Search, Outline, Bookmarks, Page Navigation |
-| **UI Customization** | Toolbar & menu styling | Toolbar, Context Menu, UI Style, Event Listeners |
+| **UI Customization** | Toolbar, context menu, style, and reader callback customization | Toolbar, Context Menu, UI Style, Event Listeners, Editor Selection Events, Reader UI Callbacks |
 | **Document API** | Headless API usage | Open Document, Info, XFDF, Bookmarks, Render, Search |
 
-> See `lib/examples/README.md` for detailed sample code references.
+### Use the UI Customization examples
+
+- **Toolbar Customization** shows how to replace built-in toolbar actions with custom items.
+- **Context Menu Customization** shows how to tailor the long-press menu for reader actions.
+- **UI Style Customization** shows how to apply reader appearance settings.
+- **Event Listeners** focuses on annotation and form creation events from `CPDFReaderWidgetController`.
+- **Editor Selection Events** focuses on content editor selection state and edit area actions.
+- **Reader UI Callbacks** focuses on widget-level callbacks such as search back and style dialog dismissal.
+
+Check the category registry files under `lib/examples/*/_registry.dart` for the current in-app sample list.
 
 ---
 

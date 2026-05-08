@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 
 import '../examples/registry.dart';
+import '../utils/platform_capability.dart';
 import '../widgets/app_toolbar.dart';
 
 /// Category Page
@@ -21,12 +22,7 @@ class CategoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final platform = Theme.of(context).platform;
-    final examples = category.examples.where((example) {
-      if (example.supportedPlatforms == null) {
-        return true;
-      }
-      return example.supportedPlatforms!.contains(platform);
-    }).toList();
+    final examples = category.examples;
 
     return Scaffold(
       body: SafeArea(
@@ -62,10 +58,17 @@ class CategoryPage extends StatelessWidget {
                       );
                     }
                     final example = examples[index - 1];
+                    final supportsPlatform =
+                        example.supportedPlatforms == null ||
+                            example.supportedPlatforms!.contains(platform);
+                    final isEnabled =
+                        PlatformCapability.supportsExampleCatalog &&
+                            supportsPlatform;
                     return _ExampleTile(
                       category: category,
                       example: example,
                       index: index - 1,
+                      isEnabled: isEnabled,
                       onTap: () {
                         if (example.routeType == ExampleRouteType.pageBuilder) {
                           Navigator.push(
@@ -94,12 +97,14 @@ class _ExampleTile extends StatelessWidget {
   final CategoryInfo category;
   final ExampleItem example;
   final int index;
+  final bool isEnabled;
   final VoidCallback onTap;
 
   const _ExampleTile({
     required this.category,
     required this.example,
     required this.index,
+    required this.isEnabled,
     required this.onTap,
   });
 
@@ -173,6 +178,22 @@ class _ExampleTile extends StatelessWidget {
   }
 
   Widget? _buildTrailing(BuildContext context) {
+    if (!isEnabled) {
+      final colorScheme = Theme.of(context).colorScheme;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          PlatformCapability.isWeb ? 'Mobile only' : 'Unsupported',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+        ),
+      );
+    }
     if (example.routeType == ExampleRouteType.modalCallback) {
       final colorScheme = Theme.of(context).colorScheme;
       return Container(
@@ -208,10 +229,12 @@ class _ExampleTile extends StatelessWidget {
     final visual = _resolveVisual(colorScheme);
     final trailing = _buildTrailing(context);
     return Material(
-      color: colorScheme.surface,
+      color: isEnabled
+          ? colorScheme.surface
+          : colorScheme.surface.withValues(alpha: 0.72),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: onTap,
+        onTap: isEnabled ? onTap : null,
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
           height: 72,
@@ -240,14 +263,21 @@ class _ExampleTile extends StatelessWidget {
                     children: [
                       Text(
                         example.title,
-                        style: textTheme.bodyMedium,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: isEnabled
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       if (example.description != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           example.description!,
                           style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                            color: isEnabled
+                                ? colorScheme.onSurfaceVariant
+                                : colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.9),
                           ),
                         ),
                       ],

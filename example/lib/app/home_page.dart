@@ -14,6 +14,8 @@ import '../constants/asset_paths.dart';
 import '../examples/registry.dart';
 import '../examples/viewer/modal_viewer_example.dart';
 import '../theme/themes.dart';
+import '../utils/platform_capability.dart';
+import '../widgets/snack_bar_helper.dart';
 import 'category_page.dart';
 import 'settings_page.dart';
 import 'widgets/category_list_tile.dart';
@@ -28,6 +30,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
+    final categories = allCategories;
+    final isWeb = PlatformCapability.isWeb;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: getSystemUiOverlayStyle(brightness),
       child: Scaffold(
@@ -50,17 +54,26 @@ class HomePage extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   child: ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                    itemCount: allCategories.length + 1,
+                    itemCount: categories.length + 1,
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: FeaturedCard(
                             title: 'PDF Viewer',
-                            description:
-                                'Full-featured PDF viewer with navigation, search, annotations and more',
+                            description: isWeb
+                                ? 'Reader and document APIs are currently disabled on Web'
+                                : 'Full-featured PDF viewer with navigation, search, annotations and more',
                             icon: Icons.auto_awesome,
                             onTap: () {
+                              if (isWeb) {
+                                SnackBarHelper.info(
+                                  context,
+                                  message: PlatformCapability
+                                      .nativeFeatureUnavailableMessage,
+                                );
+                                return;
+                              }
                               showPdfPickerModal(
                                 context,
                                 defaultAssetPath: AppAssets.pdfDocument,
@@ -75,7 +88,7 @@ class HomePage extends StatelessWidget {
                           ),
                         );
                       }
-                      final category = allCategories[index - 1];
+                      final category = categories[index - 1];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: CategoryListTile(

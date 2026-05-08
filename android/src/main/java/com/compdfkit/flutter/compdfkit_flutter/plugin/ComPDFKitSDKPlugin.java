@@ -26,44 +26,45 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_IMPORT_FONT_DIRECTORY;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import android.text.TextUtils;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.compdfkit.core.document.CPDFDocument;
-import com.compdfkit.core.document.CPDFSdk;
-import com.compdfkit.core.font.CPDFFont;
-import com.compdfkit.core.font.CPDFFontName;
-import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
-import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
-import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
-import com.compdfkit.tools.common.pdf.config.CPDFConfiguration;
-import com.compdfkit.tools.common.utils.CFileUtils;
-import com.compdfkit.tools.common.utils.CUriUtil;
-import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
+import com.compdfkit.flutter.compdfkit_flutter.bridge.BaseMethodChannelPlugin;
+import com.compdfkit.flutter.compdfkit_flutter.bridge.ChannelResult;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkActivityDelegate;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkCoreOps;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkDocumentOps;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkFontOps;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkPluginRegistry;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements PluginRegistry.ActivityResultListener {
     private static final int REQUEST_CODE = (ComPDFKitSDKPlugin.class.hashCode() + 43) & 0x0000ffff;
 
-    private Activity activity;
+    private final SdkActivityDelegate activityDelegate;
 
-    private MethodChannel.Result pendingResult;
+    public ComPDFKitSDKPlugin(Context context, BinaryMessenger binaryMessenger) {
+        super(context, binaryMessenger);
+        this.activityDelegate = new SdkActivityDelegate(context);
+    }
 
-    public ComPDFKitSDKPlugin(Activity activity, BinaryMessenger binaryMessenger) {
-        super(activity, binaryMessenger);
-        this.activity = activity;
+    public void attachActivity(@Nullable Activity activity) {
+        activityDelegate.attachActivity(activity);
+    }
+
+    public void detachActivity() {
+        activityDelegate.detachActivity();
+    }
+
+    @Override
+    public void unregister() {
+        detachActivity();
+        SdkPluginRegistry.unregisterAll();
+        super.unregister();
     }
 
     @Override
@@ -76,122 +77,71 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
         switch (call.method) {
             case INIT_SDK:
                 String key = call.argument("key");
-                CPDFSdk.init(context, key, true, (code, msg) -> {
-                    Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + code + ", msg:" + msg);
-                    result.success(code == CPDFSdk.VERIFY_SUCCESS);
-                });
+                SdkCoreOps.initSdk(context, key, result);
                 break;
             case INIT_SDK_KEYS:
                 String androidLicenseKey = call.argument("androidOnlineLicense");
-                CPDFSdk.init(context, androidLicenseKey, false, (code, msg) -> {
-                    Log.e("ComPDFKit-Plugin", "INIT_SDK_KEYS: code:" + code + ", msg:" + msg);
-                    result.success(code == CPDFSdk.VERIFY_SUCCESS);
-                });
+                SdkCoreOps.initSdkKeys(context, androidLicenseKey, result);
                 break;
             case INIT_SDK_WITH_PATH:
-                String xmlPath = (String) call.arguments;
-                CPDFSdk.initWithPath(context, xmlPath, (verifyCode, verifyMsg) -> {
-                    Log.e("ComPDFKit-Plugin", "INIT_SDK: code:" + verifyCode + ", msg:" + verifyMsg);
-                    result.success(verifyCode == CPDFSdk.VERIFY_SUCCESS);
-                });
+                String xmlPath = call.arguments();
+                SdkCoreOps.initSdkWithPath(context, xmlPath, result);
                 break;
             case SDK_VERSION_CODE:
-                result.success(CPDFSdk.getSDKVersion());
+                result.success(com.compdfkit.core.document.CPDFSdk.getSDKVersion());
                 break;
             case SDK_BUILD_TAG:
-                result.success(CPDFSdk.getSDKBuildTag());
+                result.success(com.compdfkit.core.document.CPDFSdk.getSDKBuildTag());
                 break;
             case OPEN_DOCUMENT:
                 String filePath = call.argument("document");
                 String password = call.argument("password");
                 String configurationJson = call.argument("configuration");
-                CPDFConfiguration configuration = CPDFConfigurationUtils.fromJson(configurationJson);
-                Intent intent = new Intent(context, CPDFDocumentActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                FileUtils.parseDocument(context, filePath, intent);
-                intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PASSWORD, password);
-                intent.putExtra(CPDFDocumentActivity.EXTRA_CONFIGURATION, configuration);
-                context.startActivity(intent);
+                SdkDocumentOps.openDocument(context, filePath, password, configurationJson);
                 result.success(null);
                 break;
             case GET_TEMP_DIRECTORY:
-                result.success(context.getCacheDir().getAbsolutePath());
+                result.success(SdkCoreOps.getTempDirectory(context));
                 break;
             case REMOVE_SIGN_FILE_LIST:
-                File dirFile = new File(context.getFilesDir(), CFileUtils.SIGNATURE_FOLDER);
-                boolean deleteResult = CFileUtils.deleteDirectory(dirFile.getAbsolutePath());
-                result.success(deleteResult);
+                result.success(SdkDocumentOps.removeSignFileList(context));
                 break;
             case PICK_FILE:
-                pendingResult = result;
-                if (activity != null) {
-                    activity.startActivityForResult(CFileUtils.getContentIntent(), REQUEST_CODE);
+                if (!activityDelegate.pickFile(result, REQUEST_CODE)) {
+                    ChannelResult.error(result, "PICK_FILE_FAIL", "Activity is null", "");
                 }
                 break;
             case CREATE_URI:
                 String fileName = call.argument("file_name");
                 String mimeType = call.argument("mime_type");
                 String childDirectoryName = call.argument("child_directory_name");
-                String dir = Environment.DIRECTORY_DOWNLOADS;
-                if (!TextUtils.isEmpty(childDirectoryName)) {
-                    dir += File.separator + childDirectoryName;
-                }
-                Uri uri = CUriUtil.createFileUri(context,
-                        dir,
-                        fileName, mimeType);
-                if (uri != null) {
-                    result.success(uri.toString());
-                } else {
-                    result.error("CREATE_URI_FAIL", "create uri fail", "");
-                }
+                SdkCoreOps.createUri(context, fileName, mimeType, childDirectoryName, result);
                 break;
             case SET_IMPORT_FONT_DIRECTORY:
                 String importFontDir = call.argument("dir_path");
                 boolean addSysFont = call.argument("add_sys_font");
-                CPDFSdk.setImportFontDir(importFontDir, addSysFont);
+                SdkFontOps.setImportFontDirectory(importFontDir, addSysFont);
                 result.success(true);
                 break;
             case UPDATE_IMPORT_FONT_DIRECTORY:
-                CThreadPoolUtils.getInstance().executeIO(()->{
-                    String updateFontDir = call.argument("dir_path");
-                    boolean addSysFont1 = call.argument("add_sys_font");
-                    File file = new File(updateFontDir);
-                    if (file.isDirectory()){
-                        CPDFDocument.importFontDir(updateFontDir, addSysFont1);
-                        result.success(true);
-                    } else {
-                        result.error("UPDATE_IMPORT_FONT_DIR_FAIL", "update import font dir fail", "dir path is not exist or not directory");
-                    }
-                });
+                String updateFontDir = call.argument("dir_path");
+                boolean addSysFont1 = call.argument("add_sys_font");
+                SdkFontOps.updateImportFontDirectory(updateFontDir, addSysFont1, result);
                 break;
             case CREATE_DOCUMENT_PLUGIN: {
-                String id = (String) call.arguments;
-                CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
-                documentPlugin.setDocument(new CPDFDocument(context));
-                documentPlugin.register();
+                String id = call.arguments();
+                SdkDocumentOps.createDocumentPlugin(context, binaryMessenger, id);
                 result.success(true);
                 break;
             }
             case CREATE_DOCUMENT: {
-                String id = (String) call.arguments;
-                CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
-                documentPlugin.setDocument(CPDFDocument.createDocument(context));
-                documentPlugin.register();
+                String id = call.arguments();
+                SdkDocumentOps.createDocument(context, binaryMessenger, id);
                 result.success(true);
                 break;
             }
             case GET_FONTS:
-                CThreadPoolUtils.getInstance().executeIO(() -> {
-                    List<CPDFFontName> fontNames = CPDFFont.getFontName();
-                    List<Map<String, Object>> fontList = new ArrayList<>();
-                    for (CPDFFontName fontName : fontNames) {
-                        Map<String, Object> fontMap = new HashMap<>();
-                        fontMap.put("familyName", fontName.getFamilyName());
-                        fontMap.put("styleNames", fontName.getStyleName());
-                        fontList.add(fontMap);
-                    }
-                    result.success(fontList);
-                });
+                SdkFontOps.getFonts(result);
                 break;
             default:
                 break;
@@ -200,27 +150,6 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            if (data != null && data.getData() != null) {
-                Uri uri = data.getData();
-                CFileUtils.takeUriPermission(context, uri);
-                successResult(uri.toString());
-            }
-            return true;
-        } else if (requestCode == REQUEST_CODE && resultCode != Activity.RESULT_OK) {
-            successResult(null);
-        }
-        return false;
-    }
-
-    private void successResult(String uri) {
-        if (pendingResult != null) {
-            pendingResult.success(uri);
-        }
-        clearPendingResult();
-    }
-
-    private void clearPendingResult() {
-        pendingResult = null;
+        return activityDelegate.onActivityResult(requestCode, resultCode, data, REQUEST_CODE);
     }
 }

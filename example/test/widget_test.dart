@@ -18,7 +18,9 @@ void main() {
       ),
     );
 
-    expect(find.text('ComPDFKit SDK for Flutter'), findsOneWidget);
+    expect(find.text('ComPDFKit'), findsOneWidget);
+    expect(find.text('ComPDFKit Flutter Demo'), findsOneWidget);
+    expect(find.text('PDF Viewer'), findsOneWidget);
     expect(find.text('Viewer'), findsOneWidget);
   });
 }

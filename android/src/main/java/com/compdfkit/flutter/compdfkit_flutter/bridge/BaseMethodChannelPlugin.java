@@ -7,7 +7,7 @@
  * This notice may not be removed from this file.
  */
 
-package com.compdfkit.flutter.compdfkit_flutter.plugin;
+package com.compdfkit.flutter.compdfkit_flutter.bridge;
 
 import android.content.Context;
 import android.util.Log;
@@ -18,11 +18,11 @@ public abstract class BaseMethodChannelPlugin implements MethodChannel.MethodCal
 
     public static final String LOG_TAG = "ComPDFKit-Plugin";
 
-    protected MethodChannel methodChannel = null;
+    protected MethodChannel methodChannel;
 
-    protected Context context;
+    protected final Context context;
 
-    protected BinaryMessenger binaryMessenger;
+    protected final BinaryMessenger binaryMessenger;
 
     public BaseMethodChannelPlugin(Context context, BinaryMessenger binaryMessenger) {
         this.context = context;
@@ -37,4 +37,11 @@ public abstract class BaseMethodChannelPlugin implements MethodChannel.MethodCal
         methodChannel.setMethodCallHandler(this);
     }
 
+    public void unregister() {
+        if (methodChannel == null) {
+            return;
+        }
+        methodChannel.setMethodCallHandler(null);
+        methodChannel = null;
+    }
 }

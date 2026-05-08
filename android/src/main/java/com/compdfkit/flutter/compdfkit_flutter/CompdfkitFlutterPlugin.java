@@ -10,7 +10,7 @@
 package com.compdfkit.flutter.compdfkit_flutter;
 
 import androidx.annotation.NonNull;
-import com.compdfkit.flutter.compdfkit_flutter.platformview.CPDFViewCtrlFactory;
+import com.compdfkit.flutter.compdfkit_flutter.platformview.CPDFPlatformViewFactory;
 import com.compdfkit.flutter.compdfkit_flutter.plugin.ComPDFKitSDKPlugin;
 import com.compdfkit.tools.common.utils.glide.CPDFGlideInitializer;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -21,12 +21,9 @@ import io.flutter.plugin.platform.PlatformViewRegistry;
 
 public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
-    private BinaryMessenger mMessenger;
-
-    private PlatformViewRegistry mRegistry;
-
     private static final String PDF_DOCUMENT_VIEW_TYPE_ID = "com.compdfkit.flutter.ui.pdfviewer";
-    private FlutterPluginBinding pluginBinding;
+
+    private BinaryMessenger mMessenger;
 
     private ActivityPluginBinding activityPluginBinding;
 
@@ -34,49 +31,55 @@ public class CompdfkitFlutterPlugin implements FlutterPlugin, ActivityAware {
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        this.pluginBinding = flutterPluginBinding;
         mMessenger = flutterPluginBinding.getBinaryMessenger();
-        mRegistry = flutterPluginBinding.getPlatformViewRegistry();
-
+        CPDFGlideInitializer.register(flutterPluginBinding.getApplicationContext());
+        comPDFKitSDKPlugin = new ComPDFKitSDKPlugin(flutterPluginBinding.getApplicationContext(),
+                mMessenger);
+        comPDFKitSDKPlugin.register();
+        PlatformViewRegistry registry = flutterPluginBinding.getPlatformViewRegistry();
+        registry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID,
+            new CPDFPlatformViewFactory(mMessenger));
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        detachActivityBinding();
+        if (comPDFKitSDKPlugin != null) {
+            comPDFKitSDKPlugin.unregister();
+            comPDFKitSDKPlugin = null;
+        }
+        mMessenger = null;
     }
 
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         this.activityPluginBinding = binding;
-        setUp();
-    }
-
-    private void setUp() {
-        CPDFGlideInitializer.register(activityPluginBinding.getActivity().getApplicationContext());
-        comPDFKitSDKPlugin = new ComPDFKitSDKPlugin(activityPluginBinding.getActivity(), mMessenger);
-        comPDFKitSDKPlugin.register();
-        activityPluginBinding.addActivityResultListener(comPDFKitSDKPlugin);
-        if (mRegistry != null) {
-            mRegistry.registerViewFactory(PDF_DOCUMENT_VIEW_TYPE_ID, new CPDFViewCtrlFactory(mMessenger));
+        if (comPDFKitSDKPlugin != null) {
+            comPDFKitSDKPlugin.attachActivity(binding.getActivity());
+            binding.addActivityResultListener(comPDFKitSDKPlugin);
         }
     }
 
-    private void clear() {
-        this.activityPluginBinding.removeActivityResultListener(comPDFKitSDKPlugin);
-        this.activityPluginBinding = null;
-        this.comPDFKitSDKPlugin = null;
+    private void detachActivityBinding() {
+        if (activityPluginBinding != null && comPDFKitSDKPlugin != null) {
+            activityPluginBinding.removeActivityResultListener(comPDFKitSDKPlugin);
+            comPDFKitSDKPlugin.detachActivity();
+        }
+        activityPluginBinding = null;
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
-
+        detachActivityBinding();
     }
 
     @Override
     public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        onAttachedToActivity(binding);
     }
 
     @Override
     public void onDetachedFromActivity() {
-        clear();
+        detachActivityBinding();
     }
 }

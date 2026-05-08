@@ -99,6 +99,8 @@ class CPDFConstants {
     static let showSecurityView = "show_security_view"
     
     static let showDisplaySettingsView = "show_display_settings_view"
+
+    static let showDocumentInfoView = "show_document_info_view"
     
     static let enterSnipMode = "enter_snip_mode"
     

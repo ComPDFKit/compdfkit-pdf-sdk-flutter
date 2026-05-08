@@ -94,80 +94,67 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import com.compdfkit.core.annotation.CPDFAnnotation;
 import com.compdfkit.core.annotation.CPDFAnnotation.Type;
-import com.compdfkit.core.annotation.CPDFStampAnnotation.StandardStamp;
-import com.compdfkit.core.annotation.CPDFStampAnnotation.TextStamp;
-import com.compdfkit.core.annotation.CPDFStampAnnotation.TextStampColor;
-import com.compdfkit.core.annotation.CPDFStampAnnotation.TextStampShape;
-import com.compdfkit.core.annotation.form.CPDFWidget;
-import com.compdfkit.core.annotation.form.CPDFWidget.WidgetType;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.edit.CPDFEditArea;
-import com.compdfkit.core.edit.CPDFEditManager;
 import com.compdfkit.core.edit.OnEditStatusChangeListener;
 import com.compdfkit.core.page.CPDFPage;
-import com.compdfkit.core.undo.CPDFUndoManager;
-import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFAttrUtils;
+import com.compdfkit.flutter.compdfkit_flutter.bridge.BaseMethodChannelPlugin;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEditAreaUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEnumConvertUtil;
-import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFPageUtil;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.CPDFViewContext;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.CPDFViewRegistry;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ViewerAnnotationCodec;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ViewerCustomEventOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ViewerEventDispatcher;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerAnnotationOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerDisplayOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerEditorOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerPropertyOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerPreviewOps;
+import com.compdfkit.flutter.compdfkit_flutter.viewer.ops.ViewerUtilityOps;
 import com.compdfkit.tools.common.interfaces.CPDFCustomEventCallback;
-import com.compdfkit.tools.common.pdf.CPDFConfigurationUtils;
 import com.compdfkit.tools.common.pdf.CPDFDocumentFragment;
-import com.compdfkit.tools.common.pdf.config.CPDFWatermarkConfig;
-import com.compdfkit.tools.common.utils.annotation.CPDFAnnotationManager;
 import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventCallbackHelper;
-import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventField;
-import com.compdfkit.tools.common.utils.customevent.CPDFCustomEventType;
 import com.compdfkit.tools.common.views.pdfproperties.CAnnotationType;
-import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.CAnnotStyle;
-import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.CStyleType;
-import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.manager.CStyleManager;
 import com.compdfkit.tools.common.views.pdfview.CPDFIReaderViewCallback;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
-import com.compdfkit.tools.common.views.pdfview.CPreviewMode;
 import com.compdfkit.tools.contenteditor.CEditToolbar;
 import com.compdfkit.ui.proxy.CPDFBaseAnnotImpl;
 import com.compdfkit.ui.reader.CPDFPageView;
 import com.compdfkit.ui.reader.CPDFReaderView;
-import com.compdfkit.ui.reader.CPDFReaderView.ViewMode;
 import com.compdfkit.ui.reader.CPDFSelectAnnotCallback;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFCustomEventCallback {
 
-    private int viewId;
-
     private CPDFDocumentFragment documentFragment;
 
-    private CPDFDocumentPlugin documentPlugin;
-
-    // Track which events are subscribed by Flutter side to optimize performance
-    private final Set<String> subscribedEvents = new HashSet<>();
+    private final CPDFViewContext viewContext;
 
     public CPDFViewCtrlPlugin(Context context, BinaryMessenger binaryMessenger, int viewId) {
         super(context, binaryMessenger);
-        this.viewId = viewId;
 
         // Register document plugin,get document info
-        documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, String.valueOf(viewId));
+        CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger,
+                String.valueOf(viewId));
         documentPlugin.register();
+        viewContext = new CPDFViewContext(viewId, documentPlugin);
+        CPDFViewRegistry.register(viewContext);
     }
 
     public void setDocumentFragment(CPDFDocumentFragment documentFragment) {
         this.documentFragment = documentFragment;
+        viewContext.attachDocumentFragment(documentFragment);
         this.documentFragment.setInitListener((pdfView) -> {
-            documentPlugin.setReaderView(pdfView);
-            if (methodChannel != null) {
-                methodChannel.invokeMethod("onDocumentIsReady", null);
-            }
+            viewContext.getDocumentPlugin().setReaderView(pdfView);
+            viewContext.attachPdfView(pdfView);
+            ViewerEventDispatcher.dispatch(methodChannel, "onDocumentIsReady", null);
             pdfView.addReaderViewCallback(new CPDFIReaderViewCallback() {
                 @Override
                 public void onMoveToChild(int pageIndex) {
@@ -175,23 +162,17 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                     io.flutter.Log.e("ComPDFKit", "onMoveToChild:" + pageIndex);
                     Map<String, Object> map = new HashMap<>();
                     map.put("pageIndex", pageIndex);
-                    if (methodChannel != null) {
-                        methodChannel.invokeMethod("onPageChanged", map);
-                    }
+                    ViewerEventDispatcher.dispatch(methodChannel, "onPageChanged", map);
                 }
 
                 @Override
                 public void onTapMainDocArea() {
                     super.onTapMainDocArea();
-                    if (methodChannel != null) {
-                        methodChannel.invokeMethod("onTapMainDocArea", null);
-                    }
+                    ViewerEventDispatcher.dispatch(methodChannel, "onTapMainDocArea", null);
                 }
             });
             pdfView.setSaveCallback((s, uri) -> {
-                if (methodChannel != null) {
-                    methodChannel.invokeMethod("saveDocument", "");
-                }
+                ViewerEventDispatcher.dispatch(methodChannel, "saveDocument", "");
             }, e -> {
 
             });
@@ -201,9 +182,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                         Map<String, Object> map = new HashMap<>();
                         map.put("canUndo", cpdfUndoManager.canUndo());
                         map.put("canRedo", cpdfUndoManager.canRedo());
-                        if (methodChannel != null) {
-                            methodChannel.invokeMethod("onAnnotationHistoryChanged", map);
-                        }
+                        ViewerEventDispatcher.dispatch(methodChannel,
+                                "onAnnotationHistoryChanged", map);
                     });
 
             pdfView.addEditStatusChangeListener(new OnEditStatusChangeListener() {
@@ -218,9 +198,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                     map.put("canUndo", canUndo);
                     map.put("canRedo", canRedo);
                     map.put("pageIndex", pageIndex);
-                    if (methodChannel != null) {
-                        methodChannel.invokeMethod("onContentEditorHistoryChanged", map);
-                    }
+                    ViewerEventDispatcher.dispatch(methodChannel,
+                            "onContentEditorHistoryChanged", map);
                 }
 
                 @Override
@@ -232,12 +211,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
                         ? "formFieldsCreated" : "annotationsCreated";
                 // Only parse and send data when event is subscribed
-                if (subscribedEvents.contains(eventName)) {
-                    HashMap<String, Object> annotData = getAnnotData(
+                if (viewContext.getSubscribedEvents().contains(eventName)) {
+                    HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
+                        viewContext.getDocumentPlugin(),
                             documentFragment.pdfView.getCPdfReaderView()
                                     .getPDFDocument(),
                             cpdfBaseAnnot.onGetAnnotation());
-                    methodChannel.invokeMethod(eventName, annotData);
+                    ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                        eventName, annotData);
                 }
             });
 
@@ -248,12 +229,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                     String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
                             ? "formFieldsSelected" : "annotationsSelected";
                     // Only parse and send data when event is subscribed
-                    if (subscribedEvents.contains(eventName)) {
-                        HashMap<String, Object> annotData = getAnnotData(
+                        if (viewContext.getSubscribedEvents().contains(eventName)) {
+                        HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
+                            viewContext.getDocumentPlugin(),
                                 documentFragment.pdfView.getCPdfReaderView()
                                         .getPDFDocument(),
                                 cpdfBaseAnnot.onGetAnnotation());
-                        methodChannel.invokeMethod(eventName, annotData);
+                        ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                            eventName, annotData);
                     }
                 }
 
@@ -264,12 +247,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                         String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
                                 ? "formFieldsDeselected" : "annotationsDeselected";
                         // Only parse and send data when event is subscribed
-                        if (subscribedEvents.contains(eventName)) {
-                            HashMap<String, Object> annotData = getAnnotData(
+                        if (viewContext.getSubscribedEvents().contains(eventName)) {
+                            HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
+                                viewContext.getDocumentPlugin(),
                                     documentFragment.pdfView.getCPdfReaderView()
                                             .getPDFDocument(),
                                     cpdfBaseAnnot.onGetAnnotation());
-                            methodChannel.invokeMethod(eventName, annotData);
+                            ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                                    eventName, annotData);
                         }
                     }
                 }
@@ -278,13 +263,14 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
             pdfView.addSelectEditAreaChangeListener(type -> {
                 if (type == CEditToolbar.SELECT_AREA_NONE) {
                     // Only send event when subscribed
-                    if (subscribedEvents.contains("editorSelectionDeselected")) {
-                        methodChannel.invokeMethod("editorSelectionDeselected", null);
+                    if (viewContext.getSubscribedEvents().contains("editorSelectionDeselected")) {
+                        ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                                "editorSelectionDeselected", null);
                     }
                     return;
                 }
                 // Only parse and send data when editorSelectionSelected is subscribed
-                if (!subscribedEvents.contains("editorSelectionSelected")) {
+                if (!viewContext.getSubscribedEvents().contains("editorSelectionSelected")) {
                     return;
                 }
                 CPDFEditArea editArea = readerView.getSelectEditArea();
@@ -298,7 +284,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 }
                 HashMap<String, Object> map = CPDFEditAreaUtil.getEditAreaMap(pageView,
                         readerView.getSelectEditArea());
-                methodChannel.invokeMethod("editorSelectionSelected", map);
+                ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                    "editorSelectionSelected", map);
             });
 
             documentFragment.annotationToolbar.addAnnotationCreatePreparedListener((type, cpdfAnnotation) -> {
@@ -309,91 +296,45 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                     map.put("type", type.name().toLowerCase());
                 }
                 if (cpdfAnnotation != null) {
-                    map.put("annotation", getAnnotData(readerView.getPDFDocument(), cpdfAnnotation));
+                    map.put("annotation", ViewerAnnotationCodec.encode(
+                            viewContext.getDocumentPlugin(), readerView.getPDFDocument(),
+                            cpdfAnnotation));
                 }
-                methodChannel.invokeMethod("onAnnotationCreationPrepared", map);
+                ViewerEventDispatcher.dispatch(methodChannel, "onAnnotationCreationPrepared", map);
             });
 
         });
 
         documentFragment.setPageEditDialogOnBackListener(() -> {
-            if (methodChannel != null) {
-                methodChannel.invokeMethod("onPageEditDialogBackPress", "");
-            }
+            ViewerEventDispatcher.dispatch(methodChannel, "onPageEditDialogBackPress", "");
         });
 
         documentFragment.setFillScreenChangeListener(isFillScreen -> {
-            if (methodChannel != null) {
-                methodChannel.invokeMethod("onFullScreenChanged", isFillScreen);
-            }
+            ViewerEventDispatcher.dispatch(methodChannel, "onFullScreenChanged", isFillScreen);
         });
         CPDFCustomEventCallbackHelper.getInstance().addCustomEventCallback(this);
     }
 
     @Override
-    public void click(Map<String, Object> extraMap) {
-        String customEventType = extraMap.get("customEventType").toString();
-        switch (customEventType) {
-            case CPDFCustomEventType.TOOLBAR_ITEM_TAPPED:
-                // click CPDFToolbar custom action.
-                methodChannel.invokeMethod("onCustomToolbarItemTapped", extraMap.get("identifier"));
-                break;
-            case CPDFCustomEventType.CONTEXT_MENU_ITEM_TAPPED:
-                CPDFPageUtil pageUtil = documentPlugin.pageUtil;
-                CPDFReaderView readerView = documentFragment.pdfView.getCPdfReaderView();
-                if (readerView != null && readerView.getPDFDocument() != null){
-                    pageUtil.setDocument(readerView.getPDFDocument());
-                }
-                Map<String, Object> eventData = pageUtil.parseCustomContextMenuEvent(extraMap);
-                // click context menu custom item.
-                methodChannel.invokeMethod("onCustomContextMenuItemTapped", eventData);
-                break;
-            case CPDFCustomEventType.INTERCEPT_ANNOTATION_DO_ACTION:
-                if (extraMap.containsKey(CPDFCustomEventField.ANNOTATION)){
-                    CPDFAnnotation annotation = (CPDFAnnotation) extraMap.get(CPDFCustomEventField.ANNOTATION);
-                    if (annotation != null){
-                        HashMap<String, Object> annotData = getAnnotData(
-                            documentFragment.pdfView.getCPdfReaderView()
-                                .getPDFDocument(),
-                            annotation);
-                        methodChannel.invokeMethod("onInterceptAnnotationAction", annotData);
-                    }
-                }
-                break;
-            case CPDFCustomEventType.INTERCEPT_WIDGET_DO_ACTION:
-                if (extraMap.containsKey(CPDFCustomEventField.WIDGET)){
-                    CPDFAnnotation annotation = (CPDFAnnotation) extraMap.get(CPDFCustomEventField.WIDGET);
-                    if (annotation != null){
-                        HashMap<String, Object> annotData = getAnnotData(
-                            documentFragment.pdfView.getCPdfReaderView()
-                                .getPDFDocument(),
-                            annotation);
-                        methodChannel.invokeMethod("onInterceptWidgetAction", annotData);
-                    }
-                }
-                break;
-            default:
-                // methodChannel.invokeMethod("onCustomEvent", extraMap);
-                break;
+    public void unregister() {
+        CPDFCustomEventCallbackHelper.getInstance().removeCustomEventCallback(this);
+        CPDFViewRegistry.unregister(viewContext.getViewId());
+        viewContext.clear();
+        if (viewContext.getDocumentPlugin() != null) {
+            viewContext.getDocumentPlugin().unregister();
         }
+        documentFragment = null;
+        super.unregister();
     }
 
-    private HashMap<String, Object> getAnnotData(CPDFDocument document, CPDFAnnotation annotation) {
-        HashMap<String, Object> annotMap;
-        documentPlugin.pageUtil.setDocument(document);
-        if (annotation.getType() == Type.WIDGET) {
-            CPDFWidget widget = (CPDFWidget) annotation;
-            annotMap = documentPlugin.pageUtil.getWidgetData(widget);
-        } else {
-            annotMap = documentPlugin.pageUtil.getAnnotationData(
-                    annotation);
-        }
-        return annotMap;
+    @Override
+    public void click(Map<String, Object> extraMap) {
+        ViewerCustomEventOps.handle(methodChannel, viewContext, extraMap);
     }
 
     @Override
     public String methodName() {
-        return "com.compdfkit.flutter.ui.pdfviewer." + viewId;
+        return "com.compdfkit.flutter.ui.pdfviewer." + viewContext.getViewId();
     }
 
     @Override
@@ -407,119 +348,26 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
         }
         CPDFViewCtrl pdfView = documentFragment.pdfView;
         CPDFReaderView readerView = pdfView.getCPdfReaderView();
+        if (ViewerDisplayOps.handle(call, result, context, pdfView, readerView)) {
+            return;
+        }
+        if (ViewerPreviewOps.handle(call, result, documentFragment, pdfView)) {
+            return;
+        }
+        if (ViewerAnnotationOps.handle(call, result, documentFragment, pdfView)) {
+            return;
+        }
+        if (ViewerEditorOps.handle(call, result, documentFragment, readerView)) {
+            return;
+        }
+        if (ViewerUtilityOps.handle(call, result, documentFragment, readerView)) {
+            return;
+        }
+        if (ViewerPropertyOps.handle(call, result, documentFragment, pdfView, readerView,
+                viewContext.getDocumentPlugin(), viewContext)) {
+            return;
+        }
         switch (call.method) {
-            case SET_SCALE:
-                double scaleValue = (double) call.arguments;
-                readerView.setScale((float) scaleValue);
-                result.success(null);
-                break;
-            case GET_SCALE:
-                result.success((double) readerView.getScale());
-                break;
-            case SET_CAN_SCALE:
-                boolean canScale = (boolean) call.arguments;
-                readerView.setCanScale(canScale);
-                result.success(null);
-                break;
-            case SET_READ_BACKGROUND_COLOR:
-                String colorHex = call.argument("color");
-                String displayMode = call.argument("displayMode");
-                readerView.setReadBackgroundColor(Color.parseColor(colorHex));
-                switch (displayMode) {
-                    case "light":
-                        pdfView.setBackgroundColor(ContextCompat.getColor(context,
-                                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color));
-                        break;
-                    case "dark":
-                        pdfView.setBackgroundColor(ContextCompat.getColor(context,
-                                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_dark));
-                        break;
-                    case "sepia":
-                        pdfView.setBackgroundColor(ContextCompat.getColor(context,
-                                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_sepia));
-                        break;
-                    case "reseda":
-                        pdfView.setBackgroundColor(ContextCompat.getColor(context,
-                                com.compdfkit.tools.R.color.tools_pdf_view_ctrl_background_color_reseda));
-                        break;
-                }
-                result.success(null);
-                break;
-            case SET_WIDGET_BACKGROUND_COLOR:
-                String widgetColorHex = (String) call.arguments;
-                try {
-                    pdfView.setBackgroundColor(Color.parseColor(widgetColorHex));
-                } catch (Exception e) {
-                }
-                result.success(null);
-                break;
-            case GET_READ_BACKGROUND_COLOR:
-                String readBgColor = "#" + Integer.toHexString(readerView.getReadBackgroundColor()).toUpperCase();
-                result.success(readBgColor);
-                break;
-            case SET_FORM_FIELD_HIGHLIGHT:
-                readerView.setFormFieldHighlight((Boolean) call.arguments);
-                result.success(null);
-                break;
-            case IS_FORM_FIELD_HIGHLIGHT:
-                result.success(readerView.isFormFieldHighlight());
-                break;
-            case SET_LINK_HIGHLIGHT:
-                readerView.setLinkHighlight((Boolean) call.arguments);
-                result.success(null);
-                break;
-            case IS_LINK_HIGHLIGHT:
-                result.success(readerView.isLinkHighlight());
-                break;
-            case SET_MARGIN:
-                int left = call.argument("left");
-                int top = call.argument("top");
-                int right = call.argument("right");
-                int bottom = call.argument("bottom");
-                readerView.setReaderViewHorizontalMargin(left, right);
-                readerView.setReaderViewTopMargin(top);
-                readerView.setReaderViewBottomMargin(bottom);
-                readerView.reloadPages();
-                result.success(null);
-                break;
-            case SET_PAGE_SPACING:
-                int pageSpacing = (int) call.arguments;
-                readerView.setPageSpacing(pageSpacing);
-                readerView.reloadPages();
-                result.success(null);
-                break;
-            case SET_VERTICAL_MODE:
-                readerView.setVerticalMode((Boolean) call.arguments);
-                pdfView.updateScaleForLayout();
-                result.success(null);
-                break;
-            case IS_VERTICAL_MODE:
-                result.success(readerView.isVerticalMode());
-                break;
-            case SET_CONTINUE_MODE:
-                readerView.setContinueMode((Boolean) call.arguments);
-                pdfView.updateScaleForLayout();
-                result.success(null);
-                break;
-            case IS_CONTINUE_MODE:
-                result.success(readerView.isContinueMode());
-                break;
-            case SET_DOUBLE_PAGE_MODE:
-                readerView.setDoublePageMode((boolean) call.arguments);
-                readerView.setCoverPageMode(false);
-                pdfView.updateScaleForLayout();
-                result.success(null);
-                break;
-            case IS_DOUBLE_PAGE_MODE:
-                result.success(readerView.isDoublePageMode());
-                break;
-            case SET_CROP_MODE:
-                readerView.setCropMode((Boolean) call.arguments);
-                result.success(null);
-                break;
-            case IS_CROP_MODE:
-                result.success(readerView.isCropMode());
-                break;
             case SET_DISPLAY_PAGE_INDEX: {
                 int pageIndex = call.argument("pageIndex");
 
@@ -545,455 +393,9 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
             case GET_CURRENT_PAGE_INDEX:
                 result.success(readerView.getPageNum());
                 break;
-            case SET_PAGE_SAME_WIDTH:
-                readerView.setPageSameWidth((Boolean) call.arguments);
-                readerView.reloadPages();
-                result.success(null);
-                break;
-            case SET_COVER_PAGE_MODE:
-                readerView.setDoublePageMode((Boolean) call.arguments);
-                readerView.setCoverPageMode((Boolean) call.arguments);
-                pdfView.updateScaleForLayout();
-                result.success(null);
-                break;
-            case IS_COVER_PAGE_MODE:
-                result.success(readerView.isCoverPageMode());
-                break;
-            case IS_PAGE_IN_SCREEN:
-                int pageIndex1 = (int) call.arguments;
-                result.success(readerView.isPageInScreen(pageIndex1));
-                break;
-            case SET_FIXED_SCROLL:
-                readerView.setFixedScroll((Boolean) call.arguments);
-                result.success(null);
-                break;
-            case GET_PAGE_SIZE:
-                boolean noZoomPage = call.argument("noZoom");
-                int page = call.argument("pageIndex");
-                RectF rectF;
-                if (noZoomPage) {
-                    rectF = readerView.getPageNoZoomSize(page);
-                } else {
-                    rectF = readerView.getPageSize(page);
-                }
-                Map<String, Float> pageSizeMap = new HashMap<>();
-                pageSizeMap.put("width", rectF.width());
-                pageSizeMap.put("height", rectF.height());
-                result.success(pageSizeMap);
-                break;
-            case SET_PREVIEW_MODE:
-                String alias = (String) call.arguments;
-                CPreviewMode previewMode = CPreviewMode.fromAlias(alias);
-                documentFragment.setPreviewMode(previewMode);
-                result.success(null);
-                break;
-            case GET_PREVIEW_MODE:
-                result.success(documentFragment.pdfToolBar.getMode().alias);
-                break;
-            case SHOW_THUMBNAIL_VIEW:
-                boolean enableEditMode = (boolean) call.arguments;
-                documentFragment.showPageEdit(false, enableEditMode);
-                result.success(null);
-                break;
-            case SHOW_BOTA_VIEW:
-                documentFragment.showBOTA();
-                result.success(null);
-                break;
-            case SHOW_ADD_WATERMARK_VIEW: {
-                Map<String, Object> configMap = (Map<String, Object>) call.arguments;
-                if (configMap == null) {
-                    documentFragment.showAddWatermarkDialog();
-                } else {
-                    documentFragment.showAddWatermarkDialog(CPDFWatermarkConfig.fromMap(configMap));
-                }
-                result.success(null);
-                break;
-            }
-            case SHOW_SECURITY_VIEW:
-                documentFragment.showSecurityDialog();
-                result.success(null);
-                break;
-            case SHOW_DISPLAY_SETTINGS_VIEW:
-                documentFragment.showDisplaySettings(pdfView);
-                result.success(null);
-                break;
-            case ENTER_SNIP_MODE:
-                documentFragment.enterSnipMode();
-                result.success(null);
-                break;
-            case EXIT_SNIP_MODE:
-                documentFragment.exitScreenShot();
-                result.success(null);
-                break;
-            case RELOAD_PAGES:
-                documentFragment.pdfView.getCPdfReaderView().reloadPages();
-                result.success(null);
-                break;
-            case RELOAD_PAGES_2:
-                documentFragment.pdfView.getCPdfReaderView().reloadPages2();
-                result.success(null);
-                break;
-            case SET_ANNOTATION_MODE:
-                String typeStr = call.arguments();
-
-                CAnnotationType type;
-                try {
-                    switch (typeStr) {
-                        case "note":
-                            type = CAnnotationType.TEXT;
-                            break;
-                        case "pictures":
-                            type = CAnnotationType.PIC;
-                            break;
-                        default:
-                            type = CAnnotationType.valueOf(typeStr.toUpperCase());
-                            break;
-                    }
-                } catch (Exception e) {
-                    type = CAnnotationType.UNKNOWN;
-                }
-                documentFragment.annotationToolbar.switchAnnotationType(type);
-                result.success(null);
-                break;
-            case GET_ANNOTATION_MODE:
-                CAnnotationType annotationType = documentFragment.annotationToolbar.toolListAdapter
-                        .getCurrentAnnotType();
-                switch (annotationType) {
-                    case TEXT:
-                        result.success("note");
-                        break;
-                    case PIC:
-                        result.success("pictures");
-                        break;
-                    default:
-                        result.success(annotationType.name().toLowerCase());
-                        break;
-                }
-                break;
-            case ANNOTATION_CAN_UNDO: {
-                CPDFUndoManager annotationUndoManager = documentFragment.pdfView.getCPdfReaderView()
-                        .getUndoManager();
-                result.success(annotationUndoManager.canUndo());
-                break;
-            }
-            case ANNOTATION_CAN_REDO: {
-                CPDFUndoManager annotationUndoManager = documentFragment.pdfView.getCPdfReaderView()
-                        .getUndoManager();
-                result.success(annotationUndoManager.canRedo());
-                break;
-            }
-            case ANNOTATION_UNDO: {
-                documentFragment.annotationToolbar.annotUndo();
-                result.success(null);
-                break;
-            }
-            case ANNOTATION_REDO: {
-                documentFragment.annotationToolbar.annotRedo();
-                result.success(null);
-                break;
-            }
-            case GET_DEFAULT_ANNOTATION_ATTR: {
-                result.success(CPDFAttrUtils.getDefaultAnnotAttr(pdfView));
-                break;
-            }
-            case SET_DEFAULT_ANNOTATION_ATTR:
-            case SET_DEFAULT_WIDGET_ATTR: {
-                String annotType = call.argument("type");
-                Map<String, Object> attrMap = call.argument("attr");
-                if (annotType.equals("editorText")) {
-                    result.error("SET_DEFAULT_ANNOTATION_ATTR_ERROR", "editorText is not supported",
-                            null);
-                    return;
-                }
-
-                CPDFAttrUtils.setDefaultAnnotAttr(pdfView, annotType, attrMap);
-                if (documentFragment != null) {
-                    documentFragment.annotationToolbar.updateItemColor();
-                }
-                result.success(null);
-                break;
-            }
-            case GET_DEFAULT_WIDGET_ATTR:
-                result.success(CPDFAttrUtils.getDefaultWidgetAttr(pdfView));
-                break;
-            case CHANGE_EDIT_TYPE: {
-                List<Integer> types = (List<Integer>) call.arguments;
-                if (readerView.getViewMode() != ViewMode.PDFEDIT
-                        && readerView.getViewMode() != ViewMode.ALL) {
-                    result.error("1002",
-                            "Current mode is not contentEditor mode, please switch to CPDFViewMode.contentEditor mode first.",
-                            null);
-                    return;
-                }
-                CPDFEditManager editManager = readerView.getEditManager();
-                if (editManager != null) {
-                    int editType = 0;
-                    for (Integer t : types) {
-                        editType = t | editType;
-                    }
-                    editManager.changeEditType(editType);
-                    documentFragment.editToolBar.updateTypeStatus();
-                    result.success(true);
-                } else {
-                    result.error("1001",
-                            "EditManager is null, please check if Edit feature is enabled.", null);
-                }
-                break;
-            }
-            case CONTENT_EDITOR_CAN_REDO: {
-                CPDFEditManager editManager = readerView.getEditManager();
-                if (editManager == null) {
-                    result.success(false);
-                    return;
-                }
-                result.success(editManager.canRedo());
-                break;
-            }
-            case CONTENT_EDITOR_CAN_UNDO: {
-                CPDFEditManager editManager = readerView.getEditManager();
-                if (editManager == null) {
-                    result.success(false);
-                    return;
-                }
-                result.success(editManager.canUndo());
-                break;
-            }
-            case CONTENT_EDITOR_UNDO: {
-                CPDFEditManager editManager = readerView.getEditManager();
-                if (editManager == null) {
-                    result.success(false);
-                    return;
-                }
-                if (editManager.canUndo()) {
-                    editManager.undo();
-                    result.success(true);
-                } else {
-                    result.success(false);
-                }
-                break;
-            }
-            case CONTENT_EDITOR_REDO: {
-                CPDFEditManager editManager = readerView.getEditManager();
-                if (editManager == null) {
-                    result.success(false);
-                    return;
-                }
-                if (editManager.canRedo()) {
-                    editManager.redo();
-                    result.success(true);
-                } else {
-                    result.success(false);
-                }
-                break;
-            }
-            case SET_FORM_CREATION_MODE: {
-                setFormMode(call, result);
-                break;
-            }
-            case GET_FORM_CREATION_MODE: {
-                result.success(getFormMode(readerView));
-                break;
-            }
-            case VERIFY_DIGITAL_SIGNATURE_STATUS: {
-                documentFragment.verifyDocumentSignStatus();
-                result.success(null);
-                break;
-            }
-            case HIDE_DIGITAL_SIGNATURE_STATUS_VIEW: {
-                documentFragment.hideDigitalSignStatusView();
-                result.success(null);
-                break;
-            }
-            case CLEAR_DISPLAY_RECT: {
-                readerView.setDisplayPageRectangles(null);
-                readerView.setShowDisplayPageRect(false);
-                result.success(true);
-                break;
-            }
-            case DISMISS_CONTEXT_MENU: {
-                if (readerView.getContextMenuShowListener() != null) {
-                    readerView.getContextMenuShowListener().dismissContextMenu();
-                }
-                result.success(true);
-                break;
-            }
-            case SHOW_TEXT_SEARCH_VIEW: {
-                documentFragment.showTextSearchView();
-                result.success(null);
-                break;
-            }
-            case HIDE_TEXT_SEARCH_VIEW: {
-                documentFragment.hideTextSearchView();
-                result.success(null);
-                break;
-            }
-            case SAVE_CURRENT_INK: {
-                readerView.getInkDrawHelper().onSave();
-                result.success(null);
-                break;
-            }
-            case ANNOTATIONS_VISIBLE:
-                boolean annotationsVisible = (boolean) call.arguments;
-                readerView.setAnnotationsVisible(annotationsVisible);
-                result.success(null);
-                break;
-            case IS_ANNOTATIONS_VISIBLE:
-                result.success(readerView.isAnnotationsVisible());
-                break;
-            case SHOW_DEFAULT_ANNOTATION_PROPERTIES_VIEW: {
-                String key = (String) call.arguments;
-                CAnnotationType annotType = CPDFEnumConvertUtil.strongToAnnotationType(key);
-                documentFragment.annotationToolbar.showAnnotStyleDialog(annotType.getStyleType());
-                result.success(null);
-                break;
-            }
-            case SHOW_ANNOTATION_PROPERTIES_VIEW:
-            case SHOW_WIDGET_PROPERTIES_VIEW: {
-                int pageIndex = call.argument("page");
-                String uuid = call.argument("uuid");
-                CPDFPageUtil pageUtil = documentPlugin.pageUtil;
-                pageUtil.setDocument(readerView.getPDFDocument());
-                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, uuid);
-                if (annotation != null) {
-                    CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
-                    CPDFBaseAnnotImpl baseAnnot = null;
-                    if (pageView != null) {
-                        baseAnnot = pageView.getAnnotImpl(annotation);
-                    }
-                    if (baseAnnot != null) {
-                        CPDFAnnotationManager.showPropertiesDialog(
-                                documentFragment.getParentFragmentManager(), baseAnnot, pageView);
-                    } else {
-                        CPDFAnnotationManager.showPropertiesDialog(
-                                documentFragment.getParentFragmentManager(), annotation, pageView);
-                    }
-                }
-                result.success(null);
-                break;
-            }
-            case SHOW_EDIT_AREA_PROPERTIES_VIEW: {
-                int pageIndex = call.argument("page");
-                String uuid = call.argument("uuid");
-                String areaType = call.argument("type");
-                CPDFDocument document = readerView.getPDFDocument();
-                CPDFEditArea editArea = CPDFEditAreaUtil.getEditArea(document, pageIndex, uuid, areaType);
-                if (editArea != null) {
-                    CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
-                    CPDFAnnotationManager.showPropertiesDialog(documentFragment.getParentFragmentManager(), editArea,
-                            pageView);
-                }
-                result.success(null);
-                break;
-            }
-            case PREPARE_NEXT_SIGNATURE: {
-                String signImagePath = (String) call.arguments;
-                CStyleManager styleManager = new CStyleManager(pdfView);
-                CAnnotStyle style = styleManager.getStyle(CStyleType.ANNOT_SIGNATURE);
-                style.setImagePath(signImagePath);
-                styleManager.updateStyle(style);
-                result.success(null);
-                break;
-            }
-            case PREPARE_NEXT_IMAGE: {
-                String imagePath = (String) call.arguments;
-                CStyleManager styleManager = new CStyleManager(pdfView);
-                CAnnotStyle style = styleManager.getStyle(CStyleType.ANNOT_PIC);
-                style.setImagePath(imagePath);
-                styleManager.updateStyle(style);
-                result.success(null);
-                break;
-            }
-            case PREPARE_NEXT_STAMP: {
-                String stampType = call.argument("type");
-                CStyleManager styleManager = new CStyleManager(pdfView);
-                CAnnotStyle style = styleManager.getStyle(CStyleType.ANNOT_STAMP);
-                if ("image".equals(stampType)) {
-                    String imagePath = call.argument("imagePath");
-                    style.setImagePath(imagePath);
-                } else if ("standard".equals(stampType)) {
-                    String standardType = call.argument("standardStamp");
-                    StandardStamp standardStamp = StandardStamp.str2Enum(standardType);
-                    style.setStandardStamp(standardStamp);
-                } else if ("text".equals(stampType)) {
-                    String content = call.argument("content");
-                    String date = call.argument("date");
-                    String shape = call.argument("shape");
-                    String color = call.argument("color");
-
-                    TextStampShape textStampShape = CPDFEnumConvertUtil.stringToStampShape(shape);
-                    TextStampColor textStampColor = CPDFEnumConvertUtil.stringToStampColor(color);
-                    TextStamp textStamp = new TextStamp(content, date, textStampShape.id, textStampColor.id);
-                    style.setTextStamp(textStamp);
-                }
-                styleManager.updateStyle(style);
-                result.success(null);
-                break;
-            }
-            case PREPARE_NEXT_LINK: {
-                HashMap<String, Object> linkAnnotationMap = (HashMap<String, Object>) call.arguments;
-                int pageIndex = call.argument("page");
-                String annotPtr = call.argument("uuid");
-
-                CPDFAnnotation annotation = documentPlugin.pageUtil.getAnnotation(pageIndex, annotPtr);
-                if (annotation == null || annotation.getType() != Type.LINK) {
-                    result.error("PREPARE_NEXT_LINK_ERROR", "Link annotation not found", null);
-                    return;
-                }
-                boolean updateResult = documentPlugin.pageUtil.updateAnnotation(annotation, linkAnnotationMap);
-                CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView().getChild(pageIndex);
-                if (pageView != null && updateResult) {
-                    pageView.addAnnotation(annotation, false);
-                    pageView.invalidate();
-                }
-                break;
-            }
-            case UPDATE_EVENT_SUBSCRIPTION: {
-                String eventName = call.argument("event");
-                Boolean subscribe = call.argument("subscribe");
-                if (eventName != null && subscribe != null) {
-                    if (subscribe) {
-                        subscribedEvents.add(eventName);
-                        Log.d(LOG_TAG, "Event subscribed: " + eventName);
-                    } else {
-                        subscribedEvents.remove(eventName);
-                        Log.d(LOG_TAG, "Event unsubscribed: " + eventName);
-                    }
-                }
-                result.success(null);
-                break;
-            }
             default:
-                Log.e(LOG_TAG, "CPDFViewCtrlFlutter:onMethodCall:notImplemented");
                 result.notImplemented();
                 break;
-        }
-    }
-
-    private void setFormMode(MethodCall call, MethodChannel.Result result) {
-        String mode = (String) call.arguments;
-        WidgetType type = CPDFConfigurationUtils.getWidgetType(mode);
-        documentFragment.formToolBar.switchFormMode(type);
-        result.success(true);
-    }
-
-    private String getFormMode(CPDFReaderView readerView) {
-        switch (readerView.getCurrentFocusedFormType()) {
-            case Widget_TextField:
-                return "textField";
-            case Widget_CheckBox:
-                return "checkBox";
-            case Widget_RadioButton:
-                return "radioButton";
-            case Widget_ListBox:
-                return "listBox";
-            case Widget_ComboBox:
-                return "comboBox";
-            case Widget_PushButton:
-                return "pushButton";
-            case Widget_SignatureFields:
-                return "signaturesFields";
-            default:
-                return "unknown";
         }
     }
 

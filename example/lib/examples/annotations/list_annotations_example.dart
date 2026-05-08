@@ -111,7 +111,11 @@ class _ListAnnotationsPageState extends ExampleBaseState<_ListAnnotationsPage> {
 
     final data = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      builder: (context) => AnnotationListPage(annotations: annotations),
+      isScrollControlled: true,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.8,
+        child: AnnotationListPage(annotations: annotations),
+      ),
     );
 
     if (data == null) {

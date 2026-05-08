@@ -106,16 +106,16 @@ class CPDFUiStyleConfig {
     this.defaultBorderStyle = const CPDFUiBorderStyle(
         borderColor: Color(0xFF888888),
         borderWidth: 1,
-        borderDashPattern: [10, 10]),
+        borderDashPattern: [10, 4]),
     this.focusBorderStyle = const CPDFUiBorderStyle(
         nodeColor: Color(0xFF6499FF),
         borderColor: Color(0xFF6499FF),
         borderWidth: 1,
-        borderDashPattern: [10, 10]),
+        borderDashPattern: [10, 4]),
     this.cropImageStyle = const CPDFUiBorderStyle(
         borderColor: Color(0xFF6499FF),
         borderWidth: 2,
-        borderDashPattern: [10, 10]),
+        borderDashPattern: [10, 4]),
   });
 
   CPDFUiStyleConfig copyWith({

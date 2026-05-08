@@ -19,6 +19,7 @@ import 'edit_annotation_example.dart';
 import 'flatten_annotations_example.dart';
 import 'intercept_annotation_action_example.dart';
 import 'list_annotations_example.dart';
+import 'render_annotation_appearance_example.dart';
 import 'xfdf_operations_example.dart';
 
 /// Annotations category registry file
@@ -94,6 +95,17 @@ final CategoryInfo annotationsCategory = CategoryInfo(
         icon: Icons.layers,
         backgroundColor: Color(0xFFFFF8E1),
         iconColor: Color(0xFFF9A825),
+      ),
+    ),
+    ExampleItem(
+      title: 'Render Annotation Appearance',
+      description: 'Render selected annotation appearance to image preview',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const RenderAnnotationAppearanceExample(),
+      visual: const ExampleVisual(
+        icon: Icons.image_search,
+        backgroundColor: Color(0xFFE1F5FE),
+        iconColor: Color(0xFF0277BD),
       ),
     ),
     ExampleItem(

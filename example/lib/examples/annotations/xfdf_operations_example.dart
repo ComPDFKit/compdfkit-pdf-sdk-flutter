@@ -10,6 +10,7 @@ import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../utils/file_util.dart';
 import '../../utils/preferences_service.dart';
@@ -127,10 +128,33 @@ class _XfdfOperationsPageState extends ExampleBaseState<_XfdfOperationsPage> {
     await controller.saveCurrentInk();
     final path = await controller.document.exportAnnotations();
     debugPrint('Export XFDF path: $path');
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Exported to: $path')));
+    if (!mounted || path.isEmpty) {
+      return;
     }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('XFDF Exported'),
+        content: SelectableText(path),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Confirm'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await SharePlus.instance.share(
+                ShareParams(files: [XFile(path)]),
+              );
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+            child: const Text('Share'),
+          ),
+        ],
+      ),
+    );
   }
 }

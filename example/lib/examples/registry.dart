@@ -21,6 +21,7 @@ import 'shared/category_info.dart';
 import 'ui_customization/_registry.dart';
 import 'viewer/_registry.dart';
 import 'widget_controller/_registry.dart';
+import '../utils/platform_capability.dart';
 
 export 'shared/category_info.dart';
 export 'shared/example_item.dart';
@@ -39,3 +40,10 @@ final List<CategoryInfo> allCategories = [
   uiCustomizationCategory,
   documentApiCategory
 ];
+
+List<CategoryInfo> getVisibleCategories() {
+  if (!PlatformCapability.supportsExampleCatalog) {
+    return const <CategoryInfo>[];
+  }
+  return allCategories;
+}

@@ -62,14 +62,34 @@ class CPDFReaderWidget extends StatefulWidget {
   final CPDFOnCustomToolbarItemTappedCallback?
       onCustomToolbarItemTappedCallback;
 
+  /// Called when the search view back button is tapped.
+  final CPDFOnSearchBackButtonTappedCallback? onSearchBackButtonTappedCallback;
+
+  /// Called when the add watermark dialog is dismissed.
+  final CPDFOnAddWatermarkDialogDismissedCallback?
+      onAddWatermarkDialogDismissedCallback;
+
+  /// Called when the annotation style dialog is dismissed.
+  final CPDFOnAnnotationStyleDialogDismissedCallback?
+      onAnnotationStyleDialogDismissedCallback;
+
+  /// Called when the form style dialog is dismissed.
+  final CPDFOnFormStyleDialogDismissedCallback?
+      onFormStyleDialogDismissedCallback;
+
+  /// Called when the content editor style dialog is dismissed.
+  final CPDFOnContentEditorStyleDialogDismissedCallback?
+      onContentEditorStyleDialogDismissedCallback;
+
   final CPDFOnAnnotationCreationPreparedCallback?
       onAnnotationCreationPreparedCallback;
 
   final CPDFOnCustomContextMenuItemTappedCallback?
       onCustomContextMenuItemTappedCallback;
-  
-  final CPDFOnInterceptAnnotationActionCallback? onInterceptAnnotationActionCallback;
-  
+
+  final CPDFOnInterceptAnnotationActionCallback?
+      onInterceptAnnotationActionCallback;
+
   final CPDFOnInterceptWidgetActionCallback? onInterceptWidgetActionCallback;
 
   /// init callback
@@ -88,6 +108,11 @@ class CPDFReaderWidget extends StatefulWidget {
       this.onIOSClickBackPressed,
       this.onTapMainDocAreaCallback,
       this.onCustomToolbarItemTappedCallback,
+      this.onSearchBackButtonTappedCallback,
+      this.onAddWatermarkDialogDismissedCallback,
+      this.onAnnotationStyleDialogDismissedCallback,
+      this.onFormStyleDialogDismissedCallback,
+      this.onContentEditorStyleDialogDismissedCallback,
       this.onAnnotationCreationPreparedCallback,
       this.onCustomContextMenuItemTappedCallback,
       this.onInterceptAnnotationActionCallback,
@@ -169,12 +194,22 @@ class _CPDFReaderWidgetState extends State<CPDFReaderWidget> {
         onIOSClickBackPressed: widget.onIOSClickBackPressed,
         onTapMainDocArea: widget.onTapMainDocAreaCallback,
         onCustomToolbarItemTapped: widget.onCustomToolbarItemTappedCallback,
+        onSearchBackButtonTapped: widget.onSearchBackButtonTappedCallback,
+        onAddWatermarkDialogDismissed:
+            widget.onAddWatermarkDialogDismissedCallback,
+        onAnnotationStyleDialogDismissed:
+            widget.onAnnotationStyleDialogDismissedCallback,
+        onFormStyleDialogDismissed: widget.onFormStyleDialogDismissedCallback,
+        onContentEditorStyleDialogDismissed:
+            widget.onContentEditorStyleDialogDismissedCallback,
         onAnnotationCreationPrepared:
             widget.onAnnotationCreationPreparedCallback,
         onCustomContextMenuItemTapped:
             widget.onCustomContextMenuItemTappedCallback,
-            onInterceptAnnotationActionCallback: widget.onInterceptAnnotationActionCallback,
-            onInterceptWidgetActionCallback: widget.onInterceptWidgetActionCallback);
+        onInterceptAnnotationActionCallback:
+            widget.onInterceptAnnotationActionCallback,
+        onInterceptWidgetActionCallback:
+            widget.onInterceptWidgetActionCallback);
 
     _controller = controller;
     try {

@@ -133,6 +133,8 @@ public class CPDFConstants {
 
     public static final String SHOW_DISPLAY_SETTINGS_VIEW = "show_display_settings_view";
 
+    public static final String SHOW_DOCUMENT_INFO_VIEW = "show_document_info_view";
+
     public static final String ENTER_SNIP_MODE = "enter_snip_mode";
 
     public static final String EXIT_SNIP_MODE = "exit_snip_mode";

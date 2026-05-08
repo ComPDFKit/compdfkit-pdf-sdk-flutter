@@ -10,6 +10,7 @@
 
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:flutter/material.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
@@ -28,11 +29,19 @@ class CPDFReaderPage extends StatefulWidget {
   final void Function()? onIOSClickBackPressed;
   final void Function()? onTapMainDocAreaCallback;
   final void Function(String identifier)? onCustomToolbarItemTappedCallback;
+    final void Function()? onSearchBackButtonTappedCallback;
+    final void Function(CPDFAnnotationType type)?
+      onAnnotationStyleDialogDismissedCallback;
+    final void Function(CPDFFormType type)? onFormStyleDialogDismissedCallback;
+    final void Function(CPDFEditAreaType type)?
+      onContentEditorStyleDialogDismissedCallback;
   final void Function(CPDFAnnotationType type, CPDFAnnotation? annotation)?
       onAnnotationCreationPreparedCallback;
 
   final CPDFOnCustomContextMenuItemTappedCallback?
       onCustomContextMenuItemTappedCallback;
+
+  final CPDFOnAddWatermarkDialogDismissedCallback? onAddWatermarkDialogDismissedCallback;
 
   final List<Widget> Function(CPDFReaderWidgetController controller)?
       appBarActions;
@@ -53,8 +62,13 @@ class CPDFReaderPage extends StatefulWidget {
       this.onIOSClickBackPressed,
       this.onTapMainDocAreaCallback,
       this.onCustomToolbarItemTappedCallback,
+      this.onSearchBackButtonTappedCallback,
+      this.onAnnotationStyleDialogDismissedCallback,
+      this.onFormStyleDialogDismissedCallback,
+      this.onContentEditorStyleDialogDismissedCallback,
       this.onAnnotationCreationPreparedCallback,
-      this.onCustomContextMenuItemTappedCallback});
+      this.onCustomContextMenuItemTappedCallback,
+      this.onAddWatermarkDialogDismissedCallback});
 
   @override
   State<CPDFReaderPage> createState() => _CPDFReaderPageState();
@@ -127,6 +141,14 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
           onIOSClickBackPressed: widget.onIOSClickBackPressed,
           onCustomToolbarItemTappedCallback:
               widget.onCustomToolbarItemTappedCallback,
+            onSearchBackButtonTappedCallback:
+              widget.onSearchBackButtonTappedCallback,
+            onAnnotationStyleDialogDismissedCallback:
+              widget.onAnnotationStyleDialogDismissedCallback,
+            onFormStyleDialogDismissedCallback:
+              widget.onFormStyleDialogDismissedCallback,
+            onContentEditorStyleDialogDismissedCallback:
+              widget.onContentEditorStyleDialogDismissedCallback,
           onAnnotationCreationPreparedCallback:
               widget.onAnnotationCreationPreparedCallback,
           onPageEditDialogBackPress: () {
@@ -137,6 +159,8 @@ class _CPDFReaderPageState extends State<CPDFReaderPage> {
           },
           onCustomContextMenuItemTappedCallback:
               widget.onCustomContextMenuItemTappedCallback,
+          onAddWatermarkDialogDismissedCallback:
+              widget.onAddWatermarkDialogDismissedCallback,
         ));
   }
 

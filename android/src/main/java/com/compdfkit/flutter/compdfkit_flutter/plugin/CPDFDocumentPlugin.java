@@ -77,8 +77,6 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_OUTLINE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_WIDGET;
-import static com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils.CONTENT_SCHEME;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -111,12 +109,29 @@ import com.compdfkit.core.page.CPDFPage.PDFFlattenOption;
 import com.compdfkit.core.utils.TTimeUtil;
 import com.compdfkit.core.watermark.CPDFWatermark;
 import com.compdfkit.core.watermark.CPDFWatermark.Type;
+import com.compdfkit.flutter.compdfkit_flutter.bridge.BaseMethodChannelPlugin;
+import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
+import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentRegistry;
+import com.compdfkit.flutter.compdfkit_flutter.document.codec.CPDFPageCodec;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentAnnotationOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentEditAreaOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentInfoOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentOpenOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentOutlineOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentPageOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentRenderOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSaveOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSearchOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSecurityOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTransferOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTaskOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentWatermarkOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.resolver.CPDFDocumentSourceResolver;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFBookmarkUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFDocumentInfoUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEditAreaUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEnumConvertUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFOutlineJsonUtil;
-import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFPageUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFSearchUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.annotation.pdfannotationlist.data.CPDFAnnotDatas;
@@ -151,27 +166,43 @@ import java.util.Map;
 
 public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
-    private String documentUid;
+    private final String documentUid;
+
+    private final CPDFDocumentContext documentContext;
 
     private CPDFViewCtrl pdfView;
 
-    private CPDFDocument mDocument;
-
-    CPDFPageUtil pageUtil = new CPDFPageUtil();
+    private CPDFPageCodec pageUtil;
 
     public CPDFDocumentPlugin(Context context,
             BinaryMessenger binaryMessenger, String documentUid) {
         super(context, binaryMessenger);
         this.documentUid = documentUid;
+        this.documentContext = new CPDFDocumentContext(context, documentUid);
+        this.pageUtil = documentContext.getPageCodec();
+        CPDFDocumentRegistry.register(documentContext);
     }
 
     public void setReaderView(CPDFViewCtrl pdfView) {
         this.pdfView = pdfView;
-        this.mDocument = pdfView.getCPdfReaderView().getPDFDocument();
+        documentContext.attachReaderView(pdfView);
+        this.pageUtil = documentContext.getPageCodec();
     }
 
     public void setDocument(CPDFDocument cpdfDocument) {
-        this.mDocument = cpdfDocument;
+        documentContext.attachDocument(cpdfDocument);
+        this.pageUtil = documentContext.getPageCodec();
+    }
+
+    public CPDFPageCodec getPageUtil() {
+        return pageUtil;
+    }
+
+    @Override
+    public void unregister() {
+        CPDFDocumentRegistry.unregister(documentUid);
+        documentContext.attachDocument(null);
+        super.unregister();
     }
 
     @Override
@@ -181,14 +212,8 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        CPDFDocument document;
-        if (pdfView != null) {
-            document = pdfView.getCPdfReaderView().getPDFDocument();
-        } else {
-            document = mDocument;
-        }
-        pageUtil.setDocument(document);
-        pageUtil.setContext(context);
+        CPDFDocument document = documentContext.getDocument();
+        pageUtil = documentContext.getPageCodec();
         if (document == null) {
             result.error("-1", "CPDFReaderView isnull or CPDFDocument is null", null);
             return;
@@ -197,389 +222,110 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             case OPEN_DOCUMENT: {
                 String filePath = call.argument("filePath");
                 String openPwd = call.argument("password");
-                PDFDocumentError error;
-                Object object;
-                if (filePath.startsWith(CONTENT_SCHEME) || filePath.startsWith(
-                        FileUtils.FILE_SCHEME)) {
-                    object = Uri.parse(filePath);
-                    error = document.open(Uri.parse(filePath), openPwd);
-                } else {
-                    object = filePath;
-                    error = document.open(filePath, openPwd);
-                }
-                switch (error) {
-                    case PDFDocumentErrorSuccess:
-                        result.success("success");
-                        break;
-                    case PDFDocumentErrorPassword:
-                        result.success("errorPassword");
-                        break;
-                    case PDFDocumentErrorFile:
-                        result.success("errorFile");
-                        break;
-                    case PDFDocumentErrorPage:
-                        result.success("errorPage");
-                        break;
-                    case PDFDocumentErrorFormat:
-                        result.success("errorFormat");
-                        break;
-                    case PDFDocumentErrorUnknown:
-                        result.success("unknown");
-                        break;
-                    case PDFDocumentErrorSecurity:
-                        result.success("errorSecurity");
-                        break;
-                    case PDFDocumentNotVerifyLicense:
-                        result.success("notVerifyLicense");
-                        break;
-                    case PDFDocumentErrorNoReadPermission:
-                        result.success("noReadPermission");
-                        break;
-                }
-                if (error == PDFDocumentError.PDFDocumentErrorSuccess && pdfView != null) {
-                    pdfView.setPDFDocument(document, object, 0, error, null);
-                }
+                DocumentOpenOps.OpenResult openResult = DocumentOpenOps.open(documentContext,
+                        filePath, openPwd);
+                result.success(DocumentOpenOps.toFlutterResult(openResult.getError()));
                 break;
             }
             case GET_FILE_NAME:
-                result.success(document.getFileName());
+                result.success(DocumentInfoOps.getFileName(documentContext));
                 break;
             case IS_ENCRYPTED:
-                result.success(document.isEncrypted());
+                result.success(DocumentInfoOps.isEncrypted(documentContext));
                 break;
             case IS_IMAGE_DOC:
-                CThreadPoolUtils.getInstance().executeIO(() -> {
-                    boolean isImageDoc = document.isImageDoc();
-                    result.success(isImageDoc);
-                });
+                CThreadPoolUtils.getInstance().executeIO(
+                        () -> DocumentInfoOps.isImageDoc(documentContext, result));
                 break;
             case GET_PERMISSIONS:
-                result.success(document.getPermissions().id);
+                result.success(DocumentInfoOps.getPermissions(documentContext));
                 break;
             case CHECK_OWNER_UNLOCKED:
-                result.success(document.checkOwnerUnlocked());
+                result.success(DocumentInfoOps.checkOwnerUnlocked(documentContext));
                 break;
             case CHECK_OWNER_PASSWORD: {
                 String password = call.argument("password");
-                result.success(document.checkOwnerPassword(password));
+                result.success(DocumentInfoOps.checkOwnerPassword(documentContext, password));
                 break;
             }
             case CLOSE:
-                document.close();
-                result.success(true);
+                result.success(DocumentInfoOps.close(documentContext));
                 break;
             case HAS_CHANGE:
-                result.success(document.hasChanges());
+                result.success(DocumentInfoOps.hasChange(documentContext));
                 break;
             case IMPORT_ANNOTATIONS:
-                try {
-                    String xfdfFilePath = FileUtils.getImportFilePath(context,
-                            (String) call.arguments);
-                    File file = new File(xfdfFilePath);
-                    if (!file.exists()) {
-                        result.success(false);
-                        return;
-                    }
-                    File cacheFile = new File(context.getCacheDir(),
-                            CFileUtils.CACHE_FOLDER + File.separator + "importAnnotCache/"
-                                    + CFileUtils.getFileNameNoExtension(document.getFileName()));
-                    cacheFile.mkdirs();
-                    boolean importResult = document.importAnnotations(xfdfFilePath,
-                            cacheFile.getAbsolutePath());
-                    if (pdfView != null) {
-                        pdfView.getCPdfReaderView().reloadPages();
-                    }
-                    result.success(importResult);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    result.success(false);
-                }
+                result.success(DocumentTransferOps.importAnnotations(documentContext,
+                        (String) call.arguments));
                 break;
             case EXPORT_ANNOTATIONS:
-                try {
-                    File dirFile = new File(context.getFilesDir(), "compdfkit/annotation/export/");
-                    dirFile.mkdirs();
-                    String fileName = CFileUtils.getFileNameNoExtension(document.getFileName());
-                    File cacheFile = new File(context.getCacheDir(),
-                            CFileUtils.CACHE_FOLDER + File.separator + "exportAnnotCache/" + fileName);
-                    cacheFile.mkdirs();
-                    File saveFile = new File(dirFile, fileName + ".xfdf");
-                    saveFile = CFileUtils.renameNameSuffix(saveFile);
-                    boolean exportResult = document.exportAnnotations(saveFile.getAbsolutePath(),
-                            cacheFile.getAbsolutePath());
-                    if (exportResult) {
-                        result.success(saveFile.getAbsolutePath());
-                    } else {
-                        result.success("");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    result.success("");
-                }
+                result.success(DocumentTransferOps.exportAnnotations(documentContext));
                 break;
             case REMOVE_ALL_ANNOTATIONS:
-                boolean deleteResult = document.removeAllAnnotations();
-                if (deleteResult && pdfView != null) {
-                    pdfView.getCPdfReaderView().invalidateAllChildren();
-                }
-                result.success(deleteResult);
+                result.success(DocumentAnnotationOps.removeAllAnnotations(documentContext));
                 break;
             case GET_PAGE_COUNT:
-                result.success(document.getPageCount());
+                result.success(DocumentInfoOps.getPageCount(documentContext));
                 break;
             case RENDER_ANNOTATION_APPEARANCE:
-                renderAnnotationAppearance(call, result, document);
+                DocumentRenderOps.renderAnnotationAppearance(documentContext, call, result);
                 break;
             case SAVE: {
                 boolean saveIncremental = call.argument("save_incremental");
                 boolean fontSubSet = call.argument("font_sub_set");
-
-                if (pdfView != null) {
-                    pdfView.savePDF(saveIncremental, fontSubSet, (s, uri) -> {
-                        result.success(true);
-                    }, e -> {
-                        result.success(false);
-                    });
-                } else {
-                    CThreadPoolUtils.getInstance().executeIO(() -> {
-                        try {
-                            if (document.hasChanges()) {
-                                boolean save = document
-                                        .save(saveIncremental ? PDFDocumentSaveType.PDFDocumentSaveIncremental
-                                                : PDFDocumentSaveType.PDFDocumentSaveNoIncremental, fontSubSet);
-                                if (document.shouleReloadDocument()) {
-                                    document.reload();
-                                }
-                                result.success(save);
-                            } else {
-                                result.success(true);
-                            }
-                        } catch (CPDFDocumentException e) {
-                            result.success(false);
-                        }
-                    });
-                }
+                DocumentTaskOps.saveAsync(documentContext, saveIncremental, fontSubSet, result);
                 break;
             }
             case SAVE_AS: {
                 String savePath = call.argument("save_path");
                 boolean removeSecurity = call.argument("remove_security");
                 boolean fontSubSet = call.argument("font_sub_set");
-                if (pdfView != null) {
-                    pdfView.exitEditMode();
-                }
-                CThreadPoolUtils.getInstance().executeIO(() -> {
-                    try {
-                        boolean saveResult;
-                        if (savePath.startsWith(CONTENT_SCHEME)) {
-                            saveResult = document.saveAs(Uri.parse(savePath), removeSecurity,
-                                    fontSubSet);
-                        } else {
-                            saveResult = document.saveAs(savePath, removeSecurity, false,
-                                    fontSubSet);
-                        }
-                        CThreadPoolUtils.getInstance().executeMain(() -> {
-                            try {
-                                if (document.shouleReloadDocument()) {
-                                    document.reload();
-                                    if (pdfView != null) {
-                                        pdfView.getCPdfReaderView().reloadPages2();
-                                    }
-                                }
-                            } catch (Exception ignored) {
-
-                            }
-                            result.success(saveResult);
-                        });
-                    } catch (CPDFDocumentException e) {
-                        e.printStackTrace();
-                        result.error("SAVE_FAIL",
-                                "The current saved directory is: " + savePath
-                                        + ", please make sure you have write permission to this directory",
-                                "");
-                    }
-                });
+                DocumentTaskOps.saveAsAsync(documentContext, savePath, removeSecurity,
+                        fontSubSet, result);
                 break;
             }
             case PRINT:
-                FragmentActivity fragmentActivity = CViewUtils.getFragmentActivity(
-                        pdfView.getContext());
-                if (fragmentActivity != null) {
-                    CPDFPrintUtils.printCurrentDocument(fragmentActivity, document);
-                }
-                result.success(null);
+                DocumentTaskOps.print(documentContext, result);
                 break;
             case REMOVE_PASSWORD:
-                CThreadPoolUtils.getInstance().executeIO(() -> {
-                    try {
-                        boolean saveResult = document.save(
-                                PDFDocumentSaveType.PDFDocumentSaveRemoveSecurity,
-                                true);
-                        result.success(saveResult);
-                        if (document.shouleReloadDocument()) {
-                            document.reload();
-                        }
-                    } catch (Exception e) {
-                        result.error("SAVE_FAIL",
-                                "An exception occurs when remove document opening password and saving it.,"
-                                        + e.getMessage(),
-                                "");
-                    }
-                });
+                DocumentTaskOps.removePasswordAsync(documentContext, result);
                 break;
             case SET_PASSWORD:
-                CThreadPoolUtils.getInstance().executeIO(() -> {
-                    try {
-                        String userPassword = call.argument("user_password");
-                        String ownerPassword = call.argument("owner_password");
-                        boolean allowsPrinting = call.argument("allows_printing");
-                        boolean allowsCopying = call.argument("allows_copying");
-                        String encryptAlgo = call.argument("encrypt_algo");
-
-                        if (!TextUtils.isEmpty(userPassword)) {
-                            document.setUserPassword(userPassword);
-                        }
-                        if (!TextUtils.isEmpty(ownerPassword)) {
-                            document.setOwnerPassword(ownerPassword);
-                            CPDFDocumentPermissionInfo permissionInfo = document.getPermissionsInfo();
-                            permissionInfo.setAllowsPrinting(allowsPrinting);
-                            permissionInfo.setAllowsCopying(allowsCopying);
-                            document.setPermissionsInfo(permissionInfo);
-                        }
-                        if (!TextUtils.isEmpty(encryptAlgo)) {
-                            switch (encryptAlgo) {
-                                case "rc4":
-                                    document.setEncryptAlgorithm(
-                                            PDFDocumentEncryptAlgo.PDFDocumentRC4);
-                                    break;
-                                case "aes128":
-                                    document.setEncryptAlgorithm(
-                                            PDFDocumentEncryptAlgo.PDFDocumentAES128);
-                                    break;
-                                case "aes256":
-                                    document.setEncryptAlgorithm(
-                                            PDFDocumentEncryptAlgo.PDFDocumentAES256);
-                                    break;
-                                case "noEncryptAlgo":
-                                    document.setEncryptAlgorithm(
-                                            PDFDocumentEncryptAlgo.PDFDocumentNoEncryptAlgo);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-
-                        boolean saveResult = document.save(
-                                CPDFDocument.PDFDocumentSaveType.PDFDocumentSaveIncremental, true);
-
-                        if (document.shouleReloadDocument()) {
-                            if (!TextUtils.isEmpty(userPassword)) {
-                                document.reload(userPassword);
-                            } else if (!TextUtils.isEmpty(ownerPassword)) {
-                                document.reload(ownerPassword);
-                            } else {
-                                document.reload();
-                            }
-                        }
-                        result.success(saveResult);
-                    } catch (Exception e) {
-                        result.error("SAVE_FAIL",
-                                "An exception occurs when setting a document opening password and saving it.,"
-                                        + e.getMessage(),
-                                "");
-                    }
-                });
+                String userPassword = call.argument("user_password");
+                String ownerPassword = call.argument("owner_password");
+                boolean allowsPrinting = call.argument("allows_printing");
+                boolean allowsCopying = call.argument("allows_copying");
+                String encryptAlgo = call.argument("encrypt_algo");
+                DocumentTaskOps.setPasswordAsync(documentContext, userPassword, ownerPassword,
+                        allowsPrinting, allowsCopying, encryptAlgo, result);
                 break;
             case GET_ENCRYPT_ALGORITHM:
-                switch (document.getEncryptAlgorithm()) {
-                    case PDFDocumentRC4:
-                        result.success("rc4");
-                        break;
-                    case PDFDocumentAES128:
-                        result.success("aes128");
-                        break;
-                    case PDFDocumentAES256:
-                        result.success("aes256");
-                        break;
-                    case PDFDocumentNoEncryptAlgo:
-                        result.success("noEncryptAlgo");
-                        break;
-                }
+                result.success(DocumentSecurityOps.getEncryptAlgorithm(documentContext));
                 break;
             case CREATE_WATERMARK:
                 Object watermarkObj = call.arguments;
                 Log.e("ComPDFKit-Flutter", "watermark:" + watermarkObj.toString());
-                createWatermark(call, result, pdfView, document);
+                DocumentWatermarkOps.createWatermark(documentContext, call, result);
                 break;
             case REMOVE_ALL_WATERMARKS:
-                for (int watermarkCount = document.getWatermarkCount(); watermarkCount > 0; watermarkCount--) {
-                    document.getWatermark(watermarkCount - 1).clear();
-                }
-                if (pdfView != null) {
-                    pdfView.getCPdfReaderView().reloadPages();
-                }
-                result.success(null);
+                DocumentWatermarkOps.removeAllWatermarks(documentContext, result);
                 break;
             case IMPORT_WIDGETS:
-                try {
-                    String xfdfFilePath = FileUtils.getImportFilePath(context,
-                            (String) call.arguments);
-                    File file = new File(xfdfFilePath);
-                    if (!file.exists()) {
-                        result.success(false);
-                        return;
-                    }
-                    boolean importWidgetResult = CPDFAnnotDatas.importWidgets(document,
-                            xfdfFilePath);
-                    if (pdfView != null) {
-                        pdfView.getCPdfReaderView().reloadPages();
-                    }
-                    result.success(importWidgetResult);
-                } catch (Exception e) {
-                    result.success(false);
-                }
+                result.success(DocumentTransferOps.importWidgets(documentContext,
+                        (String) call.arguments));
                 break;
             case EXPORT_WIDGETS:
-                try {
-                    File saveDir = new File(context.getFilesDir(), "compdfkit/widgets/export/");
-                    saveDir.mkdirs();
-                    String fileName = CFileUtils.getFileNameNoExtension(document.getFileName());
-
-                    File cacheFile = new File(context.getCacheDir(),
-                            CFileUtils.CACHE_FOLDER + File.separator + "widgetExportCache/" + fileName);
-                    cacheFile.mkdirs();
-
-                    File saveFile = new File(saveDir, fileName + "_widgets.xfdf");
-                    saveFile = CFileUtils.renameNameSuffix(saveFile);
-                    boolean exportResult = document.exportWidgets(saveFile.getAbsolutePath(),
-                            cacheFile.getAbsolutePath());
-                    if (exportResult) {
-                        result.success(saveFile.getAbsolutePath());
-                    } else {
-                        result.success("");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    result.success("");
-                }
+                result.success(DocumentTransferOps.exportWidgets(documentContext));
                 break;
             case FLATTEN_ALL_PAGES:
                 try {
                     String flttenSavePath = call.argument("save_path");
                     boolean fontSubset = call.argument("font_subset");
-                    boolean success = document.flattenAllPages(PDFFlattenOption.FLAT_NORMALDISPLAY);
-                    if (!success) {
+                    boolean saveResult = DocumentTransferOps.flattenAllPages(documentContext,
+                            flttenSavePath, fontSubset);
+                    if (!saveResult) {
                         result.error("FLATTEN_FAIL", "Flatten all pages failed.", "");
                         return;
-                    }
-                    boolean saveResult;
-                    if (flttenSavePath.startsWith(CONTENT_SCHEME)) {
-                        saveResult = document.saveAs(Uri.parse(flttenSavePath), false, fontSubset);
-                    } else {
-                        saveResult = document.saveAs(flttenSavePath, false, false, fontSubset);
-                    }
-                    if (document.shouleReloadDocument()) {
-                        document.reload();
                     }
                     result.success(saveResult);
                 } catch (Exception e) {
@@ -600,34 +346,10 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 int insertPosition = call.argument("insert_position");
                 String password = call.argument("password");
 
-                String importDocumentPath = FileUtils.getImportFilePath(context, importFilePath);
-                CPDFDocument importDocument = new CPDFDocument(context);
-                PDFDocumentError error = importDocument.open(importDocumentPath, password);
-                if (error != PDFDocumentError.PDFDocumentErrorSuccess) {
-                    result.error("IMPORT_DOCUMENT_FAIL",
-                            "open import document fail, error:" + error.name(),
-                            "");
-                    return;
-                }
-                if (pages == null || pages.isEmpty()) {
-                    int pageCount = importDocument.getPageCount();
-                    pages = new ArrayList<>();
-                    for (int i = 0; i < pageCount; i++) {
-                        pages.add(i);
-                    }
-                }
-                int[] pagesArray = new int[pages.size()];
-                for (int i = 0; i < pages.size(); i++) {
-                    pagesArray[i] = pages.get(i);
-                }
-                if (insertPosition == -1) {
-                    insertPosition = document.getPageCount();
-                }
-                boolean importResult = document.importPages(importDocument, pagesArray,
-                        insertPosition);
+                boolean importResult = DocumentTransferOps.importDocument(documentContext,
+                        importFilePath, pages, insertPosition, password);
                 result.success(importResult);
-                if (pdfView != null) {
-                    pdfView.getCPdfReaderView().reloadPages();
+                if (importResult && pdfView != null) {
                     updatePageIndicatorView(document);
                 }
                 break;
@@ -636,11 +358,12 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 int pageIndex = call.argument("page_index");
                 int width = call.argument("page_width");
                 int height = call.argument("page_height");
-                CPDFPage page = document.insertBlankPage(pageIndex, width, height);
-                if (page != null && page.isValid()) {
+                boolean insertBlankResult = DocumentPageOps.insertBlankPage(documentContext,
+                        pageIndex, width, height);
+                if (insertBlankResult) {
                     updatePageIndicatorView(document);
                 }
-                result.success(page != null && page.isValid());
+                result.success(insertBlankResult);
                 break;
             }
             case SPLIT_DOCUMENT_PAGES: {
@@ -651,22 +374,11 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                             "The number of pages must be greater than 1", "");
                     return;
                 }
-                int[] pagesArray = new int[pages.size()];
-                for (int i = 0; i < pages.size(); i++) {
-                    pagesArray[i] = pages.get(i);
-                }
                 CThreadPoolUtils.getInstance().executeIO(() -> {
                     try {
-                        CPDFDocument newDocument = CPDFDocument.createDocument(context);
-                        newDocument.importPages(document, pagesArray, 0);
-                        boolean saveResult;
-                        if (savePath.startsWith(CONTENT_SCHEME)) {
-                            saveResult = newDocument.saveAs(Uri.parse(savePath), false, true);
-                        } else {
-                            saveResult = newDocument.saveAs(savePath, false, false, true);
-                        }
+                        boolean saveResult = DocumentPageOps.splitDocumentPages(documentContext,
+                                savePath, pages);
                         result.success(saveResult);
-                        newDocument.close();
                     } catch (CPDFDocumentException e) {
                         result.error("SPLIT_DOCUMENT_FAIL", "error:" + e.getErrType().name(), "");
                     }
@@ -674,154 +386,120 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 break;
             }
             case GET_DOCUMENT_PATH: {
-                if (!TextUtils.isEmpty(document.getAbsolutePath())) {
-                    result.success(document.getAbsolutePath());
-                    return;
-                }
-                result.success(document.getUri().toString());
+                result.success(DocumentInfoOps.getDocumentPath(documentContext));
                 break;
             }
             case GET_ANNOTATIONS: {
                 int pageIndex = (int) call.arguments;
-                result.success(pageUtil.getAnnotations(pageIndex));
+                result.success(DocumentAnnotationOps.getAnnotations(documentContext, pageIndex));
                 break;
             }
             case GET_WIDGETS: {
                 int pageIndex = (int) call.arguments;
-                result.success(pageUtil.getWidgets(pageIndex));
+                result.success(DocumentAnnotationOps.getWidgets(documentContext, pageIndex));
                 break;
             }
             case REMOVE_ANNOTATION:
             case REMOVE_WIDGET: {
                 int pageIndex = call.argument("page_index");
                 String annotPtr = call.argument("uuid");
-                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, annotPtr);
-                if (annotation == null) {
-                    Log.e("ComPDFKit-Flutter",
-                            "not found this annotation, pageIndex:" + pageIndex + ", annotPtr:"
-                                    + annotPtr);
-                    result.error("REMOVE_FAIL", "not found this annotation", "");
-                    return;
-                }
-                if (pdfView != null) {
-                    CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
-                            .getChild(pageIndex);
-                    if (pageView != null) {
-                        CPDFBaseAnnotImpl baseAnnot = pageView.getAnnotImpl(annotation);
-                        pageView.deleteAnnotation(baseAnnot);
-                        result.success(true);
-                    } else {
-                        result.success(pageUtil.deleteAnnotation(pageIndex, annotPtr));
-                    }
-                } else {
-                    result.success(pageUtil.deleteAnnotation(pageIndex, annotPtr));
-                }
+                DocumentAnnotationOps.removeAnnotation(documentContext, pageIndex, annotPtr,
+                        result);
                 break;
             }
             case GET_OUTLINE_ROOT:
-                result.success(CPDFOutlineJsonUtil.getOutlineJson(document));
+                result.success(DocumentOutlineOps.getOutlineRoot(documentContext));
                 break;
             case NEW_OUTLINE_ROOT:
-                result.success(CPDFOutlineJsonUtil.newOutlineRoot(document));
+                result.success(DocumentOutlineOps.newOutlineRoot(documentContext));
                 break;
             case ADD_OUTLINE:
-                result.success(CPDFOutlineJsonUtil.addOutline(document, call));
+                result.success(DocumentOutlineOps.addOutline(documentContext, call));
                 break;
             case REMOVE_OUTLINE:
                 String outlineUUid = call.arguments.toString();
-                result.success(CPDFOutlineJsonUtil.deleteOutline(document, outlineUUid));
+                result.success(DocumentOutlineOps.removeOutline(documentContext, outlineUUid));
                 break;
             case UPDATE_OUTLINE: {
                 String uid = call.argument("uuid");
                 String title = call.argument("title");
                 int destPageIndex = call.argument("page_index");
-                result.success(
-                        CPDFOutlineJsonUtil.updateOutlineTitle(document, uid, title, destPageIndex));
+                result.success(DocumentOutlineOps.updateOutline(documentContext, uid, title,
+                        destPageIndex));
                 break;
             }
             case MOVE_TO_OUTLINE: {
                 String uid = call.argument("uuid");
                 int insertIndex = call.argument("insert_index");
                 String parentUid = call.argument("new_parent_uuid");
-                result.success(CPDFOutlineJsonUtil.moveTo(document, uid, parentUid, insertIndex));
+                result.success(DocumentOutlineOps.moveToOutline(documentContext, uid, parentUid,
+                        insertIndex));
                 break;
             }
             case HAS_BOOKMARK:
-                result.success(document.hasBookmark((Integer) call.arguments));
+                result.success(DocumentOutlineOps.hasBookmark(documentContext,
+                        (Integer) call.arguments));
                 break;
             case REMOVE_BOOKMARK:
                 int pageIndex = (int) call.arguments;
-                result.success(document.removeBookmark(pageIndex));
-                if (pdfView != null) {
-                    pdfView.getCPdfReaderView().invalidateAllChildren();
-                }
+                result.success(DocumentOutlineOps.removeBookmark(documentContext, pageIndex));
                 break;
             case GET_BOOKMARKS:
-                result.success(CPDFBookmarkUtil.getBookmarks(document));
+                result.success(DocumentOutlineOps.getBookmarks(documentContext));
                 break;
             case ADD_BOOKMARK:
                 String title = call.argument("title");
                 int bookMarkPageIndex = call.argument("page_index");
-                boolean addResult = CPDFBookmarkUtil.addBookmark(document, title, bookMarkPageIndex);
-                if (pdfView != null) {
-                    pdfView.getCPdfReaderView().invalidateAllChildren();
-                }
+                boolean addResult = DocumentOutlineOps.addBookmark(documentContext, title,
+                        bookMarkPageIndex);
                 result.success(addResult);
                 break;
             case UPDATE_BOOKMARK: {
                 String editTitle = call.argument("title");
                 String uuid = call.argument("uuid");
-                boolean updateResult = CPDFBookmarkUtil.updateBookmark(document, uuid, editTitle);
+                boolean updateResult = DocumentOutlineOps.updateBookmark(documentContext, uuid,
+                        editTitle);
                 result.success(updateResult);
                 break;
             }
             case RENDER_PAGE:
-                renderPageToImage(call, result, document);
+                DocumentRenderOps.renderPageToImage(documentContext, call, result);
                 break;
             case GET_PAGE_SIZE:
                 int page = call.argument("page_index");
-                RectF rectF = document.getPageSize(page);
-                Map<String, Float> pageSizeMap = new HashMap<>();
-                pageSizeMap.put("width", rectF.width());
-                pageSizeMap.put("height", rectF.height());
-                result.success(pageSizeMap);
+                result.success(DocumentPageOps.getPageSize(documentContext, page));
                 break;
             case INSERT_IMAGE_WITH_PATH: {
                 int index = call.argument("page_index");
                 int width = call.argument("page_width");
                 int height = call.argument("page_height");
                 String imagePath = call.argument("image_path");
-                CPDFPage insertPage = document.insertPageWithImagePath(index, width, height,
-                        imagePath, PDFDocumentImageMode.PDFDocumentImageModeScaleAspectFit);
-                if (insertPage != null && insertPage.isValid()) {
+                boolean insertResult = DocumentPageOps.insertImageWithPath(documentContext, index,
+                        width, height, imagePath);
+                if (insertResult) {
                     updatePageIndicatorView(document);
                 }
-                result.success(insertPage != null && insertPage.isValid());
+                result.success(insertResult);
                 break;
             }
             case GET_PAGE_ROTATION: {
                 int _pageIndex = (int) call.arguments;
-                CPDFPage cpdfPage = document.pageAtIndex(_pageIndex);
-                if (cpdfPage == null) {
-                    result.error("GET_PAGE_ROTATION_FAIL", "Page not found at index: " + _pageIndex,
-                            null);
-                    return;
+                try {
+                    result.success(DocumentPageOps.getPageRotation(documentContext, _pageIndex));
+                } catch (IllegalArgumentException e) {
+                    result.error("GET_PAGE_ROTATION_FAIL", e.getMessage(), null);
                 }
-                int rotation = cpdfPage.getRotation();
-                result.success(rotation);
                 break;
             }
             case SET_PAGE_ROTATION: {
                 int _pageIndex = call.argument("page_index");
                 int rotation = call.argument("rotation");
-                CPDFPage cpdfPage = document.pageAtIndex(_pageIndex);
-                if (cpdfPage == null) {
-                    result.error("SET_PAGE_ROTATION_FAIL", "Page not found at index: " + _pageIndex,
-                            null);
-                    return;
+                try {
+                    result.success(
+                            DocumentPageOps.setPageRotation(documentContext, _pageIndex, rotation));
+                } catch (IllegalArgumentException e) {
+                    result.error("SET_PAGE_ROTATION_FAIL", e.getMessage(), null);
                 }
-                boolean setRotationResult = cpdfPage.setRotation(rotation);
-                result.success(setRotationResult);
                 break;
             }
             case REMOVE_PAGES: {
@@ -831,490 +509,97 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                             "");
                     return;
                 }
-                int[] pagesArray = new int[pages.size()];
-                for (int i = 0; i < pages.size(); i++) {
-                    pagesArray[i] = pages.get(i);
-                }
-                boolean removeResult = document.removePages(pagesArray);
-                result.success(removeResult);
+                result.success(DocumentPageOps.removePages(documentContext, pages));
                 break;
             }
             case MOVE_PAGE: {
                 int sourcePageIndex = call.argument("from_index");
                 int targetPageIndex = call.argument("to_index");
-                boolean moveResult = document.movePage(sourcePageIndex, targetPageIndex);
-                result.success(moveResult);
+                result.success(
+                        DocumentPageOps.movePage(documentContext, sourcePageIndex, targetPageIndex));
                 break;
             }
             case GET_DOCUMENT_INFO: {
-                result.success(CPDFDocumentInfoUtil.getDocumentInfo(document));
+                result.success(DocumentInfoOps.getDocumentInfo(documentContext));
                 break;
             }
             case GET_MAJOR_VERSION:
-                result.success(document.getMajorVersion());
+                result.success(DocumentInfoOps.getMajorVersion(documentContext));
                 break;
             case GET_MINOR_VERSION:
-                result.success(document.getMinorVersion());
+                result.success(DocumentInfoOps.getMinorVersion(documentContext));
                 break;
             case GET_PERMISSIONS_INFO:
-                result.success(CPDFDocumentInfoUtil.getPermissionsInfo(document));
+                result.success(DocumentInfoOps.getPermissionsInfo(documentContext));
                 break;
             case IS_LOCKED:
-                result.success(document.isLocked());
+                result.success(DocumentInfoOps.isLocked(documentContext));
                 break;
             case SEARCH_TEXT:
                 String keywords = call.argument("keywords");
                 int options = call.argument("search_options");
-                ITextSearcher iTextSearcher = null;
-                if (pdfView != null) {
-                    iTextSearcher = pdfView.getCPdfReaderView().getTextSearcher();
-                } else {
-                    iTextSearcher = new CPDFTextSearcher(context, document);
-                }
-                result.success(CPDFSearchUtil.search(document, iTextSearcher, keywords, options));
+                result.success(DocumentSearchOps.searchText(documentContext, keywords, options));
                 break;
             case SEARCH_TEXT_SELECTION:
-                CPDFSearchUtil.selection(context, pdfView, document, call);
+                DocumentSearchOps.selectText(documentContext, call);
                 result.success(null);
                 break;
             case SEARCH_TEXT_CLEAR:
-                CPDFSearchUtil.clearSearch(context, pdfView, document);
+                DocumentSearchOps.clearSearch(documentContext);
                 result.success(null);
                 break;
             case GET_SEARCH_TEXT:
-                result.success(CPDFSearchUtil.getText(document, call));
+                result.success(DocumentSearchOps.getSearchText(documentContext, call));
                 break;
             case UPDATE_ANNOTATION: {
                 int pageIndex1 = call.argument("page_index");
                 String annotPtr = call.argument("uuid");
                 HashMap<String, Object> properties = call.argument("data");
-                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex1, annotPtr);
-                if (annotation == null || !annotation.isValid()) {
-                    result.error("UPDATE_ANNOTATION_FAIL", "not found this annotation", "");
-                    return;
-                }
-                boolean updateResult = pageUtil.updateAnnotation(annotation, properties);
-                CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
-                        .getChild(pageIndex1);
-                if (pageView != null) {
-                    CPDFBaseAnnotImpl annotImpl = pageView.getAnnotImpl(annotation);
-                    if (annotImpl != null){
-                        annotImpl.onAnnotAttrChange();
-                    } else if (updateResult && annotation.isValid()){
-                        pageView.addAnnotation(annotation, false);
-                    }
-                    pageView.invalidate();
-                }
-                result.success(true);
+                DocumentAnnotationOps.updateAnnotation(documentContext, pageIndex1, annotPtr,
+                        properties, result);
                 break;
             }
             case UPDATE_WIDGET: {
                 int pageIndex1 = call.argument("page_index");
                 String annotPtr = call.argument("uuid");
                 HashMap<String, Object> properties = call.argument("data");
-                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex1, annotPtr);
-                if (annotation == null || !annotation.isValid()) {
-                    result.error("UPDATE_ANNOTATION_FAIL", "not found this annotation", "");
-                    return;
-                }
-                pageUtil.updateWidget(pageIndex1, annotPtr, properties);
-                CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
-                        .getChild(pageIndex1);
-                if (pageView != null) {
-                    CPDFBaseAnnotImpl annotImpl = pageView.getAnnotImpl(annotation);
-                    annotImpl.onAnnotAttrChange();
-                    pageView.invalidate();
-                }
-                result.success(true);
+                DocumentAnnotationOps.updateWidget(documentContext, pageIndex1, annotPtr,
+                        properties, result);
                 break;
             }
             case REMOVE_EDIT_AREA: {
                 int pageIndex1 = call.argument("page_index");
                 String uuid1 = call.argument("uuid");
                 String editAreaType = call.argument("type");
-                CPDFEditAreaUtil.removeEditArea(document, pageIndex1, uuid1, editAreaType);
-                if (pdfView != null) {
-                    CPDFReaderView readerView = pdfView.getCPdfReaderView();
-                    readerView.getContextMenuShowListener().dismissContextMenu();
-                }
+                DocumentEditAreaOps.removeEditArea(documentContext, pageIndex1, uuid1,
+                        editAreaType, result);
                 break;
             }
             case ADD_ANNOTATIONS: {
                 ArrayList<HashMap<String, Object>> annotList = call.argument("annotations");
-                CPDFReaderView readerView = null;
-                if (pdfView != null) {
-                    readerView = pdfView.getCPdfReaderView();
-                }
-                boolean addResult1 = pageUtil.addAnnotations(readerView, annotList);
+                boolean addResult1 = DocumentAnnotationOps.addAnnotations(documentContext,
+                        annotList);
                 result.success(addResult1);
                 break;
             }
             case ADD_WIDGETS: {
                 ArrayList<HashMap<String, Object>> widgetList = call.argument("widgets");
-                CPDFReaderView readerView = null;
-                if (pdfView != null) {
-                    readerView = pdfView.getCPdfReaderView();
-                }
-                boolean addResult1 = pageUtil.addWidgets(readerView, widgetList);
+                boolean addResult1 = DocumentAnnotationOps.addWidgets(documentContext,
+                        widgetList);
                 result.success(addResult1);
                 break;
             }
             case CREATE_NEW_TEXT_AREA: {
-                int pageIndex1 = call.argument("page_index");
-                HashMap<String, Object> attr = call.argument("attr");
-
-                boolean isEditMode = false;
-                if (pdfView != null) {
-                    ViewMode viewMode = pdfView.getCPdfReaderView().getViewMode();
-                    isEditMode = viewMode == ViewMode.PDFEDIT;
-                }
-                HashMap<String, Object> dataMap = new HashMap<>();
-                dataMap.put("attr", attr);
-                dataMap.put("content", call.argument("content"));
-                dataMap.put("x", call.argument("x"));
-                dataMap.put("y", call.argument("y"));
-                dataMap.put("max_width", call.argument("max_width"));
-                dataMap.put("page_index", pageIndex1);
-                dataMap.put("isEditMode", isEditMode);
-
-                CPDFEditArea editArea = CPDFEditAreaUtil.createNewTextArea(document, dataMap);
-                if (editArea != null) {
-                    if (pdfView != null) {
-                        CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
-                                .getChild(pageIndex1);
-                        if (pageView != null) {
-                            ViewMode viewMode = pdfView.getCPdfReaderView().getViewMode();
-                            if (viewMode != ViewMode.PDFEDIT) {
-                                pageView.endEdit();
-                            }
-                            pageView.onUpdateUI(pageIndex1);
-                        }
-                    }
-                    result.success(true);
-                } else {
-                    result.success(false);
-                }
+                DocumentEditAreaOps.createNewTextArea(documentContext, call, result);
                 break;
             }
             case CREATE_NEW_IMAGE_AREA: {
-                int pageIndex1 = call.argument("page_index");
-                HashMap<String, Object> imageData = call.argument("image_data");
-
-                boolean isEditMode = false;
-                if (pdfView != null) {
-                    ViewMode viewMode = pdfView.getCPdfReaderView().getViewMode();
-                    isEditMode = viewMode == ViewMode.PDFEDIT;
-                }
-                HashMap<String, Object> dataMap = new HashMap<>();
-                dataMap.put("image_data", imageData);
-                dataMap.put("x", call.argument("x"));
-                dataMap.put("y", call.argument("y"));
-                dataMap.put("width", call.argument("width"));
-                dataMap.put("page_index", pageIndex1);
-                dataMap.put("isEditMode", isEditMode);
-
-                CPDFEditAreaUtil.createNewImageArea(document, dataMap, editArea -> {
-                    if (editArea != null) {
-                        if (pdfView != null) {
-                            CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView()
-                                    .getChild(pageIndex1);
-                            if (pageView != null) {
-                                ViewMode viewMode = pdfView.getCPdfReaderView().getViewMode();
-                                if (viewMode != ViewMode.PDFEDIT) {
-                                    pageView.endEdit();
-                                }
-                                pageView.onUpdateUI(pageIndex1);
-                            }
-                        }
-                        result.success(true);
-                    } else {
-                        result.success(false);
-                    }
-                });
+                DocumentEditAreaOps.createNewImageArea(documentContext, call, result);
                 break;
             }
             default:
                 break;
         }
-    }
-
-    private void renderPageToImage(MethodCall call, Result result, CPDFDocument document) {
-        int pageIndex = call.argument("page_index");
-        if (pageIndex < 0 || pageIndex >= document.getPageCount()) {
-            result.error("GET_PAGE_IMAGE_BYTES_FAIL", "Invalid page index: " + pageIndex, null);
-            return;
-        }
-        int width = call.argument("width");
-        int height = call.argument("height");
-        String colorHex = call.argument("background_color");
-        boolean drawAnnot = call.argument("draw_annot");
-        boolean drawForm = call.argument("draw_form");
-        String compression = call.argument("compression");
-        CPDFDocumentPageWrapper pageWrapper = new CPDFDocumentPageWrapper(document, pageIndex);
-        pageWrapper.setBackgroundColor(Color.parseColor(colorHex));
-        pageWrapper.setDrawAnnotation(drawAnnot);
-        pageWrapper.setDrawForms(drawForm);
-        CPDFWrapper wrapper = new CPDFWrapper(pageWrapper);
-        wrapper.setSize(width, height);
-        Glide.with(document.getContext())
-                .asBitmap()
-                .load(wrapper)
-                .override(width, height)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull Bitmap resource,
-                            @Nullable Transition<? super Bitmap> transition) {
-                        switch (compression) {
-                            case "jpeg":
-                                Log.i("ComPDFKit-Flutter", "renderPageToImage:jpeg");
-                                ByteArrayOutputStream jpegStream = new ByteArrayOutputStream();
-                                resource.compress(Bitmap.CompressFormat.JPEG, 85, jpegStream);
-                                byte[] byteArray = jpegStream.toByteArray();
-                                result.success(byteArray);
-                                break;
-                            case "png":
-                                Log.i("ComPDFKit-Flutter", "renderPageToImage:png");
-                                ByteArrayOutputStream pngStream = new ByteArrayOutputStream();
-                                resource.compress(Bitmap.CompressFormat.PNG, 100, pngStream);
-                                byte[] pngByteArray = pngStream.toByteArray();
-                                result.success(pngByteArray);
-                                break;
-                        }
-
-                        Glide.get(document.getContext()).clearMemory();
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                    }
-                });
-    }
-
-    private void renderAnnotationAppearance(MethodCall call, Result result, CPDFDocument document) {
-        Integer pageIndex = call.argument("page_index");
-        String annotPtr = call.argument("uuid");
-        HashMap<String, Object> options = call.argument("options");
-        if (pageIndex == null || pageIndex < 0 || pageIndex >= document.getPageCount()) {
-            result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
-                    "Invalid page index: " + pageIndex, null);
-            return;
-        }
-        if (TextUtils.isEmpty(annotPtr)) {
-            result.error("RENDER_ANNOTATION_APPEARANCE_FAIL", "Annotation uuid is empty", null);
-            return;
-        }
-        CThreadPoolUtils.getInstance().executeIO(() -> {
-            Bitmap bitmap = null;
-            try {
-                CPDFAnnotation annotation = pageUtil.getAnnotation(pageIndex, annotPtr);
-                if (annotation == null || !annotation.isValid()) {
-                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
-                            "Annotation was not found", null);
-                    return;
-                }
-                RectF rect = annotation.getRect();
-                if (rect == null) {
-                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
-                            "Annotation rect is empty", null);
-                    return;
-                }
-                int[] renderSize = resolveAnnotationAppearanceRenderSize(rect, options);
-                int width = renderSize[0];
-                int height = renderSize[1];
-                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                if (!annotation.getAppearanceByPixel(bitmap, CPDFAnnotation.AppearanceType.Normal)) {
-                    result.error("RENDER_ANNOTATION_APPEARANCE_FAIL",
-                            "Failed to render annotation appearance", null);
-                    return;
-                }
-                result.success(compressBitmap(bitmap, options));
-            } catch (Exception e) {
-                result.error("RENDER_ANNOTATION_APPEARANCE_FAIL", e.getMessage(), null);
-            } finally {
-                if (bitmap != null && !bitmap.isRecycled()) {
-                    bitmap.recycle();
-                }
-            }
-        });
-    }
-
-    private byte[] compressBitmap(Bitmap bitmap, HashMap<String, Object> options) {
-        String compression = getStringOption(options, "compression", "png");
-        int quality = getIntOption(options, "quality", 100);
-        Bitmap.CompressFormat format = "jpeg".equals(compression)
-                ? Bitmap.CompressFormat.JPEG
-                : Bitmap.CompressFormat.PNG;
-        int compressedQuality = format == Bitmap.CompressFormat.JPEG ? quality : 100;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(format, compressedQuality, outputStream);
-        return outputStream.toByteArray();
-    }
-
-    private int[] resolveAnnotationAppearanceRenderSize(RectF rect, HashMap<String, Object> options) {
-        int baseWidth = Math.max(1, Math.round(Math.abs(rect.width())));
-        int baseHeight = Math.max(1, Math.round(Math.abs(rect.height())));
-        int targetWidth = getIntOption(options, "target_width", 0);
-        int targetHeight = getIntOption(options, "target_height", 0);
-        double scale = getDoubleOption(options, "scale", 3.0);
-
-        if (targetWidth > 0 && targetHeight > 0) {
-            return new int[]{targetWidth, targetHeight};
-        }
-        if (targetWidth > 0) {
-            int resolvedHeight = Math.max(1, Math.round(targetWidth * (baseHeight / (float) baseWidth)));
-            return new int[]{targetWidth, resolvedHeight};
-        }
-        if (targetHeight > 0) {
-            int resolvedWidth = Math.max(1, Math.round(targetHeight * (baseWidth / (float) baseHeight)));
-            return new int[]{resolvedWidth, targetHeight};
-        }
-
-        int scaledWidth = Math.max(1, (int) Math.round(baseWidth * scale));
-        int scaledHeight = Math.max(1, (int) Math.round(baseHeight * scale));
-        return new int[]{scaledWidth, scaledHeight};
-    }
-
-    private int getIntOption(HashMap<String, Object> options, String key, int defaultValue) {
-        if (options == null) {
-            return defaultValue;
-        }
-        Object value = options.get(key);
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        return defaultValue;
-    }
-
-    private double getDoubleOption(HashMap<String, Object> options, String key, double defaultValue) {
-        if (options == null) {
-            return defaultValue;
-        }
-        Object value = options.get(key);
-        if (value instanceof Number) {
-            return ((Number) value).doubleValue();
-        }
-        return defaultValue;
-    }
-
-    private String getStringOption(HashMap<String, Object> options, String key, String defaultValue) {
-        if (options == null) {
-            return defaultValue;
-        }
-        Object value = options.get(key);
-        if (value instanceof String && !TextUtils.isEmpty((String) value)) {
-            return (String) value;
-        }
-        return defaultValue;
-    }
-
-    private void createWatermark(MethodCall call, Result result, CPDFViewCtrl pdfView,
-            CPDFDocument document) {
-
-        String type = call.argument("type");
-        String textContent = call.argument("text_content");
-        String imagePath = call.argument("image_path");
-        String textColor = call.argument("text_color");
-        int fontSize = call.argument("font_size");
-        double scaleDouble = call.argument("scale");
-        float scale = (float) scaleDouble;
-        double rotationDouble = call.argument("rotation");
-        float rotation = (float) rotationDouble;
-        double opacityDouble = call.argument("opacity");
-        float opacity = (float) opacityDouble;
-        String verticalAlignment = call.argument("vertical_alignment");
-        String horizontalAlignment = call.argument("horizontal_alignment");
-        double verticalOffsetDouble = call.argument("vertical_offset");
-        float verticalOffset = (float) verticalOffsetDouble;
-        double horizontalOffsetDouble = call.argument("horizontal_offset");
-        float horizontalOffset = (float) horizontalOffsetDouble;
-        String pages = call.argument("pages");
-        boolean isFront = call.argument("is_front");
-        boolean isTilePage = call.argument("is_tile_page");
-        double horizontalSpacingDouble = call.argument("horizontal_spacing");
-        float horizontalSpacing = (float) horizontalSpacingDouble;
-        double verticalSpacingDouble = call.argument("vertical_spacing");
-        float verticalSpacing = (float) verticalSpacingDouble;
-
-        if (TextUtils.isEmpty(pages)) {
-            result.error("WATERMARK_FAIL",
-                    "The page range cannot be empty, please set the page range, for example: pages: \"0,1,2,3\"",
-                    "");
-            return;
-        }
-        if ("image".equals(type) && TextUtils.isEmpty(imagePath)) {
-            Log.e("ComPDFKit-Flutter", "image path:" + imagePath);
-            result.error("WATERMARK_FAIL", "image path is empty.", "");
-            return;
-        }
-        new SimpleBackgroundTask<Bitmap>(pdfView.getContext()) {
-
-            @Override
-            public Bitmap onRun() {
-                if ("text".equals(type)) {
-                    return null;
-                } else {
-                    try {
-                        Bitmap bitmap = Glide.with(context).asBitmap().load(imagePath)
-                                .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).get();
-                        return bitmap;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                }
-            }
-
-            @Override
-            public void onSuccess(Bitmap bitmap) {
-
-                CPDFWatermark watermark;
-                if ("text".equals(type)) {
-                    watermark = document.createWatermark(Type.WATERMARK_TYPE_TEXT);
-                    watermark.setText(textContent);
-                    watermark.setFontName("Helvetica");
-                    watermark.setTextRGBColor(Color.parseColor(textColor));
-                    watermark.setFontSize(fontSize);
-                } else {
-                    if (bitmap == null) {
-                        result.error("WATERMARK_FAIL", "image path is invalid. bitmap == null", "");
-                        return;
-                    }
-                    watermark = document.createWatermark(Type.WATERMARK_TYPE_IMG);
-                    watermark.setImage(bitmap, bitmap.getWidth(), bitmap.getHeight());
-                }
-
-                watermark.setOpacity(opacity);
-                watermark.setFront(isFront);
-
-                watermark.setHorizalign(
-                        CPDFEnumConvertUtil.stringToHorizAlign(horizontalAlignment));
-                watermark.setVertalign(CPDFEnumConvertUtil.stringToVertAlign(verticalAlignment));
-                float a = (float) -(rotation * Math.PI / 180);
-                watermark.setRotation(a);
-                watermark.setVertOffset(
-                        verticalOffset);// Translation offset relative to the vertical position. Positive values move
-                                        // downward, while negative values move upward.
-                watermark.setHorizOffset(
-                        horizontalOffset);// Translation offset relative to the horizontal position. Positive values
-                                          // move to the right, while negative values move to the left.
-                watermark.setScale(
-                        scale);// Scaling factor for the watermark, with a default value of 1. If it is an
-                               // image watermark, 1 represents the original size of the image. If it is a text
-                               // watermark, 1 represents the `textFont` font size.
-                watermark.setPages(pages);// Set the watermark for pages 3, 4, and 5.
-                watermark.setFullScreen(
-                        isTilePage);// Enable watermark tiling (not applicable for image watermarks).
-                watermark.setHorizontalSpacing(
-                        horizontalSpacing);// Set the horizontal spacing for tiled watermarks.
-                watermark.setVerticalSpacing(
-                        verticalSpacing);// Set the vertical spacing for tiled watermarks.
-                watermark.update();
-                watermark.release();
-                pdfView.getCPdfReaderView().reloadPages();
-                result.success(true);
-            }
-        }.execute();
     }
 
     private void updatePageIndicatorView(CPDFDocument document) {

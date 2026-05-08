@@ -19,7 +19,6 @@ import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_form_mode_conte
 import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_global_context_menu.dart';
 import 'package:compdfkit_flutter/configuration/contextmenu/cpdf_view_mode_context_menu.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
-import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/edit/cpdf_edit_image_area.dart';
 import 'package:compdfkit_flutter/edit/cpdf_edit_text_area.dart';
 import 'package:flutter/material.dart';
@@ -208,13 +207,6 @@ class _ContextMenuCustomizationPageState
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete',
               ),
-                                          CPDFContextMenuItem(
-                CPDFAnnotationMarkupMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
-              ),
             ],
             sound: [
               CPDFContextMenuItem(
@@ -237,13 +229,6 @@ class _ContextMenuCustomizationPageState
                 title: 'Get Annotation',
                 identifier: 'custom_event_get_sound_annotation',
               ),
-              CPDFContextMenuItem(
-                CPDFAnnotationSoundMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
-              ),
             ],
             ink: [
               CPDFContextMenuItem(
@@ -259,13 +244,6 @@ class _ContextMenuCustomizationPageState
                 showType: CPDFContextMenuShowType.icon,
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete Ink',
-              ),
-              CPDFContextMenuItem(
-                CPDFAnnotationInkMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
               ),
             ],
             shape: [
@@ -283,13 +261,6 @@ class _ContextMenuCustomizationPageState
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete Shape',
               ),
-              CPDFContextMenuItem(
-                CPDFAnnotationShapeMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
-              ),
             ],
             freeText: [
               CPDFContextMenuItem(
@@ -305,13 +276,6 @@ class _ContextMenuCustomizationPageState
                 showType: CPDFContextMenuShowType.icon,
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete FreeText',
-              ),
-              CPDFContextMenuItem(
-                CPDFAnnotationFreeTextMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
               ),
             ],
             signStamp: [
@@ -329,13 +293,6 @@ class _ContextMenuCustomizationPageState
                 showType: CPDFContextMenuShowType.icon,
                 title: 'Rotate Signature',
               ),
-              CPDFContextMenuItem(
-                CPDFAnnotationSignMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
-              ),
             ],
             stamp: [
               CPDFContextMenuItem(
@@ -350,13 +307,6 @@ class _ContextMenuCustomizationPageState
                 showType: CPDFContextMenuShowType.icon,
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete Stamp',
-              ),
-              CPDFContextMenuItem(
-                CPDFAnnotationStampMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
               ),
             ],
             link: [
@@ -379,13 +329,6 @@ class _ContextMenuCustomizationPageState
                 showType: CPDFContextMenuShowType.icon,
                 identifier: 'custom_annotation_delete_action',
                 title: 'Delete Link',
-              ),
-              CPDFContextMenuItem(
-                CPDFAnnotationLinkMenuKey.custom,
-                icon: 'ic_test_download',
-                showType: CPDFContextMenuShowType.icon,
-                identifier: 'custom_render_annotation_appearance',
-                title: 'Render Appearance',
               ),
             ],
           ),
@@ -746,33 +689,6 @@ class _ContextMenuCustomizationPageState
           await controller?.showWidgetPropertiesView(widget);
         }
         break;
-      case 'custom_render_annotation_appearance':
-        final annotation = event['annotation'];
-
-          try {
-            final imageData = await controller?.document.renderAnnotationAppearance(
-              annotation,
-              options: const CPDFAnnotationRenderOptions(
-                compression: CPDFPageCompression.png,
-                quality: 100,
-              ),
-            );
-            if (!mounted || imageData == null) {
-              return;
-            }
-            _showPreviewDialog(imageData);
-          } catch (e) {
-            if (!mounted) {
-              return;
-            }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to render annotation appearance: $e'),
-              ),
-            );
-          }
-        
-        break;  
       default:
         break;
     }

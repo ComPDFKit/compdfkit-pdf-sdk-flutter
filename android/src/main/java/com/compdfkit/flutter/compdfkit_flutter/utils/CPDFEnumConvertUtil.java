@@ -28,6 +28,7 @@ import com.compdfkit.core.edit.CPDFEditTextArea.PDFEditAlignType;
 import com.compdfkit.core.font.CPDFFont;
 import com.compdfkit.core.watermark.CPDFWatermark;
 import com.compdfkit.tools.common.views.pdfproperties.CAnnotationType;
+import com.compdfkit.tools.common.views.pdfproperties.pdfstyle.CStyleType;
 import java.util.List;
 
 public class CPDFEnumConvertUtil {
@@ -616,6 +617,36 @@ public class CPDFEnumConvertUtil {
             case "lastPage" : return  "LastPage";
             case "print": return  "Print";
             default: return "none";
+        }
+    }
+
+    public static String styleTypeToString(CStyleType styleType){
+        switch (styleType){
+            case ANNOT_TEXT : return "note";
+            case ANNOT_STRIKEOUT: return "strikeout";
+            case ANNOT_UNDERLINE: return "underline";
+            case ANNOT_HIGHLIGHT: return "highlight";
+            case ANNOT_SQUIGGLY: return "squiggly";
+            case ANNOT_INK: return "ink";
+            case ANNOT_SQUARE: return "square";
+            case ANNOT_CIRCLE: return "circle";
+            case ANNOT_LINE: return "line";
+            case ANNOT_ARROW: return "arrow";
+            case ANNOT_FREETEXT: return "freetext";
+            case ANNOT_SIGNATURE: return "signature";
+            case ANNOT_STAMP: return "stamp";
+            case ANNOT_PIC: return "pictures";
+            case ANNOT_LINK: return "link";
+            case ANNOT_SOUND: return "sound";
+            case FORM_TEXT_FIELD:return "textField";
+            case FORM_LIST_BOX: return "listBox";
+            case FORM_COMBO_BOX: return "comboBox";
+            case FORM_PUSH_BUTTON: return "pushButton";
+            case FORM_CHECK_BOX: return "checkBox";
+            case FORM_RADIO_BUTTON: return "radioButton";
+            case EDIT_IMAGE: return "editorImage";
+            case EDIT_TEXT: return "editorText";
+            default: return "unknown";
         }
     }
 

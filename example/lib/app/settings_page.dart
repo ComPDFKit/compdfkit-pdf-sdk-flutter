@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_constants.dart';
+import '../utils/platform_capability.dart';
 import '../utils/preferences_service.dart';
 import '../widgets/app_toolbar.dart';
 
@@ -24,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _highlightLink = false;
   bool _highlightForm = false;
   String _documentAuthor = '';
+  late final Future<String?> _sdkVersionFuture = _loadSdkVersion();
 
   @override
   void initState() {
@@ -44,6 +46,13 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _documentAuthor = author;
     });
+  }
+
+  Future<String?> _loadSdkVersion() async {
+    if (!PlatformCapability.supportsComPDFKitNative) {
+      return null;
+    }
+    return ComPDFKit.getVersionCode();
   }
 
   @override
@@ -104,12 +113,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         _ValueRow(
                           title: 'Versions',
-                          valueWidget: FutureBuilder<String>(
-                            future: ComPDFKit.getVersionCode(),
+                          valueWidget: FutureBuilder<String?>(
+                            future: _sdkVersionFuture,
                             builder: (context, snap) {
                               final version = snap.data;
                               return Text(
-                                version == null ? '' : 'v$version',
+                                version == null
+                                    ? 'Not available on Web'
+                                    : 'v$version',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall

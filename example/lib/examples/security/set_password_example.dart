@@ -101,6 +101,20 @@ class _SetPasswordPageState extends ExampleBaseState<_SetPasswordPage> {
       encryptAlgo: CPDFDocumentEncryptAlgo.aes256,
     );
     debugPrint(result ? 'Password set successfully' : 'Failed to set password');
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result
+              ? 'Password set successfully'
+              : 'Failed to set password',
+        ),
+      ),
+    );
   }
 
   Future<String?> _showPasswordDialog() {

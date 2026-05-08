@@ -65,8 +65,11 @@ class _ViewOperationsPageState extends ExampleBaseState<_ViewOperationsPage> {
   static const List<String> _menuActions = [
     'Show Thumbnails',
     'Show BOTA',
+    'Show Document Info',
     'Show Search',
     'Hide Search',
+    'Show Security',
+    'Show Watermark'
   ];
 
   @override
@@ -91,11 +94,20 @@ class _ViewOperationsPageState extends ExampleBaseState<_ViewOperationsPage> {
       case 'Show BOTA':
         controller.showBotaView();
         break;
+      case 'Show Document Info':
+        controller.showDocumentInfoView();
+        break;
       case 'Show Search':
         controller.showTextSearchView();
         break;
       case 'Hide Search':
         controller.hideTextSearchView();
+        break;
+      case 'Show Security':
+        controller.showSecurityView();
+        break;
+      case 'Show Watermark':
+        controller.showAddWatermarkView();
         break;
     }
   }

@@ -13,6 +13,7 @@ import 'package:flutter/widgets.dart';
 
 import '../constants/asset_paths.dart';
 import '../utils/file_util.dart';
+import '../utils/platform_capability.dart';
 import '../utils/preferences_service.dart';
 
 /// Global Initializer
@@ -57,8 +58,12 @@ class GlobalInitializer {
     _initializing = true;
     try {
       await _initPreferences();
-      await _initFontDir();
-      await _initLicense();
+      if (PlatformCapability.supportsComPDFKitNative) {
+        await _initFontDir();
+        await _initLicense();
+      } else {
+        debugPrint('GlobalInitializer: Skip SDK initialization on Web');
+      }
       _initialized = true;
       debugPrint('GlobalInitializer: All components initialized successfully');
     } catch (e) {

@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
-import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -21,17 +20,15 @@ import '../shared/example_document_loader.dart';
 
 /// Event Listeners Example
 ///
-/// Demonstrates how to register, handle, and remove PDF event callbacks to respond
-/// to user interactions and document changes in real-time.
+/// Demonstrates how to register, handle, and remove controller event listeners
+/// for annotation and form creation events.
 ///
 /// This example shows:
 /// - Listening for annotation creation events
 /// - Listening for form field creation events
-/// - Tracking content editor selection/deselection events
-/// - Responding to events with UI updates and actions
 /// - Accessing event data for further processing
-/// - **Removing specific event listeners**
-/// - **Removing all event listeners for a specific event type**
+/// - Removing a specific event listener by callback reference
+/// - Removing all registered listeners from the controller
 ///
 /// Key classes/APIs used:
 /// - [CPDFReaderWidgetController.addEventListener]: Registers event listeners
@@ -39,18 +36,12 @@ import '../shared/example_document_loader.dart';
 /// - [CPDFReaderWidgetController.removeAllEventListeners]: Removes all listeners
 /// - [CPDFEvent.annotationsCreated]: Fired when annotations are created
 /// - [CPDFEvent.formFieldsCreated]: Fired when form fields are created
-/// - [CPDFEvent.editorSelectionSelected]: Fired when editor content is selected
-/// - [CPDFEvent.editorSelectionDeselected]: Fired when editor selection is cleared
-/// - [CPDFEditArea]: Represents selected content in the editor
 ///
 /// Usage:
-/// 1. Override [onControllerCreated] to access the controller
-/// 2. Call [controller.addEventListener] with the desired [CPDFEvent] type
-/// 3. Provide a callback function to handle the event data
-/// 4. Use [setState] to update UI based on events (e.g., track selected areas)
-/// 5. Use event data to perform actions (e.g., show properties, remove areas)
-/// 6. Use [controller.removeEventListener] to remove a specific callback
-/// 7. Use [controller.removeAllEventListeners] to remove all listeners
+/// 1. Open the example and create an annotation or form field in the reader
+/// 2. Check the debug output for the serialized event payload
+/// 3. Use the menu to remove or restore listeners one by one
+/// 4. Use "Remove All Listeners" to stop every registered event callback
 class EventListenersExample extends StatelessWidget {
   /// Constructor
   const EventListenersExample({super.key});
@@ -75,8 +66,6 @@ class _EventListenersPage extends ExampleBase {
 }
 
 class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
-  CPDFEditArea? _selectArea;
-
   // Track listener registration status
   bool _annotationListenerAdded = true;
   bool _formFieldListenerAdded = true;
@@ -84,13 +73,9 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
   // Store callback references for removal
   late final void Function(dynamic) _onAnnotationCreated;
   late final void Function(dynamic) _onFormFieldCreated;
-  late final void Function(dynamic) _onEditorSelected;
-  late final void Function(dynamic) _onEditorDeselected;
 
   @override
   List<String>? get menuActions => [
-        'Show Edit Area Properties',
-        'Remove Edit Area',
         _annotationListenerAdded
             ? 'Remove Annotation Listener'
             : 'Add Annotation Listener',
@@ -115,6 +100,14 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
       );
 
   @override
+  void dispose() {
+    final currentController = controller;
+    currentController?.removeAllEventListeners(CPDFEvent.annotationsCreated);
+    currentController?.removeAllEventListeners(CPDFEvent.formFieldsCreated);
+    super.dispose();
+  }
+
+  @override
   void onControllerCreated(CPDFReaderWidgetController controller) {
     super.onControllerCreated(controller);
 
@@ -129,27 +122,10 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
       printJsonString(jsonEncode(event));
     };
 
-    _onEditorSelected = (event) {
-      setState(() {
-        _selectArea = event;
-      });
-    };
-
-    _onEditorDeselected = (event) {
-      setState(() {
-        _selectArea = null;
-      });
-    };
-
-    // Register all listeners
     controller.addEventListener(
         CPDFEvent.annotationsCreated, _onAnnotationCreated);
     controller.addEventListener(
         CPDFEvent.formFieldsCreated, _onFormFieldCreated);
-    controller.addEventListener(
-        CPDFEvent.editorSelectionSelected, _onEditorSelected);
-    controller.addEventListener(
-        CPDFEvent.editorSelectionDeselected, _onEditorDeselected);
   }
 
   @override
@@ -158,62 +134,67 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
     CPDFReaderWidgetController controller,
   ) async {
     switch (action) {
-      case 'Show Edit Area Properties':
-        if (_selectArea != null) {
-          await controller.showEditAreaPropertiesView(_selectArea!);
-        }
-        break;
-      case 'Remove Edit Area':
-        if (_selectArea != null) {
-          await controller.document.removeEditArea(_selectArea!);
-        }
-        break;
       case 'Remove Annotation Listener':
-        // Remove specific annotation listener using callback reference
         final removed = controller.removeEventListener(
             CPDFEvent.annotationsCreated, _onAnnotationCreated);
         debugPrint('Annotation listener removed: $removed');
+        _showStatus('Annotation creation listener removed');
         setState(() {
           _annotationListenerAdded = false;
         });
         break;
       case 'Add Annotation Listener':
-        // Re-add the annotation listener
         controller.addEventListener(
             CPDFEvent.annotationsCreated, _onAnnotationCreated);
         debugPrint('Annotation listener added');
+        _showStatus('Annotation creation listener added');
         setState(() {
           _annotationListenerAdded = true;
         });
         break;
       case 'Remove FormField Listener':
-        // Remove specific form field listener
         final removed = controller.removeEventListener(
             CPDFEvent.formFieldsCreated, _onFormFieldCreated);
         debugPrint('FormField listener removed: $removed');
+        _showStatus('Form creation listener removed');
         setState(() {
           _formFieldListenerAdded = false;
         });
         break;
       case 'Add FormField Listener':
-        // Re-add the form field listener
         controller.addEventListener(
             CPDFEvent.formFieldsCreated, _onFormFieldCreated);
         debugPrint('FormField listener added');
+        _showStatus('Form creation listener added');
         setState(() {
           _formFieldListenerAdded = true;
         });
         break;
       case 'Remove All Listeners':
-        // Remove all listeners for all events
         controller.removeAllEventListeners();
         debugPrint('All listeners removed');
+        _showStatus('All creation listeners removed');
         setState(() {
           _annotationListenerAdded = false;
           _formFieldListenerAdded = false;
-          _selectArea = null;
         });
         break;
     }
+  }
+
+  void _showStatus(String message) {
+    if (!mounted) {
+      return;
+    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }

@@ -60,6 +60,7 @@ final CategoryInfo viewerCategory = CategoryInfo(
       description: 'CPDFReaderWidget dark theme',
       routeType: ExampleRouteType.pageBuilder,
       pageBuilder: (context) => const DarkThemeExample(),
+      supportedPlatforms: const [TargetPlatform.android],
       visual: const ExampleVisual(
         icon: Icons.dark_mode,
         backgroundColor: Color(0xFFF5F5F5),

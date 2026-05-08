@@ -394,6 +394,34 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     func PDFViewBaseControllerAutoShowFormPicker(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode, forAnnotation annotation: CPDFWidgetAnnotation?) {
         
     }
+
+    func PDFViewBaseControllerAnnotationDialogDismissed(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode) {
+        self.plugin._methodChannel.invokeMethod("onAnnotationStyleDialogDismissed", arguments: [
+            "type": annotationModeToFlutterType(annotationMode)
+        ])
+    }
+
+    func PDFViewBaseControllerFormPropertyDialogDismissed(_ baseController: CPDFViewBaseController, forAnnotationMode annotationMode: CPDFViewAnnotationMode) {
+        self.plugin._methodChannel.invokeMethod("onFormStyleDialogDismissed", arguments: [
+            "type": formModeToFlutterType(annotationMode)
+        ])
+    }
+
+    func PDFViewBaseControllerEditPropertyDialogDismissed(_ baseController: CPDFViewBaseController, forEditMode editMode: CPDFEditMode) {
+        self.plugin._methodChannel.invokeMethod("onContentEditorStyleDialogDismissed", arguments: [
+            "type": editModeToFlutterType(editMode)
+        ])
+    }
+
+    func PDFViewBaseControllerSearchToolbarBack(_ baseController: CPDFViewBaseController) {
+        self.plugin._methodChannel.invokeMethod("onSearchBackButtonTapped", arguments: nil)
+    }
+
+    func PDFViewBaseControllerWatermarkDialogDismissed(_ baseController: CPDFViewBaseController) {
+        DispatchQueue.main.async {
+            self.plugin._methodChannel.invokeMethod("onAddWatermarkDialogDismissed", arguments: nil)
+        }
+    }
     
     func PDFViewBaseControllerHandleCustomMenuAction(_ baseController: CPDFViewBaseController, fronView view: Any, payload: [String : Any]) {
         if let CPDFAnnotation = payload["annotation"] as? CPDFAnnotation {
@@ -438,8 +466,86 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     }
     
     func PDFViewBaseControllerHandleCustomToolbarAction(_ baseController: CPDFViewBaseController, fronView view: Any, payload: [String : Any]) {
+       
         if let value = payload["identifier"] {
             self.plugin._methodChannel.invokeMethod("onCustomToolbarItemTapped", arguments: value)
+        }
+    }
+
+    private func annotationModeToFlutterType(_ annotationMode: CPDFViewAnnotationMode) -> String {
+        switch annotationMode {
+        case .note:
+            return "note"
+        case .highlight:
+            return "highlight"
+        case .underline:
+            return "underline"
+        case .strikeout:
+            return "strikeout"
+        case .squiggly:
+            return "squiggly"
+        case .ink:
+            return "ink"
+        case .eraser:
+            return "ink_eraser"
+        case .pencilDrawing:
+            return "pencil"
+        case .circle:
+            return "circle"
+        case .square:
+            return "square"
+        case .arrow:
+            return "arrow"
+        case .line:
+            return "line"
+        case .freeText:
+            return "freetext"
+        case .signature:
+            return "signature"
+        case .stamp:
+            return "stamp"
+        case .image:
+            return "pictures"
+        case .link:
+            return "link"
+        case .sound:
+            return "sound"
+        default:
+            return "unknown"
+        }
+    }
+
+    private func formModeToFlutterType(_ annotationMode: CPDFViewAnnotationMode) -> String {
+        switch annotationMode {
+        case .formModeText:
+            return "textField"
+        case .formModeCheckBox:
+            return "checkBox"
+        case .formModeRadioButton:
+            return "radioButton"
+        case .formModeCombox:
+            return "comboBox"
+        case .formModeList:
+            return "listBox"
+        case .formModeButton:
+            return "pushButton"
+        case .formModeSign:
+            return "signaturesFields"
+        default:
+            return "unknown"
+        }
+    }
+
+    private func editModeToFlutterType(_ editMode: CPDFEditMode) -> String {
+        switch editMode {
+        case .text:
+            return "editorText"
+        case .image:
+            return "editorImage"
+        case .path:
+            return "path"
+        default:
+            return "none"
         }
     }
     

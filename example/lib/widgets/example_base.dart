@@ -11,6 +11,7 @@
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter_example/cpdf_reader_page.dart';
 import 'package:flutter/material.dart';
@@ -54,12 +55,22 @@ abstract class ExampleBaseState<T extends ExampleBase> extends State<T> {
 
   void onCustomToolbarItemTapped(String identifier) {}
 
+  void onSearchBackButtonTapped() {}
+
+  void onAnnotationStyleDialogDismissed(CPDFAnnotationType type) {}
+
+  void onFormStyleDialogDismissed(CPDFFormType type) {}
+
+  void onContentEditorStyleDialogDismissed(CPDFEditAreaType type) {}
+
   void onEventsCallback(Object? data) {}
 
   void onAnnotationCreationPrepared(
       CPDFAnnotationType type, CPDFAnnotation? annotation) {}
 
   void onCustomContextMenuItemTapped(String identifier, dynamic event) {}
+
+  void onAddWatermarkDialogDismissed() {}
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +96,15 @@ abstract class ExampleBaseState<T extends ExampleBase> extends State<T> {
       onIOSClickBackPressed: onIOSClickBackPressed,
       appBarActions: _buildAppBarActions,
       onCustomToolbarItemTappedCallback: onCustomToolbarItemTapped,
+        onSearchBackButtonTappedCallback: onSearchBackButtonTapped,
+        onAnnotationStyleDialogDismissedCallback:
+          onAnnotationStyleDialogDismissed,
+        onFormStyleDialogDismissedCallback: onFormStyleDialogDismissed,
+        onContentEditorStyleDialogDismissedCallback:
+          onContentEditorStyleDialogDismissed,
       onAnnotationCreationPreparedCallback: onAnnotationCreationPrepared,
       onCustomContextMenuItemTappedCallback: onCustomContextMenuItemTapped,
+      onAddWatermarkDialogDismissedCallback: onAddWatermarkDialogDismissed,
     );
   }
 

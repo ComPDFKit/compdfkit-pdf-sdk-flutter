@@ -8,6 +8,7 @@
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 
 /// {@category viewer-ui}
@@ -43,6 +44,27 @@ typedef CPDFOnEventsCallback = void Function(Object? data);
 /// Called when a custom toolbar item is tapped.
 typedef CPDFOnCustomToolbarItemTappedCallback = void Function(
   String identifier,
+);
+
+/// Called when the search view back button is tapped.
+typedef CPDFOnSearchBackButtonTappedCallback = void Function();
+
+/// Called when the add watermark dialog is dismissed.
+typedef CPDFOnAddWatermarkDialogDismissedCallback = void Function();
+
+/// Called when the annotation style dialog is dismissed.
+typedef CPDFOnAnnotationStyleDialogDismissedCallback = void Function(
+  CPDFAnnotationType type,
+);
+
+/// Called when the form style dialog is dismissed.
+typedef CPDFOnFormStyleDialogDismissedCallback = void Function(
+  CPDFFormType type,
+);
+
+/// Called when the content editor style dialog is dismissed.
+typedef CPDFOnContentEditorStyleDialogDismissedCallback = void Function(
+  CPDFEditAreaType type,
 );
 
 /// Called when annotation creation is prepared on the native side.
@@ -185,7 +207,6 @@ typedef CPDFOnCustomContextMenuItemTappedCallback = void Function(
   dynamic event,
 );
 
-
 /// Callback for intercepting annotation actions (note and hyperlink annotations).
 ///
 /// Used to configure interception of note and hyperlink annotation tap actions
@@ -209,7 +230,8 @@ typedef CPDFOnCustomContextMenuItemTappedCallback = void Function(
 ///   }
 /// );
 /// ```
-typedef CPDFOnInterceptAnnotationActionCallback = void Function(CPDFAnnotation annotation);
+typedef CPDFOnInterceptAnnotationActionCallback = void Function(
+    CPDFAnnotation annotation);
 
 /// Callback for intercepting widget actions (list box, combo box, etc.).
 /// Used to configure interception of form field widget actions in CPDFConfiguration, and dispatch the events to the Flutter side for handling.
@@ -223,7 +245,7 @@ typedef CPDFOnInterceptAnnotationActionCallback = void Function(CPDFAnnotation a
 ///          interceptComboBoxAction: true,
 ///         interceptListBoxAction: true,
 ///       );
-/// 
+///
 /// CPDFReaderWidget(
 ///   document: widget.documentPath,
 ///   configuration: config,

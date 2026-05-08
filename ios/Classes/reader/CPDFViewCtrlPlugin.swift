@@ -393,6 +393,9 @@ class CPDFViewCtrlPlugin {
             case CPDFConstants.showDisplaySettingsView:
                 self.pdfViewController.enterPDFSetting()
                 result(nil)
+            case CPDFConstants.showDocumentInfoView:
+                self.pdfViewController.enterPDFInfo()
+                result(nil)
             case CPDFConstants.enterSnipMode:
                 self.pdfViewController.enterPDFSnipImageMode()
                 result(nil)

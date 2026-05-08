@@ -106,7 +106,7 @@ class _FormFieldOperationsPageState
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
+        initialChildSize: 0.8,
         minChildSize: 0.3,
         maxChildSize: 0.9,
         expand: false,

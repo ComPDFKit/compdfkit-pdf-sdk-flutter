@@ -9,6 +9,7 @@ import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../constants/asset_paths.dart';
 import '../../utils/file_util.dart';
@@ -114,9 +115,31 @@ class _FormDataImportExportPageState
   Future<void> _handleExport(CPDFReaderWidgetController controller) async {
     final path = await controller.document.exportWidgets();
     debugPrint('Export form data path: $path');
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Exported form data to: $path')));
+    if (!mounted || path.isEmpty) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Form Data Exported'),
+        content: SelectableText(path),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Confirm'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await SharePlus.instance.share(
+                ShareParams(files: [XFile(path)]),
+              );
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+            child: const Text('Share'),
+          ),
+        ],
+      ),
+    );
   }
 }

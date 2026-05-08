@@ -11,6 +11,7 @@ import 'dart:ui';
 import 'package:compdfkit_flutter_example/app/global_initializer.dart';
 import 'package:compdfkit_flutter_example/app/home_page.dart';
 import 'package:compdfkit_flutter_example/theme/themes.dart';
+import 'package:compdfkit_flutter_example/utils/platform_capability.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:compdf_viewer/compdf_viewer.dart';
@@ -39,7 +40,9 @@ class MyApp extends StatelessWidget {
       locale: _getDeviceLocale(),
       fallbackLocale: const Locale('en', 'US'),
       // Routes
-      getPages: PdfViewerPages.routes,
+      getPages: PlatformCapability.supportsEmbeddedReader
+          ? PdfViewerPages.routes
+          : [],
       home: const HomePage(),
     );
   }

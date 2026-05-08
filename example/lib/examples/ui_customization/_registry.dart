@@ -11,7 +11,9 @@ import '../shared/category_info.dart';
 import '../shared/example_item.dart';
 import '../shared/example_route_type.dart';
 import 'context_menu_customization_example.dart';
+import 'editor_selection_events_example.dart';
 import 'event_listeners_example.dart';
+import 'reader_ui_callbacks_example.dart';
 import 'toolbar_customization_example.dart';
 import 'ui_style_customization_example.dart';
 
@@ -22,7 +24,7 @@ final CategoryInfo uiCustomizationCategory = CategoryInfo(
   id: 'ui_customization',
   name: 'UI Customization',
   icon: Icons.palette,
-  description: 'Toolbar, menu and style customization',
+  description: 'Toolbar, menu, style, and reader callback customization',
   examples: [
     ExampleItem(
       title: 'Toolbar Customization',
@@ -59,13 +61,35 @@ final CategoryInfo uiCustomizationCategory = CategoryInfo(
     ),
     ExampleItem(
       title: 'Event Listeners',
-      description: 'Listen to UI events',
+      description: 'Track annotation and form creation events',
       routeType: ExampleRouteType.pageBuilder,
       pageBuilder: (context) => const EventListenersExample(),
       visual: const ExampleVisual(
         icon: Icons.touch_app,
         backgroundColor: Color(0xFFFFF3E0),
         iconColor: Color(0xFFE65100),
+      ),
+    ),
+    ExampleItem(
+      title: 'Editor Selection Events',
+      description: 'Track content editor selection state',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const EditorSelectionEventsExample(),
+      visual: const ExampleVisual(
+        icon: Icons.select_all,
+        backgroundColor: Color(0xFFE8F5E9),
+        iconColor: Color(0xFF2E7D32),
+      ),
+    ),
+    ExampleItem(
+      title: 'Reader UI Callbacks',
+      description: 'Observe search and style dialog callbacks',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const ReaderUiCallbacksExample(),
+      visual: const ExampleVisual(
+        icon: Icons.notification_important_outlined,
+        backgroundColor: Color(0xFFE3F2FD),
+        iconColor: Color(0xFF1565C0),
       ),
     ),
   ],

@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import com.compdfkit.flutter.compdfkit_flutter.document.resolver.CPDFDocumentSourceResolver;
 import com.compdfkit.tools.common.pdf.CPDFDocumentActivity;
 import com.compdfkit.tools.common.utils.CFileUtils;
 import com.compdfkit.tools.common.utils.CUriUtil;
@@ -28,41 +29,11 @@ public class FileUtils {
     public static final String FILE_SCHEME = "file://";
 
     public static void parseDocument(Context context, String document, Intent intent) {
-        if (document.startsWith(ASSETS_SCHEME)) {
-            String assetsPath = document.replace(ASSETS_SCHEME + "/", "");
-            String[] strs = document.split("/");
-            String fileName = strs[strs.length - 1];
-            String samplePDFPath = CFileUtils.getAssetsTempFile(context, assetsPath, fileName);
-            intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PATH, samplePDFPath);
-        } else if (document.startsWith(CONTENT_SCHEME)) {
-            Uri uri = Uri.parse(document);
-            intent.setData(uri);
-        } else if (document.startsWith(FILE_SCHEME)) {
-            Uri uri = Uri.parse(document);
-            intent.setData(uri);
-        } else {
-            intent.putExtra(CPDFDocumentActivity.EXTRA_FILE_PATH, document);
-        }
+        CPDFDocumentSourceResolver.applyDocumentToIntent(context, document, intent);
     }
 
     public static String getImportFilePath(Context context, String xfdf) {
-        if (xfdf.startsWith(ASSETS_SCHEME)) {
-            String assetsPath = xfdf.replace(ASSETS_SCHEME + "/", "");
-            String[] strs = xfdf.split("/");
-            String fileName = strs[strs.length - 1];
-            return CFileUtils.getAssetsTempFile(context, assetsPath, fileName);
-        } else if (xfdf.startsWith(CONTENT_SCHEME)) {
-            Uri uri = Uri.parse(xfdf);
-            String fileName = CUriUtil.getUriFileName(context, uri);
-            String dir = new File(context.getCacheDir(),
-                    CFileUtils.CACHE_FOLDER + File.separator + "xfdfFile").getAbsolutePath();
-            // Get the saved file path
-            return CFileUtils.copyFileToInternalDirectory(context, uri, dir, fileName);
-        } else if (xfdf.startsWith(FILE_SCHEME)) {
-            return xfdf;
-        } else {
-            return xfdf;
-        }
+        return CPDFDocumentSourceResolver.resolveImportFilePath(context, xfdf);
     }
 
     public static @Nullable String base64ToTempFile(Context context, String base64Data) {

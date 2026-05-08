@@ -70,6 +70,13 @@ class CPDFReaderWidgetController {
       CPDFIOSClickBackPressedCallback? onIOSClickBackPressed,
       CPDFOnTapMainDocAreaCallback? onTapMainDocArea,
       CPDFOnCustomToolbarItemTappedCallback? onCustomToolbarItemTapped,
+      CPDFOnSearchBackButtonTappedCallback? onSearchBackButtonTapped,
+      CPDFOnAddWatermarkDialogDismissedCallback? onAddWatermarkDialogDismissed,
+      CPDFOnAnnotationStyleDialogDismissedCallback?
+          onAnnotationStyleDialogDismissed,
+      CPDFOnFormStyleDialogDismissedCallback? onFormStyleDialogDismissed,
+      CPDFOnContentEditorStyleDialogDismissedCallback?
+          onContentEditorStyleDialogDismissed,
       CPDFOnAnnotationCreationPreparedCallback? onAnnotationCreationPrepared,
       CPDFOnCustomContextMenuItemTappedCallback? onCustomContextMenuItemTapped,
       CPDFOnInterceptAnnotationActionCallback?
@@ -111,6 +118,24 @@ class CPDFReaderWidgetController {
           break;
         case 'onCustomToolbarItemTapped':
           onCustomToolbarItemTapped?.call(call.arguments);
+          break;
+        case 'onSearchBackButtonTapped':
+          onSearchBackButtonTapped?.call();
+          break;
+        case 'onAddWatermarkDialogDismissed':
+          onAddWatermarkDialogDismissed?.call();
+          break;
+        case 'onAnnotationStyleDialogDismissed':
+          onAnnotationStyleDialogDismissed
+              ?.call(_parseAnnotationStyleDialogType(call.arguments));
+          break;
+        case 'onFormStyleDialogDismissed':
+          onFormStyleDialogDismissed
+              ?.call(_parseFormStyleDialogType(call.arguments));
+          break;
+        case 'onContentEditorStyleDialogDismissed':
+          onContentEditorStyleDialogDismissed
+              ?.call(_parseContentEditorStyleDialogType(call.arguments));
           break;
         case 'annotationsCreated':
           dynamic annotationData = call.arguments;
@@ -272,6 +297,49 @@ class CPDFReaderWidgetController {
   }
 
   CPDFDocument get document => _document;
+
+  CPDFAnnotationType _parseAnnotationStyleDialogType(dynamic arguments) {
+    final typeName = _extractDialogType(arguments);
+    return CPDFAnnotationType.values.firstWhere(
+      (type) => type.name == typeName,
+      orElse: () => CPDFAnnotationType.unknown,
+    );
+  }
+
+  CPDFFormType _parseFormStyleDialogType(dynamic arguments) {
+    final typeName = _extractDialogType(arguments);
+    return CPDFFormType.values.firstWhere(
+      (type) => type.name == typeName,
+      orElse: () => CPDFFormType.unknown,
+    );
+  }
+
+  CPDFEditAreaType _parseContentEditorStyleDialogType(dynamic arguments) {
+    final typeName = _extractDialogType(arguments);
+    switch (typeName) {
+      case 'editorText':
+      case 'text':
+        return CPDFEditAreaType.text;
+      case 'editorImage':
+      case 'image':
+        return CPDFEditAreaType.image;
+      case 'path':
+        return CPDFEditAreaType.path;
+      default:
+        return CPDFEditAreaType.none;
+    }
+  }
+
+  String _extractDialogType(dynamic arguments) {
+    if (arguments is Map) {
+      final typedMap = Map<String, dynamic>.from(arguments);
+      final type = typedMap['type'];
+      if (type is String) {
+        return type;
+      }
+    }
+    return '';
+  }
 
   /// Get the annotation history manager
   /// This manager is used to handle annotation history operations such as undo and redo.
@@ -727,6 +795,16 @@ class CPDFReaderWidgetController {
   /// ```
   Future<void> showDisplaySettingView() async {
     await _channel.invokeMethod('show_display_settings_view');
+  }
+
+  /// Displays the document information view.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.showDocumentInfoView();
+  /// ```
+  Future<void> showDocumentInfoView() async {
+    await _channel.invokeMethod('show_document_info_view');
   }
 
   /// Enters snip mode, allowing users to capture screenshots.

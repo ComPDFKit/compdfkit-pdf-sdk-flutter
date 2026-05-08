@@ -19,11 +19,11 @@ import io.flutter.plugin.platform.PlatformView;
 import io.flutter.plugin.platform.PlatformViewFactory;
 import java.util.Map;
 
-public class CPDFViewCtrlFactory extends PlatformViewFactory {
+public class CPDFPlatformViewFactory extends PlatformViewFactory {
 
-    private final BinaryMessenger binaryMessenger;
+    protected final BinaryMessenger binaryMessenger;
 
-    public CPDFViewCtrlFactory(BinaryMessenger binaryMessenger) {
+    public CPDFPlatformViewFactory(BinaryMessenger binaryMessenger) {
         super(StandardMessageCodec.INSTANCE);
         this.binaryMessenger = binaryMessenger;
     }
@@ -33,6 +33,6 @@ public class CPDFViewCtrlFactory extends PlatformViewFactory {
     public PlatformView create(Context context, int viewId, @Nullable Object args) {
         @SuppressWarnings("unchecked")
         Map<String, Object> creationParams = (Map<String, Object>) args;
-        return new CPDFViewCtrlFlutter(context, binaryMessenger, viewId, creationParams);
+        return new CPDFPlatformView(context, binaryMessenger, viewId, creationParams);
     }
 }

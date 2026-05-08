@@ -32,8 +32,27 @@ import 'package:flutter/material.dart';
 /// Supports tapping to jump to the annotation and removing annotations.
 class AnnotationListPage extends StatelessWidget {
   final List<CPDFAnnotation> annotations;
+  final Future<void> Function(BuildContext context, CPDFAnnotation annotation)?
+      onAnnotationTap;
+  final Future<void> Function(BuildContext context, CPDFAnnotation annotation)?
+      onDeleteAnnotation;
+  final bool showDeleteAction;
+  final String title;
+  final String emptyTitle;
+  final String emptyMessage;
+  final IconData headerIcon;
 
-  const AnnotationListPage({super.key, required this.annotations});
+  const AnnotationListPage({
+    super.key,
+    required this.annotations,
+    this.onAnnotationTap,
+    this.onDeleteAnnotation,
+    this.showDeleteAction = true,
+    this.title = 'Annotations',
+    this.emptyTitle = 'No Annotations',
+    this.emptyMessage = 'Add annotations to your PDF document',
+    this.headerIcon = Icons.comment_outlined,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +94,13 @@ class AnnotationListPage extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.comment_outlined,
+                  headerIcon,
                   color: colorScheme.primary,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Annotations',
+                  title,
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -151,14 +170,14 @@ class AnnotationListPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Annotations',
+            emptyTitle,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Add annotations to your PDF document',
+            emptyMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.outline,
                 ),
@@ -238,13 +257,7 @@ class AnnotationListPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () {
-            printJsonString(annotation.toString());
-            Navigator.pop(context, {
-              'type': 'jump',
-              'annotation': annotation,
-            });
-          },
+          onTap: () => _handleAnnotationTap(context, annotation),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -293,25 +306,21 @@ class AnnotationListPage extends StatelessWidget {
                   ),
 
                   const SizedBox(width: 4),
-
-                  // Delete button.
-                  Center(
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context, {
-                          'type': 'remove',
-                          'annotation': annotation,
-                        });
-                      },
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: colorScheme.error,
-                        size: 20,
+                  if (showDeleteAction) ...[
+                    const SizedBox(width: 4),
+                    Center(
+                      child: IconButton(
+                        onPressed: () => _handleDeleteTap(context, annotation),
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: colorScheme.error,
+                          size: 20,
+                        ),
+                        tooltip: 'Delete',
+                        visualDensity: VisualDensity.compact,
                       ),
-                      tooltip: 'Delete',
-                      visualDensity: VisualDensity.compact,
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -319,6 +328,38 @@ class AnnotationListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleAnnotationTap(
+    BuildContext context,
+    CPDFAnnotation annotation,
+  ) async {
+    printJsonString(annotation.toString());
+
+    if (onAnnotationTap != null) {
+      await onAnnotationTap!(context, annotation);
+      return;
+    }
+
+    Navigator.pop(context, {
+      'type': 'jump',
+      'annotation': annotation,
+    });
+  }
+
+  Future<void> _handleDeleteTap(
+    BuildContext context,
+    CPDFAnnotation annotation,
+  ) async {
+    if (onDeleteAnnotation != null) {
+      await onDeleteAnnotation!(context, annotation);
+      return;
+    }
+
+    Navigator.pop(context, {
+      'type': 'remove',
+      'annotation': annotation,
+    });
   }
 
   /// Build the annotation icon (with color indicator).
