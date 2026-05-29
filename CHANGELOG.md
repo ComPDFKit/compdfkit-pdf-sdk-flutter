@@ -1,3 +1,22 @@
+## 2.6.8
+1. Added support for ComPDFKit PDF SDK for iOS V2.6.8.
+2. Added support for ComPDFKit PDF SDK for Android V2.6.8.
+3. Added a callback event for Pencil drawing completion on iOS.
+4. Optimized the scrollbar layout logic. In horizontal scrolling mode, the scrollbar will now be displayed at the bottom.
+5. Optimized the progress synchronization of the side slider on Android to ensure it follows the page progress in real time.
+6. Optimized the selection state detection logic for image annotations on Android.
+7. Reverted the related changes for exception handling during native library loading on Android.
+8. Fixed an issue where HTML rich text content in text fields was displayed incorrectly on Android.
+9. Fixed a potential crash issue when switching content editing modes on Android.
+10. Fixed an issue on Android where image annotations could not be added via the camera on some devices in the Tools module.
+11. Fixed an issue where highlighted areas of text search results were inaccurate in some documents on Android.
+12. Fixed an issue on iOS where the watermark and security share system dialog would immediately close after being opened.
+13. Fixed an issue on iOS where the system drawing panel was not closed in time when switching between `ink` and `pencil` using `controller.setAnnotationMode()`.
+14. Fixed an issue on iOS where the back and settings buttons in the search toolbar were not displayed after setting `mainToolbarVisible=false`.
+
+## 2.6.6+1
+1. updated the Android ComPDFKit PDF SDK to V2.6.6.
+
 ## 2.6.6
 1. Added the features support for ComPDFKit PDF SDK for iOS V2.6.6.
 2. Added the features support for ComPDFKit PDF SDK for Android V2.6.6.

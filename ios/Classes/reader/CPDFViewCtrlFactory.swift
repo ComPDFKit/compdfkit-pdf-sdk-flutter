@@ -317,6 +317,15 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         self.plugin._methodChannel.invokeMethod("annotationsCreated", arguments: dict)
     }
     
+    func PDFViewBaseControllerPencilDrawingCompleted(_ baseController: CPDFViewBaseController, pageIndex: Int) {
+        guard plugin.subscribedEvents.contains("pencilDrawingCompleted") else { return }
+
+        self.plugin._methodChannel.invokeMethod("pencilDrawingCompleted", arguments: [
+            "type": "pencil",
+            "pageIndex": pageIndex
+        ])
+    }
+
     func PDFViewBaseControllerAnndotationSelect(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation, isSelected: Bool) {
         let eventName = isSelected ? "annotationsSelected" : "annotationsDeselected"
         // Only parse and send data when event is subscribed
@@ -563,6 +572,4 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
     
     
 }
-
-
 

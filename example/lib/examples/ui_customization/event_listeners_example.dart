@@ -126,6 +126,11 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
         CPDFEvent.annotationsCreated, _onAnnotationCreated);
     controller.addEventListener(
         CPDFEvent.formFieldsCreated, _onFormFieldCreated);
+
+    controller.addEventListener(CPDFEvent.pencilDrawingCompleted, (event) => {
+      debugPrint('Pencil drawing completed: ${event.runtimeType}'),
+      printJsonString(jsonEncode(event)),
+    });
   }
 
   @override

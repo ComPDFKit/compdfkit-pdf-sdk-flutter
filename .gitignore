@@ -33,3 +33,4 @@ AGENTS.md
 .vscode/
 /example/packages/compdf_viewer/.metadata
 /example/ios/Podfile.lock
+/example/.metadata

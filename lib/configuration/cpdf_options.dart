@@ -574,6 +574,10 @@ enum CPDFEvent {
   /// Data type: CPDFAnnotation and its subclasses.
   annotationsCreated,
 
+  /// Fired when a pencil drawing is saved.
+  /// Data type: Map<String, dynamic> with type and pageIndex.
+  pencilDrawingCompleted,
+
   /// Fired when an annotation is selected.
   /// Data type: CPDFAnnotation and its subclasses.
   annotationsSelected,

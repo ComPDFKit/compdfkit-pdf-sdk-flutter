@@ -409,7 +409,7 @@ class CPDFViewCtrlPlugin {
             case CPDFConstants.setAnnotationMode:
                 let mode = call.arguments as? String ?? "unknown"
                 let annotationMode = self.getAnnotationMode(mode: mode)
-                self.pdfViewController.annotationBar?.annotationToolBarSwitch(annotationMode)
+                self.pdfViewController.annotationBar?.annotationToolBarSwitch(annotationMode, notifyPencilDrawingCompleted: true)
                 result(nil)
             case CPDFConstants.getAnnotationMode:
                 let annotationMode = self.pdfViewController.pdfListView?.annotationMode ?? .CPDFViewAnnotationModenone

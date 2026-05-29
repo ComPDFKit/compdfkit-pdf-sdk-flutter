@@ -77,10 +77,12 @@ class _ViewOperationsPageState extends ExampleBaseState<_ViewOperationsPage> {
 
   @override
   CPDFConfiguration get configuration => CPDFConfiguration(
-        annotationsConfig: CPDFAnnotationsConfig(
-          annotationAuthor: PreferencesService.documentAuthor,
-        ),
-      );
+      annotationsConfig: CPDFAnnotationsConfig(
+        annotationAuthor: PreferencesService.documentAuthor,
+      ),
+      toolbarConfig: CPDFToolbarConfig(
+        mainToolbarVisible: false,
+      ));
 
   @override
   List<String> get menuActions => _menuActions;
