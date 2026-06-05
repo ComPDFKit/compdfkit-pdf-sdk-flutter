@@ -34,6 +34,103 @@ It provides a production-ready Flutter wrapper around native ComPDF SDK capabili
 - [Changelog](#changelog)
 - [Related](#related)
 
+
+## Supported Features
+
+**Viewer**: Fast and smooth PDF rendering and viewing
+
+* Display Modes - single/double page, vertical & horizontal scrolling, cover mode, crop mode
+* Text Search & Selection
+* PDF Navigation - outlines, bookmarks
+
+**Annotations**:
+
+* Notes - add longer comments with adjustable icon shape and color
+
+* Ink - freehand drawing with customizable color, opacity, line thickness
+
+* Text - add, move, resize text directly on page
+
+* Inspector - adjust annotation looks (line styles, borders, colors, opacity, font)
+
+* Comment on Annotations and Update Status
+
+* Import & Export & Flatten Annotations (XFDF, FDF, JSON)
+
+* Highlight, Underline, Strikeout, Squiggly
+
+* Shapes - Rectangle, Oval, Line, Arrow, Polygon, Polyline, Cloud
+
+* Stamps, Sound, Movie, File Attachment, Link, Distance, Perimeter, Area
+
+**Forms**:
+
+* Process fillable and static PDF forms
+
+* Form filling, form creation, form flattening
+
+**Document Editor**:
+
+* Page manipulation - insert, delete, rotate, reorder, extract, crop
+
+* Split PDF, Merge PDF
+
+**Content Editor**: Edit PDF text and images directly like in Word
+
+**Security**:
+
+* Encryption - set open password, permission password
+
+* Restrict printing, copying, editing
+
+**Signatures**:
+
+* Electronic Signatures - draw, type, image signatures
+
+* Digital Signatures - certificate-based signature validation
+
+**Watermark:**
+
+* Add Text or Image Watermarks
+
+* Delete Watermarks
+
+* Customize Watermarks
+
+**OCR:**
+
+* AI OCR
+
+* Recognize Tables, Graphics, Images
+
+* Support recognition in 80+ Languages
+
+**Compare Documents**: Side-by-side document comparison to highlight differences
+
+**Redaction**: Permanently remove sensitive content from PDFs
+
+**Measurement**: Distance, area, perimeter measurement tools
+
+**Compress**: Optimize and reduce PDF file size
+
+**Convert Files**:
+
+* Convert PDF to Word, Excel, PPT, HTML, CSV, images (PNG,JPEG, JPEG, JPEG2000, BMP, TIFF, TGA, GIF), RTF, TXT, JSON, XML, markdown, searchable PDF, searchable OFD.
+
+* Convert images (PNG,JPEG, JPEG, JPEG2000, BMP, TIFF, TGA, GIF) to Word, Excel, PPT, HTML, CSV, RTF, TXT, JSON, XML.
+
+* Convert Word, Excel, PPT, HTML, CSV, PNG, RTF, TXT to PDF
+
+**UI Customization**:
+
+* Toolbar Customization
+
+* UI Personalization
+
+* Ready-Made UI Options
+
+* Out-of-the-box Source Code
+
 ## Requirements
 
 Before starting, please make sure that you have already met the following prerequisites:
