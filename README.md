@@ -4,13 +4,9 @@ As part of the KDAN ecosystem, [ComPDF SDK for Flutter](https://www.compdf.com/f
 
 It provides a production-ready Flutter wrapper around native ComPDF SDK capabilities for both Android and iOS projects.
 
-[ComPDF SDK](https://www.compdf.com/?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit) seamlessly operates on [Web](https://www.compdf.com/web?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Windows](https://www.compdf.com/windows?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Android](https://www.compdf.com/android?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [iOS](https://www.compdf.com/ios?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Mac](https://www.compdf.com/contact-sales?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), and [Server](https://www.compdf.com/server?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), with support for cross-platform frameworks such as [React Native](https://www.compdf.com/react-native?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Flutter](https://www.compdf.com/flutter?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), etc.
-
-If you find ComPDF SDK useful, please consider giving us a ⭐ **Star** on GitHub — it helps us grow and improve! Got questions or ideas? Join the conversation in our [Discussions](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter/discussions).
+> If you find ComPDF SDK useful, please consider giving us a ⭐ **Star** on GitHub — it helps us grow and improve! Got questions or ideas? Join the conversation in our [Discussions](https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter/discussions).
 
 ![UI-1](./screenshots/UI-1.png)
-
----
 
 **Why ComPDF SDK for Flutter?**
 
@@ -27,23 +23,16 @@ If you find ComPDF SDK useful, please consider giving us a ⭐ **Star** on GitHu
 
 ## Table of Contents
 
-* [Related](#related)
-* [Requirements](#requirements)
-* [How to Build the Flutter PDF Editor](#how-to-build-the-flutter-pdf-editor)
-* [Apply the License Key](#apply-the-license-key)
-* [Run Project](#run-project)
-* [Example App](#example-app)
-* [Changelog](#changelog)
-* [Free Trial and License](#free-trial-and-license)
-* [Support](#support)
-
-## Related
-
-* [ComPDF SDK for Flutter Guides](https://www.compdf.com/guides/pdf-sdk/flutter/overview?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit)
-* [ComPDF SDK for React Native](https://github.com/ComPDFKit/compdfkit-pdf-sdk-react-native)
-* [ComPDF SDK for iOS](https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift)
-* [ComPDF SDK for Android](https://github.com/ComPDFKit/compdfkit-pdf-sdk-android)
-* [Flutter Package on pub.dev](https://pub.dev/packages/compdfkit_flutter)
+- [Supported Features](#supported-features)
+- [Requirements](#requirements)
+- [How to Build the Flutter PDF Editor](#how-to-build-the-flutter-pdf-editor)
+- [Apply the License Key](#apply-the-license-key)
+- [Run Project](#run-project)
+- [Example App](#example-app)
+- [Free Trial & License](#free-trial-and-license)
+- [Support](#support)
+- [Changelog](#changelog)
+- [Related](#related)
 
 ## Requirements
 
@@ -524,13 +513,6 @@ Scaffold(
   ));
 ```
 
----
-
-## Changelog
-
-Keep up with the latest updates, improvements, and bug fixes for ComPDF SDK for Flutter: [View Flutter Changelog](https://www.compdf.com/pdf-sdk/changelog-flutter?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit)
-
----
 
 ## Free Trial and License
 
@@ -551,3 +533,23 @@ For custom deployments, advanced features, or volume licensing, please [contact 
 * For detailed information, please visit our [Guides](https://www.compdf.com/guides/pdf-sdk/flutter/overview?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit) page.
 * For technical assistance, please reach out to our [Technical Support](https://www.compdf.com/support?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit).
 * To get more details and an accurate quote, please contact our [Sales Team](https://www.compdf.com/contact-sales?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit) or [send an email](mailto:support@compdf.com).
+
+## Changelog
+
+Keep up with the latest updates, improvements, and bug fixes for ComPDF SDK for Flutter: [View Flutter Changelog](https://www.compdf.com/pdf-sdk/changelog-flutter?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit)
+
+## Related
+
+* More Guides:
+  
+  - [ComPDF SDK for Flutter Guides](https://www.compdf.com/guides/pdf-sdk/flutter/overview?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit)
+  
+  - [Flutter Package on pub.dev](https://pub.dev/packages/compdfkit_flutter)
+  
+  - [ComPDF SDK for iOS](https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift)
+  
+  - [ComPDF SDK for Android](https://github.com/ComPDFKit/compdfkit-pdf-sdk-android)
+- More Platforms and Frameworks: [ComPDF SDK](https://www.compdf.com/?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit) seamlessly operates on [Web](https://www.compdf.com/web?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Windows](https://www.compdf.com/windows?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Android](https://www.compdf.com/android?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [iOS](https://www.compdf.com/ios?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Mac](https://www.compdf.com/contact-sales?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), and [Server](https://www.compdf.com/server?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), with support for cross-platform frameworks such as [React Native](https://www.compdf.com/react-native?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), [Flutter](https://www.compdf.com/flutter?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit), etc.
+
+- ComPDF Cloud: We also provide Open API for developers. You can [register a free API account](https://api.compdf.com/signup?utm_source=github&utm_medium=compdfkit-pdf-sdk-flutter&utm_campaign=compdfkit_pdf_sdk_flutter_repo&ref_platform_id=github_compdfkit) to get up to 200+ API calls monthly for free.
+
