@@ -14,10 +14,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.form.CPDFWidget;
 import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
 import com.compdfkit.flutter.compdfkit_flutter.document.codec.CPDFPageCodec;
-import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
+import com.compdfkit.tools.common.utils.annotation.CAnnotationCreationContext;
 import com.compdfkit.ui.proxy.CPDFBaseAnnotImpl;
+import com.compdfkit.ui.proxy.form.CPDFSignatureWidgetImpl;
 import com.compdfkit.ui.reader.CPDFPageView;
 import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.MethodChannel;
@@ -42,6 +44,119 @@ public final class DocumentAnnotationOps {
         return context.getPageCodec().getWidgets(pageIndex);
     }
 
+    public static void addAnnotationReply(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String content, @Nullable String title,
+            @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotation(pageIndex, annotPtr);
+        if (annotation == null || !annotation.isValid()) {
+            result.success(null);
+            return;
+        }
+        HashMap<String, Object> reply = context.getPageCodec().addAnnotationReply(annotation,
+                content, title);
+        refreshReaderView(context, pageIndex);
+        result.success(reply);
+    }
+
+    public static void getAnnotationReplies(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotation(pageIndex, annotPtr);
+        if (annotation == null || !annotation.isValid()) {
+            result.success(new ArrayList<HashMap<String, Object>>());
+            return;
+        }
+        result.success(context.getPageCodec().getAnnotationReplies(annotation));
+    }
+
+    public static void updateAnnotationReply(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @Nullable String content, @Nullable String title,
+            @NonNull MethodChannel.Result result) {
+        boolean updated = context.getPageCodec().updateAnnotationReply(pageIndex, annotPtr, nativeId,
+                replyKey, parentUuid, content, title);
+        if (!updated) {
+            result.success(false);
+            return;
+        }
+        refreshReaderView(context, pageIndex);
+        result.success(true);
+    }
+
+    public static void removeAnnotationReply(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @NonNull MethodChannel.Result result) {
+        boolean removed = context.getPageCodec().removeAnnotationReply(pageIndex, annotPtr, nativeId,
+                replyKey, parentUuid);
+        if (!removed) {
+            result.success(false);
+            return;
+        }
+        refreshReaderView(context, pageIndex);
+        result.success(true);
+    }
+
+    public static void removeAllAnnotationReplies(@NonNull CPDFDocumentContext context,
+            int pageIndex, @NonNull String annotPtr, @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotation(pageIndex, annotPtr);
+        if (annotation == null || !annotation.isValid()) {
+            result.success(false);
+            return;
+        }
+        boolean removed = context.getPageCodec().removeAllAnnotationReplies(annotation);
+        refreshReaderView(context, pageIndex);
+        result.success(removed);
+    }
+
+    public static void setAnnotationMarkState(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @Nullable String markState,
+            @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotationOrReply(pageIndex,
+                annotPtr, nativeId, replyKey, parentUuid);
+        if (annotation == null || !annotation.isValid()) {
+            result.success(false);
+            return;
+        }
+        result.success(context.getPageCodec().setAnnotationMarkState(annotation, markState));
+    }
+
+    public static void getAnnotationMarkState(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotationOrReply(pageIndex,
+                annotPtr, nativeId, replyKey, parentUuid);
+        if (annotation == null || !annotation.isValid()) {
+            result.success("unmarked");
+            return;
+        }
+        result.success(context.getPageCodec().getAnnotationMarkState(annotation));
+    }
+
+    public static void setAnnotationReviewState(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @Nullable String reviewState,
+            @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotationOrReply(pageIndex,
+                annotPtr, nativeId, replyKey, parentUuid);
+        if (annotation == null || !annotation.isValid()) {
+            result.success(false);
+            return;
+        }
+        result.success(context.getPageCodec().setAnnotationReviewState(annotation, reviewState));
+    }
+
+    public static void getAnnotationReviewState(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @Nullable String nativeId, @Nullable String replyKey,
+            @Nullable String parentUuid, @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotationOrReply(pageIndex,
+                annotPtr, nativeId, replyKey, parentUuid);
+        if (annotation == null || !annotation.isValid()) {
+            result.success("none");
+            return;
+        }
+        result.success(context.getPageCodec().getAnnotationReviewState(annotation));
+    }
+
     public static void removeAnnotation(@NonNull CPDFDocumentContext context, int pageIndex,
             @NonNull String annotPtr, @NonNull MethodChannel.Result result) {
         CPDFPageCodec pageCodec = context.getPageCodec();
@@ -53,9 +168,9 @@ public final class DocumentAnnotationOps {
             return;
         }
 
-        CPDFViewCtrl pdfView = context.getPdfView();
-        if (pdfView != null) {
-            CPDFPageView pageView = (CPDFPageView) pdfView.getCPdfReaderView().getChild(pageIndex);
+        CPDFReaderView readerView = context.getReaderView();
+        if (readerView != null) {
+            CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
             if (pageView != null) {
                 CPDFBaseAnnotImpl baseAnnot = pageView.getAnnotImpl(annotation);
                 pageView.deleteAnnotation(baseAnnot);
@@ -120,19 +235,69 @@ public final class DocumentAnnotationOps {
 
     public static boolean addAnnotations(@NonNull CPDFDocumentContext context,
             @Nullable ArrayList<HashMap<String, Object>> annotList) {
-        return context.getPageCodec().addAnnotations(context.getReaderView(), annotList);
+        return CAnnotationCreationContext.callProgrammatic(
+                () -> context.getPageCodec().addAnnotations(context.getReaderView(), annotList));
     }
 
     public static boolean addWidgets(@NonNull CPDFDocumentContext context,
             @Nullable ArrayList<HashMap<String, Object>> widgetList) {
-        return context.getPageCodec().addWidgets(context.getReaderView(), widgetList);
+        return CAnnotationCreationContext.callProgrammatic(
+                () -> context.getPageCodec().addWidgets(context.getReaderView(), widgetList));
+    }
+
+    public static void addWidgetImageSignature(@NonNull CPDFDocumentContext context,
+            int pageIndex, @NonNull String annotPtr, @Nullable String imagePath,
+            @NonNull MethodChannel.Result result) {
+        boolean success = context.getPageCodec().addWidgetImageSignature(pageIndex, annotPtr,
+                imagePath);
+        if (success) {
+            refreshSignatureWidget(context, pageIndex, annotPtr);
+        }
+        result.success(success);
     }
 
     public static boolean removeAllAnnotations(@NonNull CPDFDocumentContext context) {
         boolean deleteResult = context.requireDocument().removeAllAnnotations();
-        if (deleteResult && context.getReaderView() != null) {
-            context.getReaderView().invalidateAllChildren();
+        CPDFReaderView readerView = context.getReaderView();
+        if (deleteResult && readerView != null) {
+            readerView.invalidateAllChildren();
         }
         return deleteResult;
+    }
+
+    private static void refreshReaderView(@NonNull CPDFDocumentContext context, int pageIndex) {
+        CPDFReaderView readerView = context.getReaderView();
+        if (readerView == null) {
+            return;
+        }
+        CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
+        if (pageView != null) {
+            pageView.invalidate();
+        } else {
+            readerView.invalidateAllChildren();
+        }
+    }
+
+    private static void refreshSignatureWidget(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr) {
+        CPDFReaderView readerView = context.getReaderView();
+        if (readerView == null) {
+            return;
+        }
+        CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
+        if (pageView == null) {
+            readerView.invalidateAllChildren();
+            return;
+        }
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotation(pageIndex, annotPtr);
+        if (annotation instanceof CPDFWidget) {
+            CPDFBaseAnnotImpl annotImpl = pageView.getAnnotImpl(annotation);
+            if (annotImpl instanceof CPDFSignatureWidgetImpl) {
+                ((CPDFSignatureWidgetImpl) annotImpl).refresh();
+            } else if (annotImpl != null) {
+                annotImpl.onAnnotAttrChange();
+            }
+        }
+        pageView.invalidate();
     }
 }

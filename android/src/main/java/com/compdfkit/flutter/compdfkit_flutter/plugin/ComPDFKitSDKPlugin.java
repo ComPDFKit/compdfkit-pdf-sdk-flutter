@@ -136,8 +136,7 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
             }
             case CREATE_DOCUMENT: {
                 String id = call.arguments();
-                SdkDocumentOps.createDocument(context, binaryMessenger, id);
-                result.success(true);
+                result.success(SdkDocumentOps.createDocument(context, binaryMessenger, id));
                 break;
             }
             case GET_FONTS:

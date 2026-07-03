@@ -13,6 +13,7 @@ import '../shared/example_route_type.dart';
 import 'delete_page_example.dart';
 import 'insert_page_example.dart';
 import 'move_page_example.dart';
+import 'pdf_file_thumbnail_list_example.dart';
 import 'rotate_page_example.dart';
 import 'split_document_example.dart';
 import 'page_thumbnails_example.dart';
@@ -90,6 +91,17 @@ final CategoryInfo pagesCategory = CategoryInfo(
         icon: Icons.photo_library,
         backgroundColor: Color(0xFFF3E5F5),
         iconColor: Color(0xFF7B1FA2),
+      ),
+    ),
+    ExampleItem(
+      title: 'PDF File Thumbnails',
+      description: 'Load thumbnails for a list of PDF files',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const PdfFileThumbnailListExample(),
+      visual: const ExampleVisual(
+        icon: Icons.picture_as_pdf,
+        backgroundColor: Color(0xFFE0F2F1),
+        iconColor: Color(0xFF00796B),
       ),
     ),
   ],

@@ -24,6 +24,9 @@ abstract class ApiExampleBase extends StatefulWidget {
   /// Example title
   String get title;
 
+  /// Whether to overwrite the copied PDF asset before opening it.
+  bool get shouldOverwriteAsset => true;
+
   @override
   State<ApiExampleBase> createState() => ApiExampleBaseState();
 }
@@ -36,6 +39,9 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
   /// PDF document instance
   late CPDFDocument document;
 
+  /// Local PDF document path.
+  String documentPath = '';
+
   @override
   void initState() {
     super.initState();
@@ -45,9 +51,10 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
   /// Open document
   Future<void> openDocument() async {
     final file = await extractAsset(
-      shouldOverwrite: true,
+      shouldOverwrite: widget.shouldOverwriteAsset,
       widget.assetPath,
     );
+    documentPath = file.path;
     applyLog('filePath: ${file.path}');
 
     document = await CPDFDocument.createInstance();

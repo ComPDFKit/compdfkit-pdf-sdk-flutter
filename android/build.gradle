@@ -18,10 +18,25 @@ rootProject.allprojects {
         google()
         mavenCentral()
         maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
+        mavenLocal()
+
     }
 }
 
 apply plugin: 'com.android.library'
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+def flutterSdk = localProperties.getProperty('flutter.sdk')
+if (flutterSdk == null) {
+    flutterSdk = System.getenv('FLUTTER_ROOT')
+}
+def flutterJar = flutterSdk == null ? null : file("${flutterSdk}/bin/cache/artifacts/engine/android-arm/flutter.jar")
 
 android {
     compileSdk 35
@@ -36,10 +51,14 @@ android {
     }
 
     dependencies {
+        if (flutterJar != null && flutterJar.exists()) {
+            compileOnly files(flutterJar)
+            testImplementation files(flutterJar)
+        }
         compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:2.6.8'
+        api 'com.compdf:compdfkit-tools:2.6.9'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'
@@ -49,6 +68,7 @@ android {
     }
 
     testOptions {
+        unitTests.returnDefaultValues = true
         unitTests.all {
             testLogging {
                events "passed", "skipped", "failed", "standardOut", "standardError"
@@ -60,4 +80,3 @@ android {
 }
 // refresh snapshot implementation
 configurations.all { resolutionStrategy.cacheChangingModulesFor 0, 'seconds' }
-

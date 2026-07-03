@@ -233,17 +233,18 @@ typedef CPDFOnCustomContextMenuItemTappedCallback = void Function(
 typedef CPDFOnInterceptAnnotationActionCallback = void Function(
     CPDFAnnotation annotation);
 
-/// Callback for intercepting widget actions (list box, combo box, etc.).
+/// Callback for intercepting widget actions (text field, check box, list box, etc.).
 /// Used to configure interception of form field widget actions in CPDFConfiguration, and dispatch the events to the Flutter side for handling.
-///
-/// Only support android platform in v2.6.2. iOS support will be added in future releases.
 ///
 /// **Configuration Example:**
 /// ```dart
 /// CPDFConfiguration config = CPDFConfiguration(
 ///         formsConfig: CPDFFormsConfig(
-///          interceptComboBoxAction: true,
-///         interceptListBoxAction: true,
+///          interceptFormWidgetActions: [
+///            CPDFFormType.listBox,
+///            CPDFFormType.comboBox,
+///            CPDFFormType.signaturesFields,
+///          ],
 ///       );
 ///
 /// CPDFReaderWidget(

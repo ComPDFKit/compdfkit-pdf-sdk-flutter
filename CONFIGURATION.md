@@ -139,6 +139,7 @@ Configure functions for the top toolbar in the PDF view.
 | iosRightBarAvailableActions | Array   | Functions available in the right side of the top toolbar for iOS platform.<br />Defaults: `search`, `bota`, `menu`  |
 | availableMenus              | Array   | A list of more functions popped up by the `menu` option on the top toolbar.                                             |
 | mainToolbarVisible          | boolean | Whether to display the toolbar at the top of the main interface view.                                                     |
+| mainToolbarTitleVisible     | boolean | Whether to display the top toolbar mode-switch title and entry. Defaults to `true`.                                      |
 | annotationToolbarVisible    | boolean | Shows or hides the annotation toolbar that appears at the bottom of the view when in annotation mode.                     |
 | showInkToggleButton         | boolean | Whether to display the toggle/slide and drawing state buttons in the upper-left corner when drawing ink annotations.      |
 | contentEditorToolbarVisible | boolean | Show or hide the bottom toolbar in content editing mode                                                                   |
@@ -172,8 +173,9 @@ Configure functions for the top toolbar in the PDF view.
 
 ```json
 {
-   "toolbarConfig": {
+  "toolbarConfig": {
     "mainToolbarVisible" : true,
+    "mainToolbarTitleVisible" : true,
     "contentEditorToolbarVisible" : true,
     "annotationToolbarVisible" : true,
     "formToolbarVisible" : true,
@@ -222,6 +224,11 @@ Configure annotation-related settings, such as enabling types displayed in the a
 | availableTools   | Array  | Annotation tools, including `Setting`, `Undo`, and `Redo`.         |
 | initAttribute    | Array  | Set default attributes for annotations.                                  |
 | annotationAuthor | String | Set the author name when adding annotations and replying to annotations. |
+| autoShowSignPicker | boolean | Whether to automatically show the default signature picker. Default: `true`. |
+| autoShowStampPicker | boolean | Whether to automatically show the default stamp picker. Default: `true`. |
+| autoShowPicPicker | boolean | Whether to automatically show the default picture picker. Default: `true`. |
+| autoShowLinkDialog | boolean | Whether to automatically show the default link edit dialog after creating a link annotation. Default: `true`. |
+| autoShowNoteEditDialog | boolean | Whether to automatically show the default note edit dialog after creating a note annotation. Default: `true`. |
 
 ##### **availableTypes Constants**
 
@@ -372,6 +379,12 @@ Configure annotation-related settings, such as enabling types displayed in the a
 ```json
 {
 "annotationsConfig": {
+    "annotationAuthor": "Guest",
+    "autoShowSignPicker": true,
+    "autoShowStampPicker": true,
+    "autoShowPicPicker": true,
+    "autoShowLinkDialog": true,
+    "autoShowNoteEditDialog": true,
     "availableTypes": [
       "note",
       "highlight",
@@ -1064,6 +1077,7 @@ The context menu configuration in form mode displays different context menu opti
   },
   "toolbarConfig": {
     "mainToolbarVisible" : true,
+    "mainToolbarTitleVisible" : true,
     "contentEditorToolbarVisible" : true,
     "annotationToolbarVisible" : true,
     "formToolbarVisible" : true,
@@ -1099,6 +1113,11 @@ The context menu configuration in form mode displays different context menu opti
   },
   "annotationsConfig": {
     "annotationAuthor": "Guest",
+    "autoShowSignPicker": true,
+    "autoShowStampPicker": true,
+    "autoShowPicPicker": true,
+    "autoShowLinkDialog": true,
+    "autoShowNoteEditDialog": true,
     "availableTypes": [
       "note",
       "highlight",

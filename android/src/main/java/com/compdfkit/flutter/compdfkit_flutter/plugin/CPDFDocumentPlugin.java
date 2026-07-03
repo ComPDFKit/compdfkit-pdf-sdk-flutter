@@ -11,31 +11,44 @@
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_ANNOTATIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_ANNOTATION_REPLY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_OUTLINE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_WIDGET_IMAGE_SIGNATURE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_WIDGETS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_OWNER_PASSWORD;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_OWNER_UNLOCKED;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLOSE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.COPY_PAGE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_NEW_IMAGE_AREA;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_NEW_TEXT_AREA;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_WATERMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_ANNOTATIONS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXPORT_WIDGETS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.EXTRACT_IMAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.FLATTEN_ALL_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATION_MARK_STATE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATION_REPLIES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ANNOTATION_REVIEW_STATE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RENDER_ANNOTATION_APPEARANCE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_BOOKMARKS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_INFO;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_PATH;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ENCRYPT_ALGORITHM;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_FILE_NAME;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARK;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARKS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARK_COUNT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_MAJOR_VERSION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_MINOR_VERSION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_OUTLINE_ROOT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_COUNT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_ROTATION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_SIZE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_TEXT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_TEXT_IN_RECT;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PAGE_TEXT_LINES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PERMISSIONS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PERMISSIONS_INFO;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_SEARCH_TEXT;
@@ -56,13 +69,16 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPEN_DOCUMENT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.PRINT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ALL_ANNOTATIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ALL_ANNOTATION_REPLIES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ALL_WATERMARKS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ANNOTATION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_ANNOTATION_REPLY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_EDIT_AREA;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_OUTLINE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_PASSWORD;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_WATERMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.REMOVE_WIDGET;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RENDER_PAGE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SAVE;
@@ -70,12 +86,16 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT_CLEAR;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SEARCH_TEXT_SELECTION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_ANNOTATION_MARK_STATE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_ANNOTATION_REVIEW_STATE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PAGE_ROTATION;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SET_PASSWORD;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.SPLIT_DOCUMENT_PAGES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_ANNOTATION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_ANNOTATION_REPLY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_OUTLINE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_WATERMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_WIDGET;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -125,8 +145,10 @@ import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSearchOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSecurityOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTransferOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTaskOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTextOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentWatermarkOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.resolver.CPDFDocumentSourceResolver;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkPluginRegistry;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFBookmarkUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFDocumentInfoUtil;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFEditAreaUtil;
@@ -248,9 +270,12 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 result.success(DocumentInfoOps.checkOwnerPassword(documentContext, password));
                 break;
             }
-            case CLOSE:
-                result.success(DocumentInfoOps.close(documentContext));
+            case CLOSE: {
+                boolean closeResult = DocumentInfoOps.close(documentContext);
+                SdkPluginRegistry.unregisterDocumentPlugin(documentUid);
+                result.success(closeResult);
                 break;
+            }
             case HAS_CHANGE:
                 result.success(DocumentInfoOps.hasChange(documentContext));
                 break;
@@ -310,6 +335,21 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             case REMOVE_ALL_WATERMARKS:
                 DocumentWatermarkOps.removeAllWatermarks(documentContext, result);
                 break;
+            case GET_WATERMARK_COUNT:
+                DocumentWatermarkOps.getWatermarkCount(documentContext, result);
+                break;
+            case GET_WATERMARK:
+                DocumentWatermarkOps.getWatermark(documentContext, call, result);
+                break;
+            case GET_WATERMARKS:
+                DocumentWatermarkOps.getWatermarks(documentContext, call, result);
+                break;
+            case UPDATE_WATERMARK:
+                DocumentWatermarkOps.updateWatermark(documentContext, call, result);
+                break;
+            case REMOVE_WATERMARK:
+                DocumentWatermarkOps.removeWatermark(documentContext, call, result);
+                break;
             case IMPORT_WIDGETS:
                 result.success(DocumentTransferOps.importWidgets(documentContext,
                         (String) call.arguments));
@@ -366,6 +406,17 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 result.success(insertBlankResult);
                 break;
             }
+            case COPY_PAGE: {
+                int pageIndex = call.argument("page_index");
+                int insertIndex = call.argument("insert_index");
+                boolean copyPageResult = DocumentPageOps.copyPage(documentContext, pageIndex,
+                        insertIndex);
+                if (copyPageResult) {
+                    updatePageIndicatorView(document);
+                }
+                result.success(copyPageResult);
+                break;
+            }
             case SPLIT_DOCUMENT_PAGES: {
                 String savePath = call.argument("save_path");
                 ArrayList<Integer> pages = call.argument("pages");
@@ -385,6 +436,33 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 });
                 break;
             }
+            case EXTRACT_IMAGES: {
+                String directoryPath = call.argument("directory_path");
+                ArrayList<Integer> pages = call.argument("pages");
+                if (TextUtils.isEmpty(directoryPath)) {
+                    result.error("EXTRACT_IMAGES_FAIL", "directory_path is empty", null);
+                    return;
+                }
+                if (pages != null) {
+                    int pageCount = document.getPageCount();
+                    for (Integer page : pages) {
+                        if (page == null || page < 0 || page >= pageCount) {
+                            result.error("EXTRACT_IMAGES_FAIL",
+                                    "Invalid page index: " + page, null);
+                            return;
+                        }
+                    }
+                }
+                CThreadPoolUtils.getInstance().executeIO(() -> {
+                    try {
+                        result.success(DocumentPageOps.extractImages(documentContext,
+                                directoryPath, pages));
+                    } catch (Exception e) {
+                        result.error("EXTRACT_IMAGES_FAIL", e.getMessage(), null);
+                    }
+                });
+                break;
+            }
             case GET_DOCUMENT_PATH: {
                 result.success(DocumentInfoOps.getDocumentPath(documentContext));
                 break;
@@ -392,6 +470,93 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             case GET_ANNOTATIONS: {
                 int pageIndex = (int) call.arguments;
                 result.success(DocumentAnnotationOps.getAnnotations(documentContext, pageIndex));
+                break;
+            }
+            case ADD_ANNOTATION_REPLY: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String content = call.argument("content");
+                String title = call.argument("title");
+                DocumentAnnotationOps.addAnnotationReply(documentContext, pageIndex, annotPtr,
+                        content, title, result);
+                break;
+            }
+            case GET_ANNOTATION_REPLIES: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                DocumentAnnotationOps.getAnnotationReplies(documentContext, pageIndex, annotPtr,
+                        result);
+                break;
+            }
+            case UPDATE_ANNOTATION_REPLY: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                String content = call.argument("content");
+                String title = call.argument("title");
+                DocumentAnnotationOps.updateAnnotationReply(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, content, title, result);
+                break;
+            }
+            case REMOVE_ANNOTATION_REPLY: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                DocumentAnnotationOps.removeAnnotationReply(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, result);
+                break;
+            }
+            case REMOVE_ALL_ANNOTATION_REPLIES: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                DocumentAnnotationOps.removeAllAnnotationReplies(documentContext, pageIndex,
+                        annotPtr, result);
+                break;
+            }
+            case SET_ANNOTATION_MARK_STATE: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                String markState = call.argument("mark_state");
+                DocumentAnnotationOps.setAnnotationMarkState(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, markState, result);
+                break;
+            }
+            case GET_ANNOTATION_MARK_STATE: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                DocumentAnnotationOps.getAnnotationMarkState(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, result);
+                break;
+            }
+            case SET_ANNOTATION_REVIEW_STATE: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                String reviewState = call.argument("review_state");
+                DocumentAnnotationOps.setAnnotationReviewState(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, reviewState, result);
+                break;
+            }
+            case GET_ANNOTATION_REVIEW_STATE: {
+                int pageIndex = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String nativeId = call.argument("native_id");
+                String replyKey = call.argument("reply_key");
+                String parentUuid = call.argument("parent_uuid");
+                DocumentAnnotationOps.getAnnotationReviewState(documentContext, pageIndex, annotPtr,
+                        nativeId, replyKey, parentUuid, result);
                 break;
             }
             case GET_WIDGETS: {
@@ -551,6 +716,35 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
             case GET_SEARCH_TEXT:
                 result.success(DocumentSearchOps.getSearchText(documentContext, call));
                 break;
+            case GET_PAGE_TEXT: {
+                int pageIndex1 = call.argument("page_index");
+                try {
+                    result.success(DocumentTextOps.getPageText(documentContext, pageIndex1));
+                } catch (IllegalArgumentException e) {
+                    result.error("GET_PAGE_TEXT_FAIL", e.getMessage(), null);
+                }
+                break;
+            }
+            case GET_PAGE_TEXT_IN_RECT: {
+                int pageIndex1 = call.argument("page_index");
+                HashMap<String, Object> rect = call.argument("rect");
+                try {
+                    result.success(
+                            DocumentTextOps.getPageTextInRect(documentContext, pageIndex1, rect));
+                } catch (IllegalArgumentException e) {
+                    result.error("GET_PAGE_TEXT_IN_RECT_FAIL", e.getMessage(), null);
+                }
+                break;
+            }
+            case GET_PAGE_TEXT_LINES: {
+                int pageIndex1 = call.argument("page_index");
+                try {
+                    result.success(DocumentTextOps.getPageTextLines(documentContext, pageIndex1));
+                } catch (IllegalArgumentException e) {
+                    result.error("GET_PAGE_TEXT_LINES_FAIL", e.getMessage(), null);
+                }
+                break;
+            }
             case UPDATE_ANNOTATION: {
                 int pageIndex1 = call.argument("page_index");
                 String annotPtr = call.argument("uuid");
@@ -565,6 +759,14 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 HashMap<String, Object> properties = call.argument("data");
                 DocumentAnnotationOps.updateWidget(documentContext, pageIndex1, annotPtr,
                         properties, result);
+                break;
+            }
+            case ADD_WIDGET_IMAGE_SIGNATURE: {
+                int pageIndex1 = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                String imagePath = call.argument("image_path");
+                DocumentAnnotationOps.addWidgetImageSignature(documentContext, pageIndex1,
+                        annotPtr, imagePath, result);
                 break;
             }
             case REMOVE_EDIT_AREA: {

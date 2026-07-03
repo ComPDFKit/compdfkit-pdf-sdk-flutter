@@ -50,7 +50,8 @@ public class CPDFDocumentContext {
 
     public void attachReaderView(@NonNull CPDFViewCtrl pdfView) {
         this.pdfView = pdfView;
-        this.document = pdfView.getCPdfReaderView().getPDFDocument();
+        CPDFReaderView readerView = pdfView.getCPdfReaderView();
+        this.document = readerView == null ? null : readerView.getPDFDocument();
         getPageCodec();
     }
 
@@ -66,7 +67,7 @@ public class CPDFDocumentContext {
 
     @Nullable
     public CPDFReaderView getReaderView() {
-        if (pdfView == null || pdfView.getCPdfReaderView() == null) {
+        if (pdfView == null) {
             return null;
         }
         return pdfView.getCPdfReaderView();
@@ -87,8 +88,9 @@ public class CPDFDocumentContext {
 
     @Nullable
     private CPDFDocument resolveDocument() {
-        if (pdfView != null && pdfView.getCPdfReaderView() != null) {
-            return pdfView.getCPdfReaderView().getPDFDocument();
+        CPDFReaderView readerView = getReaderView();
+        if (readerView != null) {
+            return readerView.getPDFDocument();
         }
         return document;
     }

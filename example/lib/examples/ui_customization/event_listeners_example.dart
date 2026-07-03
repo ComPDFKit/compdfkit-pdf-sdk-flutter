@@ -131,6 +131,11 @@ class _EventListenersPageState extends ExampleBaseState<_EventListenersPage> {
       debugPrint('Pencil drawing completed: ${event.runtimeType}'),
       printJsonString(jsonEncode(event)),
     });
+
+    controller.addEventListener(CPDFEvent.pencilDrawingDiscarded, (event) => {
+      debugPrint('Pencil drawing Discarded: ${event.runtimeType}'),
+      printJsonString(jsonEncode(event)),
+    });
   }
 
   @override

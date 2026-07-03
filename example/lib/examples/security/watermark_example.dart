@@ -16,17 +16,16 @@ import '../../utils/preferences_service.dart';
 import '../../widgets/example_base.dart';
 import '../shared/example_document_loader.dart';
 
-/// Add Watermark Example
+/// Watermark Example
 ///
-/// Demonstrates how to add text and image watermarks to PDF documents for
-/// branding, copyright protection, or document status indication.
+/// Demonstrates how to add and remove watermarks in PDF documents.
 ///
 /// This example shows:
 /// - Adding customizable text watermarks with font, color, and rotation
 /// - Adding image watermarks from asset files with scaling and opacity
 /// - Configuring watermark alignment (horizontal and vertical)
 /// - Applying watermarks to specific pages
-/// - Removing all watermarks from a document
+/// - Removing all document watermarks
 ///
 /// Key classes/APIs used:
 /// - [CPDFWatermark.text]: Creates a text-based watermark configuration
@@ -42,30 +41,30 @@ import '../shared/example_document_loader.dart';
 /// 3. Choose "Add Text Watermark" for red "ComPDFKit" text overlay
 /// 4. Choose "Add Image Watermark" for rotated logo overlay
 /// 5. Choose "Remove All Watermarks" to clear existing watermarks
-class AddWatermarkExample extends StatelessWidget {
+class WatermarkExample extends StatelessWidget {
   /// Constructor
-  const AddWatermarkExample({super.key});
+  const WatermarkExample({super.key});
 
   static const String _assetPath = AppAssets.pdfDocument;
 
   @override
   Widget build(BuildContext context) {
     return ExampleDocumentLoader(
-      title: 'Add Watermark',
+      title: 'Watermark',
       assetPath: _assetPath,
-      builder: (path) => _AddWatermarkPage(documentPath: path),
+      builder: (path) => _WatermarkPage(documentPath: path),
     );
   }
 }
 
-class _AddWatermarkPage extends ExampleBase {
-  const _AddWatermarkPage({required super.documentPath});
+class _WatermarkPage extends ExampleBase {
+  const _WatermarkPage({required super.documentPath});
 
   @override
-  State<_AddWatermarkPage> createState() => _AddWatermarkPageState();
+  State<_WatermarkPage> createState() => _WatermarkPageState();
 }
 
-class _AddWatermarkPageState extends ExampleBaseState<_AddWatermarkPage> {
+class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
   static const List<String> _menuActions = [
     'Add Text Watermark',
     'Add Image Watermark',
@@ -73,7 +72,7 @@ class _AddWatermarkPageState extends ExampleBaseState<_AddWatermarkPage> {
   ];
 
   @override
-  String get pageTitle => 'Add Watermark';
+  String get pageTitle => 'Watermark';
 
   @override
   CPDFConfiguration get configuration => CPDFConfiguration(
@@ -107,26 +106,27 @@ class _AddWatermarkPageState extends ExampleBaseState<_AddWatermarkPage> {
   Future<void> _createTextWatermark(
     CPDFReaderWidgetController controller,
   ) async {
-    await controller.document.createWatermark(
+    final success = await controller.document.createWatermark(
       CPDFWatermark.text(
         textContent: 'ComPDFKit',
         scale: 1.0,
         fontSize: 56,
         rotation: 0,
-        horizontalAlignment: CPDFWatermarkHorizontalAlignment.center,
-        verticalAlignment: CPDFWatermarkVerticalAlignment.center,
+        horizontalAlignment: CPDFWatermarkHorizontalAlignment.left,
+        verticalAlignment: CPDFWatermarkVerticalAlignment.bottom,
         textColor: Colors.red,
         pages: [0, 1, 2],
       ),
     );
-    debugPrint('Text watermark created');
+    _showMessage(
+        success ? 'Text watermark created' : 'Failed to create watermark');
   }
 
   Future<void> _createImageWatermark(
     CPDFReaderWidgetController controller,
   ) async {
     final imageFile = await extractAsset(AppAssets.logo);
-    await controller.document.createWatermark(
+    final success = await controller.document.createWatermark(
       CPDFWatermark.image(
         imagePath: imageFile.path,
         opacity: 1,
@@ -137,13 +137,20 @@ class _AddWatermarkPageState extends ExampleBaseState<_AddWatermarkPage> {
         verticalAlignment: CPDFWatermarkVerticalAlignment.center,
       ),
     );
-    debugPrint('Image watermark created');
+    _showMessage(
+        success ? 'Image watermark created' : 'Failed to create watermark');
   }
 
   Future<void> _removeAllWatermarks(
     CPDFReaderWidgetController controller,
   ) async {
     await controller.document.removeAllWatermarks();
-    debugPrint('All watermarks removed');
+    _showMessage('All watermarks removed');
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 }

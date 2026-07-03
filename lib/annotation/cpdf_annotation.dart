@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:compdfkit_flutter/annotation/cpdf_annotation_state.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 
@@ -23,6 +24,8 @@ import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 /// - [content]: The annotation content.
 /// - [uuid]: The unique identifier of this annotation.
 /// - [createDate]: The creation time, if available.
+/// - [markState]: The annotation mark state.
+/// - [reviewState]: The annotation review state.
 /// - [rect]: The annotation bounds in page coordinates.
 ///
 /// Serialization:
@@ -46,6 +49,10 @@ class CPDFAnnotation {
 
   final DateTime? createDate;
 
+  final CPDFAnnotationMarkState markState;
+
+  final CPDFAnnotationReviewState reviewState;
+
   final CPDFRectF rect;
 
   CPDFAnnotation({
@@ -55,6 +62,8 @@ class CPDFAnnotation {
     this.content = "",
     required this.uuid,
     this.createDate,
+    this.markState = CPDFAnnotationMarkState.unmarked,
+    this.reviewState = CPDFAnnotationReviewState.none,
     required this.rect,
   });
 
@@ -68,6 +77,10 @@ class CPDFAnnotation {
       createDate: json['createDate'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['createDate'])
           : null,
+      markState:
+          CPDFAnnotationMarkState.fromString(json['markState'] as String?),
+      reviewState:
+          CPDFAnnotationReviewState.fromString(json['reviewState'] as String?),
       rect: CPDFRectF.fromJson(Map<String, dynamic>.from(json['rect'] ?? {})),
     );
   }
@@ -79,6 +92,8 @@ class CPDFAnnotation {
         'content': content,
         'uuid': uuid,
         'createDate': createDate?.millisecondsSinceEpoch,
+        'markState': markState.name,
+        'reviewState': reviewState.name,
         'rect': rect.toJson()
       };
 

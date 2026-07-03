@@ -78,6 +78,7 @@ class _ToolbarCustomizationPageState
           formFieldHighlight: PreferencesService.highlightForm,
         ),
         toolbarConfig: CPDFToolbarConfig(
+          mainToolbarTitleVisible: false,
           customToolbarLeftItems: [
             const CPDFCustomToolbarItem.action(action: CPDFToolbarAction.back),
             const CPDFCustomToolbarItem(

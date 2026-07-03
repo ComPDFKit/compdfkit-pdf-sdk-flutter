@@ -42,6 +42,8 @@ class CPDFStampAnnotation extends CPDFAnnotation {
     super.content,
     super.uuid = '',
     super.createDate,
+    super.markState,
+    super.reviewState,
     required super.rect,
     this.standardStamp,
     this.stampType,
@@ -59,6 +61,8 @@ class CPDFStampAnnotation extends CPDFAnnotation {
       content: common.content,
       uuid: common.uuid,
       createDate: common.createDate,
+      markState: common.markState,
+      reviewState: common.reviewState,
       rect: common.rect,
       standardStamp: CPDFStandardStamp.values.firstWhere(
           (e) => e.name == json['standardStamp'],

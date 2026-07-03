@@ -11,6 +11,7 @@ import '../shared/category_info.dart';
 import '../shared/example_item.dart';
 import '../shared/example_route_type.dart';
 import 'add_annotation_example.dart';
+import 'annotation_reply_example.dart';
 import 'api_annotation_mode_example.dart';
 import 'custom_annotation_creation_example.dart';
 import 'delete_annotation_example.dart';
@@ -62,6 +63,17 @@ final CategoryInfo annotationsCategory = CategoryInfo(
         icon: Icons.edit,
         backgroundColor: Color(0xFFFFF3E0),
         iconColor: Color(0xFFE65100),
+      ),
+    ),
+    ExampleItem(
+      title: 'Annotation Replies',
+      description: 'Manage annotation replies and review states',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const AnnotationReplyExample(),
+      visual: const ExampleVisual(
+        icon: Icons.forum_outlined,
+        backgroundColor: Color(0xFFE0F7FA),
+        iconColor: Color(0xFF00838F),
       ),
     ),
     ExampleItem(

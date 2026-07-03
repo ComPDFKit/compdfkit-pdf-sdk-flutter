@@ -28,11 +28,13 @@ import '../../constants/asset_paths.dart';
 /// - Inserting blank pages with standard sizes (e.g., A4)
 /// - Inserting pages from image files with custom dimensions
 /// - Importing pages from other PDF documents
+/// - Copying pages within the same PDF document
 ///
 /// Key classes/APIs used:
 /// - [CPDFDocument.insertBlankPage]: Inserts a blank page at a specified index
 /// - [CPDFDocument.insertPageWithImagePath]: Creates a page from an image file
 /// - [CPDFDocument.importDocument]: Imports pages from another PDF document
+/// - [CPDFDocument.copyPage]: Copies a page within the current document
 /// - [CPDFPageSize]: Defines standard page sizes (A4, letter, etc.) or custom dimensions
 /// - [ComPDFKit.pickFile]: Opens a file picker to select PDF documents
 ///
@@ -42,6 +44,7 @@ import '../../constants/asset_paths.dart';
 ///    - "Insert Blank Page" to add an A4 blank page at the beginning
 ///    - "Insert Image Page" to pick an image and insert it as a new page
 ///    - "Insert PDF Page" to import the first page from another PDF
+///    - "Copy Page" to duplicate the first page and append it to the end
 /// 3. The document view will refresh to show the inserted page
 class InsertPageExample extends StatelessWidget {
   /// Constructor
@@ -71,6 +74,7 @@ class _InsertPagePageState extends ExampleBaseState<_InsertPagePage> {
     'Insert Blank Page',
     'Insert Image Page',
     'Insert PDF Page',
+    'Copy Page',
   ];
 
   @override
@@ -101,6 +105,9 @@ class _InsertPagePageState extends ExampleBaseState<_InsertPagePage> {
         break;
       case 'Insert PDF Page':
         _handleImportDocument(controller);
+        break;
+      case 'Copy Page':
+        _copyPage(controller);
         break;
     }
   }
@@ -152,6 +159,17 @@ class _InsertPagePageState extends ExampleBaseState<_InsertPagePage> {
 
     debugPrint('Insert image page result: $insertResult');
     if (insertResult) {
+      controller.reloadPages();
+    }
+  }
+
+  Future<void> _copyPage(CPDFReaderWidgetController controller) async {
+    final result = await controller.document.copyPage(
+      pageIndex: 0,
+      insertIndex: -1,
+    );
+    debugPrint('Copy page result: $result');
+    if (result) {
       controller.reloadPages();
     }
   }

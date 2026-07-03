@@ -83,6 +83,7 @@ class CPDFAnnotationModeContextMenu {
       CPDFContextMenuItem(CPDFAnnotationStampMenuKey.reply),
       CPDFContextMenuItem(CPDFAnnotationStampMenuKey.viewReply),
       CPDFContextMenuItem(CPDFAnnotationStampMenuKey.delete),
+      CPDFContextMenuItem(CPDFAnnotationStampMenuKey.rotate),
     ],
     this.link = const [
       CPDFContextMenuItem(CPDFAnnotationLinkMenuKey.edit),

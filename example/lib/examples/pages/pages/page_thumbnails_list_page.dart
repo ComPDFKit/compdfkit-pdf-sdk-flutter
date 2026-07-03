@@ -5,8 +5,7 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-import 'dart:typed_data';
-
+import 'package:compdfkit_flutter/thumbnail/cpdf_page_thumbnail.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +30,6 @@ class PageThumbnailsListPage extends StatefulWidget {
 class _PageThumbnailsListPageState extends State<PageThumbnailsListPage> {
   int _pageCount = 0;
   int _currentPageIndex = 0;
-  final Map<int, Uint8List?> _thumbnailCache = {};
-  final Set<int> _renderingPages = {};
 
   @override
   void initState() {
@@ -55,51 +52,6 @@ class _PageThumbnailsListPageState extends State<PageThumbnailsListPage> {
     setState(() {
       _currentPageIndex = pageIndex;
     });
-  }
-
-  Future<void> _renderThumbnail(int pageIndex) async {
-    if (_renderingPages.contains(pageIndex) ||
-        _thumbnailCache.containsKey(pageIndex)) {
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {
-        _renderingPages.add(pageIndex);
-      });
-    });
-
-    try {
-      final size = await widget.controller.document.getPageSize(pageIndex);
-      const targetWidth = 300;
-      final scale = targetWidth / size.width;
-      const width = targetWidth;
-      final height = (size.height * scale).toInt();
-
-      final imageData = await widget.controller.document.renderPage(
-        pageIndex: pageIndex,
-        width: width,
-        height: height,
-        backgroundColor: Colors.white,
-        drawAnnot: true,
-        drawForm: true,
-        compression: CPDFPageCompression.jpeg,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _thumbnailCache[pageIndex] = imageData;
-        _renderingPages.remove(pageIndex);
-      });
-    } catch (e) {
-      debugPrint('Error rendering thumbnail for page $pageIndex: $e');
-      if (!mounted) return;
-      setState(() {
-        _renderingPages.remove(pageIndex);
-      });
-    }
   }
 
   @override
@@ -131,7 +83,6 @@ class _PageThumbnailsListPageState extends State<PageThumbnailsListPage> {
               ),
               itemCount: _pageCount,
               itemBuilder: (context, index) {
-                _renderThumbnail(index);
                 final isCurrentPage = index == _currentPageIndex;
 
                 return Card(
@@ -195,37 +146,33 @@ class _PageThumbnailsListPageState extends State<PageThumbnailsListPage> {
   }
 
   Widget _buildThumbnailContent(int index, ColorScheme colorScheme) {
-    final thumbnail = _thumbnailCache[index];
-    final isRendering = _renderingPages.contains(index);
-
-    if (thumbnail != null) {
-      return InkWell(
-        onTap: () => _navigateToPage(index),
-        child: Ink.image(
-          image: MemoryImage(thumbnail),
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-
-    if (isRendering) {
-      return Container(
+    return InkWell(
+      onTap: () => _navigateToPage(index),
+      child: Container(
         color: colorScheme.surfaceContainerHighest,
-        child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: colorScheme.primary,
+        child: CPDFPageThumbnail.document(
+          document: widget.controller.document,
+          pageIndex: index,
+          options: const CPDFPageThumbnailOptions(
+            width: 300,
+            compression: CPDFPageCompression.jpeg,
           ),
+          fit: BoxFit.contain,
+          placeholderBuilder: (context) => Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.primary,
+            ),
+          ),
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('Error rendering thumbnail for page $index: $error');
+            return Icon(
+              Icons.broken_image_outlined,
+              size: 32,
+              color: colorScheme.outline,
+            );
+          },
         ),
-      );
-    }
-
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(
-        Icons.image_outlined,
-        size: 32,
-        color: colorScheme.outline,
       ),
     );
   }

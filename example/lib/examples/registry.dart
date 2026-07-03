@@ -12,6 +12,7 @@ library;
 
 import 'annotations/_registry.dart';
 import 'content_editor/_registry.dart';
+import 'content_extraction/_registry.dart';
 import 'document_api/_registry.dart';
 import 'forms/_registry.dart';
 import 'pages/_registry.dart';
@@ -34,6 +35,7 @@ final List<CategoryInfo> allCategories = [
   formsCategory,
   pagesCategory,
   securityCategory,
+  contentExtractionCategory,
   contentEditorCategory,
   widgetControllerCategory,
   searchNavigationCategory,

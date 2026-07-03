@@ -5,7 +5,6 @@
 // UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
 // This notice may not be removed from this file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../shared/category_info.dart';
@@ -107,18 +106,16 @@ final CategoryInfo formsCategory = CategoryInfo(
         iconColor: Color(0xFF1565C0),
       ),
     ),
-    if (defaultTargetPlatform == TargetPlatform.android) ...[
-      ExampleItem(
-        title: 'Intercept Action',
-        description: 'Intercept ListBox and ComboBox click actions',
-        routeType: ExampleRouteType.pageBuilder,
-        pageBuilder: (context) => const InterceptWidgetActionExample(),
-        visual: const ExampleVisual(
-          icon: Icons.touch_app,
-          backgroundColor: Color(0xFFF3E5F5),
-          iconColor: Color(0xFF7B1FA2),
-        ),
+    ExampleItem(
+      title: 'Intercept Action',
+      description: 'Intercept form widget click actions',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const InterceptWidgetActionExample(),
+      visual: const ExampleVisual(
+        icon: Icons.touch_app,
+        backgroundColor: Color(0xFFF3E5F5),
+        iconColor: Color(0xFF7B1FA2),
       ),
-    ]
+    ),
   ],
 );

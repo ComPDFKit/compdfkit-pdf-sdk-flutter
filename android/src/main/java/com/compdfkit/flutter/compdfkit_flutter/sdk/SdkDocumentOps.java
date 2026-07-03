@@ -51,11 +51,16 @@ public final class SdkDocumentOps {
         SdkPluginRegistry.registerDocumentPlugin(id, documentPlugin);
     }
 
-    public static void createDocument(@NonNull Context context,
+    public static boolean createDocument(@NonNull Context context,
             @NonNull BinaryMessenger binaryMessenger, @NonNull String id) {
+        CPDFDocument document = CPDFDocument.createDocument(context);
+        if (document == null) {
+            return false;
+        }
         CPDFDocumentPlugin documentPlugin = new CPDFDocumentPlugin(context, binaryMessenger, id);
-        documentPlugin.setDocument(CPDFDocument.createDocument(context));
+        documentPlugin.setDocument(document);
         documentPlugin.register();
         SdkPluginRegistry.registerDocumentPlugin(id, documentPlugin);
+        return true;
     }
 }

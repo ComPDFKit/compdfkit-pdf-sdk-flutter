@@ -18,6 +18,8 @@ import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
 import com.compdfkit.tools.common.utils.print.CPDFPrintUtils;
 import com.compdfkit.tools.common.utils.threadpools.CThreadPoolUtils;
 import com.compdfkit.tools.common.utils.viewutils.CViewUtils;
+import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
+import com.compdfkit.ui.reader.CPDFReaderView;
 import io.flutter.plugin.common.MethodChannel;
 
 public final class DocumentTaskOps {
@@ -43,8 +45,9 @@ public final class DocumentTaskOps {
                     try {
                         if (document.shouleReloadDocument()) {
                             document.reload();
-                            if (context.getPdfView() != null) {
-                                context.getPdfView().getCPdfReaderView().reloadPages2();
+                            CPDFReaderView readerView = context.getReaderView();
+                            if (readerView != null) {
+                                readerView.reloadPages2();
                             }
                         }
                     } catch (Exception ignored) {
@@ -94,12 +97,13 @@ public final class DocumentTaskOps {
 
     public static void print(@NonNull CPDFDocumentContext context,
             @NonNull MethodChannel.Result result) {
-        if (context.getPdfView() == null) {
+        CPDFViewCtrl pdfView = context.getPdfView();
+        if (pdfView == null) {
             result.success(null);
             return;
         }
         FragmentActivity fragmentActivity = CViewUtils.getFragmentActivity(
-                context.getPdfView().getContext());
+                pdfView.getContext());
         if (fragmentActivity != null) {
             CPDFPrintUtils.printCurrentDocument(fragmentActivity, context.requireDocument());
         }

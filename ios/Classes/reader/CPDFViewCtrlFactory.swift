@@ -326,6 +326,15 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         ])
     }
 
+    func PDFViewBaseControllerPencilDrawingDiscarded(_ baseController: CPDFViewBaseController, pageIndex: Int) {
+        guard plugin.subscribedEvents.contains("pencilDrawingDiscarded") else { return }
+
+        self.plugin._methodChannel.invokeMethod("pencilDrawingDiscarded", arguments: [
+            "type": "pencil",
+            "pageIndex": pageIndex
+        ])
+    }
+
     func PDFViewBaseControllerAnndotationSelect(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFAnnotation, isSelected: Bool) {
         let eventName = isSelected ? "annotationsSelected" : "annotationsDeselected"
         // Only parse and send data when event is subscribed
@@ -396,6 +405,14 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
                 pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
                 let dict = pageUtil.getAnnotation(FormAnnotation: linkAnnotation)
                 self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "link", "annotation": dict])
+            }
+        } else if annotationMode == .note {
+            if let noteAnnotation = annotation as? CPDFTextAnnotation {
+                let page = noteAnnotation.page
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+                let dict = pageUtil.getAnnotation(FormAnnotation: noteAnnotation)
+                self.plugin._methodChannel.invokeMethod("onAnnotationCreationPrepared", arguments: ["type": "note", "annotation": dict])
             }
         }
     }
@@ -569,7 +586,17 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         self.plugin._methodChannel.invokeMethod("onInterceptAnnotationAction", arguments: dict)
     }
     
+    func PDFViewBaseControllerInterceptWidgetDoAction(_ baseController: CPDFViewBaseController, forAnnotation annotation: CPDFWidgetAnnotation?) {
+        if annotation == nil {
+            return
+        }
+        let page = annotation?.page
+        let pageUtil = CPDFPageUtil(page: page)
+        pageUtil.pageIndex = Int(page?.pageIndexInteger ?? 0)
+        let dict = pageUtil.getForm(FormAnnotation: annotation!)
+        self.plugin._methodChannel.invokeMethod("onInterceptWidgetAction", arguments: dict)
+    }
+    
     
     
 }
-

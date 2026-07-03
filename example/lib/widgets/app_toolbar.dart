@@ -45,74 +45,88 @@ class AppToolbar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // ==================== Back Button ====================
-          if (onBack != null) ...[
-            InkWell(
-              onTap: onBack,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  size: 18,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double minContentHeight = subtitle == null ? 36 : 44;
+        final double effectiveVerticalPadding = constraints.maxHeight.isFinite
+            ? ((constraints.maxHeight - minContentHeight) / 2)
+                .clamp(0.0, verticalPadding)
+            : verticalPadding;
 
-          // ==================== Title and Subtitle ====================
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.titleLarge,
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: effectiveVerticalPadding,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ==================== Back Button ====================
+              if (onBack != null) ...[
+                InkWell(
+                  onTap: onBack,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 18,
+                      color: colorScheme.primary,
                     ),
                   ),
-                ],
+                ),
+                const SizedBox(width: 16),
               ],
-            ),
-          ),
 
-          // ==================== Custom Actions on the Right ====================
-          if (actions != null && actions!.isNotEmpty) ...[
-            const SizedBox(width: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (int i = 0; i < actions!.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  actions![i],
-                ],
+              // ==================== Title and Subtitle ====================
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // ==================== Custom Actions on the Right ====================
+              if (actions != null && actions!.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < actions!.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      actions![i],
+                    ],
+                  ],
+                ),
               ],
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

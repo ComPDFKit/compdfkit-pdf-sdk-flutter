@@ -27,6 +27,8 @@ class CPDFConstants {
     static let checkOwnerPassword = "check_owner_password"
     
     static let hasChange = "has_change"
+    
+    static let close = "close"
 
     static let importAnnotations = "import_annotations"
     
@@ -119,6 +121,11 @@ class CPDFConstants {
     static let createWatermark = "create_watermark"
     
     static let removeAllWatermark = "remove_all_watermarks"
+    static let getWatermarkCount = "get_watermark_count"
+    static let getWatermark = "get_watermark"
+    static let getWatermarks = "get_watermarks"
+    static let updateWatermark = "update_watermark"
+    static let removeWatermark = "remove_watermark"
 
     static let importWidgets = "import_widgets"
     
@@ -131,6 +138,8 @@ class CPDFConstants {
     static let insertBlankPage = "insert_blank_page"
     
     static let splitDocumentPages = "split_document_pages"
+
+    static let extractImages = "extract_images"
     
     static let getDocumentPath = "get_document_path"
     
@@ -141,6 +150,15 @@ class CPDFConstants {
     static let reloadPages = "reload_pages"
     
     static let getAnnotations = "get_annotations"
+    static let addAnnotationReply = "add_annotation_reply"
+    static let getAnnotationReplies = "get_annotation_replies"
+    static let updateAnnotationReply = "update_annotation_reply"
+    static let removeAnnotationReply = "remove_annotation_reply"
+    static let removeAllAnnotationReplies = "remove_all_annotation_replies"
+    static let setAnnotationMarkState = "set_annotation_mark_state"
+    static let getAnnotationMarkState = "get_annotation_mark_state"
+    static let setAnnotationReviewState = "set_annotation_review_state"
+    static let getAnnotationReviewState = "get_annotation_review_state"
     
     static let getWidgets = "get_widgets"
 
@@ -184,6 +202,9 @@ class CPDFConstants {
     static let searchTextSelection = "search_text_selection"
     static let searchTextClear = "search_text_clear"
     static let getSearchText = "get_search_text"
+    static let getPageText = "get_page_text"
+    static let getPageTextInRect = "get_page_text_in_rect"
+    static let getPageTextLines = "get_page_text_lines"
     
     static let getOutlineRoot = "get_outline_root"
     static let newOutlineRoot = "new_outline_root"
@@ -202,6 +223,7 @@ class CPDFConstants {
     static let renderPage = "render_page"
     static let renderAnnotationAppearance = "render_annotation_appearance"
     static let insertPageWithImagePath = "insert_page_with_image_path"
+    static let copyPage = "copy_page"
     static let getPageRotaion = "get_page_rotation"
     static let setPageRotation = "set_page_rotation"
     static let removePages = "remove_pages"
@@ -224,6 +246,7 @@ class CPDFConstants {
     
     static let updateAnnotation = "update_annotation"
     static let updateWidget = "update_widget"
+    static let addWidgetImageSignature = "add_widget_image_signature"
     
     static let annotationsVisible = "annotations_visible"
     static let isAnnotationsVisible = "is_annotations_visible"

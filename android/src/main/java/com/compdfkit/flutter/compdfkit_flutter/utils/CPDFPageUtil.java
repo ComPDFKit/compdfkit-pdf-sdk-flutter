@@ -16,12 +16,20 @@ import android.graphics.RectF;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.CPDFReplyAnnotation;
 import com.compdfkit.core.annotation.CPDFAnnotation.Type;
+import com.compdfkit.core.common.CPDFDate;
 import com.compdfkit.core.annotation.form.CPDFCheckboxWidget;
+import com.compdfkit.core.annotation.form.CPDFComboboxWidget;
+import com.compdfkit.core.annotation.form.CPDFListboxWidget;
+import com.compdfkit.core.annotation.form.CPDFPushbuttonWidget;
 import com.compdfkit.core.annotation.form.CPDFRadiobuttonWidget;
+import com.compdfkit.core.annotation.form.CPDFSignatureWidget;
+import com.compdfkit.core.annotation.form.CPDFTextWidget;
 import com.compdfkit.core.annotation.form.CPDFWidget;
 import com.compdfkit.core.annotation.form.CPDFWidget.WidgetType;
 import com.compdfkit.core.document.CPDFDocument;
+import com.compdfkit.core.utils.TTimeUtil;
 import com.compdfkit.core.edit.CPDFEditImageArea;
 import com.compdfkit.core.edit.CPDFEditPathArea;
 import com.compdfkit.core.page.CPDFPage;
@@ -48,14 +56,18 @@ import com.compdfkit.ui.edit.CPDFEditTextSelections;
 import com.compdfkit.ui.proxy.CPDFBaseAnnotImpl;
 import com.compdfkit.ui.reader.CPDFPageView;
 import com.compdfkit.ui.reader.CPDFReaderView;
+import com.compdfkit.tools.common.utils.date.CDateUtil;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class CPDFPageUtil {
+
+    private static final String REPLY_STABLE_ID_PREFIX = "compdfkit-flutter-reply:";
 
     private CPDFDocument document;
 
@@ -131,7 +143,7 @@ public class CPDFPageUtil {
         if (document == null) {
             return new HashMap<>();
         }
-        FlutterCPDFWidget rcpdfWidget = widgetsImpls.get(widget.getWidgetType());
+        FlutterCPDFWidget rcpdfWidget = getWidgetImpl(widget);
         if (rcpdfWidget != null) {
             if (rcpdfWidget instanceof FlutterCPDFPushbuttonWidget) {
                 ((FlutterCPDFPushbuttonWidget) rcpdfWidget).setDocument(document);
@@ -169,6 +181,129 @@ public class CPDFPageUtil {
         return array;
     }
 
+    public HashMap<String, Object> addAnnotationReply(CPDFAnnotation annotation,
+            @Nullable String content, @Nullable String title) {
+        if (annotation == null || !annotation.isValid()) {
+            return null;
+        }
+        CPDFReplyAnnotation reply = annotation.createReplyAnnotation();
+        if (reply == null || !reply.isValid()) {
+            return null;
+        }
+        if (content != null) {
+            reply.setContent(content);
+        }
+        if (title != null) {
+            reply.setTitle(title);
+        }
+        ensureReplyStableId(reply);
+        reply.setRecentlyModifyDate(TTimeUtil.getCurrentDate());
+        return getReplyAnnotationData(reply, annotation, getReplyIndex(annotation, reply));
+    }
+
+    public ArrayList<HashMap<String, Object>> getAnnotationReplies(CPDFAnnotation annotation) {
+        ArrayList<HashMap<String, Object>> replies = new ArrayList<>();
+        if (annotation == null || !annotation.isValid()) {
+            return replies;
+        }
+        CPDFReplyAnnotation[] replyAnnotations = annotation.getAllReplyAnnotations();
+        if (replyAnnotations == null) {
+            return replies;
+        }
+        for (int i = 0; i < replyAnnotations.length; i++) {
+            CPDFReplyAnnotation reply = replyAnnotations[i];
+            if (reply == null || !reply.isValid()) {
+                continue;
+            }
+            HashMap<String, Object> map = getReplyAnnotationData(reply, annotation, i);
+            if (map != null) {
+                replies.add(map);
+            }
+        }
+        return replies;
+    }
+
+    public boolean updateAnnotationReply(int pageIndex, String replyId, @Nullable String nativeId,
+            @Nullable String replyKey, @Nullable String parentUuid,
+            @Nullable String content, @Nullable String title) {
+        CPDFReplyAnnotation reply = getReplyAnnotation(pageIndex, replyId, nativeId, replyKey,
+                parentUuid);
+        if (reply == null || !reply.isValid()) {
+            return false;
+        }
+        if (content != null) {
+            reply.setContent(content);
+        }
+        if (title != null) {
+            reply.setTitle(title);
+        }
+        reply.setRecentlyModifyDate(TTimeUtil.getCurrentDate());
+        return true;
+    }
+
+    public boolean removeAnnotationReply(int pageIndex, String replyId, @Nullable String nativeId,
+            @Nullable String replyKey, @Nullable String parentUuid) {
+        CPDFReplyAnnotation reply = getReplyAnnotation(pageIndex, replyId, nativeId, replyKey,
+                parentUuid);
+        if (reply == null || !reply.isValid()) {
+            return false;
+        }
+        CPDFPage page = reply.pdfPage != null ? reply.pdfPage : document.pageAtIndex(pageIndex);
+        return page != null && page.deleteAnnotation(reply);
+    }
+
+    public boolean removeAllAnnotationReplies(CPDFAnnotation annotation) {
+        if (annotation == null || !annotation.isValid()) {
+            return false;
+        }
+        CPDFReplyAnnotation[] replyAnnotations = annotation.getAllReplyAnnotations();
+        if (replyAnnotations == null || replyAnnotations.length == 0) {
+            return true;
+        }
+        boolean result = true;
+        for (CPDFReplyAnnotation reply : replyAnnotations) {
+            if (reply == null || !reply.isValid()) {
+                continue;
+            }
+            CPDFPage page = reply.pdfPage != null ? reply.pdfPage : annotation.pdfPage;
+            if (page == null) {
+                result = false;
+                continue;
+            }
+            result = page.deleteAnnotation(reply) && result;
+        }
+        return result;
+    }
+
+    public boolean setAnnotationMarkState(CPDFAnnotation annotation, @Nullable String state) {
+        if (annotation == null || !annotation.isValid()) {
+            return false;
+        }
+        return annotation.setMarkedAnnotState(stringToMarkState(state));
+    }
+
+    public String getAnnotationMarkState(CPDFAnnotation annotation) {
+        if (annotation == null || !annotation.isValid()) {
+            return "unmarked";
+        }
+        CPDFAnnotation.MarkState state = annotation.getMarkedAnnotState();
+        return state == CPDFAnnotation.MarkState.MARKED ? "marked" : "unmarked";
+    }
+
+    public boolean setAnnotationReviewState(CPDFAnnotation annotation, @Nullable String state) {
+        if (annotation == null || !annotation.isValid()) {
+            return false;
+        }
+        return annotation.setReviewAnnotState(stringToReviewState(state));
+    }
+
+    public String getAnnotationReviewState(CPDFAnnotation annotation) {
+        if (annotation == null || !annotation.isValid()) {
+            return "none";
+        }
+        return reviewStateToString(annotation.getReviewAnnotState());
+    }
+
     public ArrayList<HashMap<String, Object>> getWidgets(int pageIndex) {
         if (document == null) {
             return null;
@@ -187,7 +322,7 @@ public class CPDFPageUtil {
                 continue;
             }
             CPDFWidget widget = (CPDFWidget) annotation;
-            FlutterCPDFWidget rcpdfWidget = widgetsImpls.get(widget.getWidgetType());
+            FlutterCPDFWidget rcpdfWidget = getWidgetImpl(widget);
             if (rcpdfWidget != null) {
                 if (rcpdfWidget instanceof FlutterCPDFPushbuttonWidget) {
                     ((FlutterCPDFPushbuttonWidget) rcpdfWidget).setDocument(document);
@@ -228,7 +363,7 @@ public class CPDFPageUtil {
         if (annotation.getType() != Type.WIDGET) {
             return;
         }
-        FlutterCPDFWidget widget = (FlutterCPDFWidget) annotation;
+        CPDFWidget widget = (CPDFWidget) annotation;
         if (widget instanceof CPDFRadiobuttonWidget) {
             ((CPDFRadiobuttonWidget) widget).setChecked(checked);
         } else if (widget instanceof CPDFCheckboxWidget) {
@@ -248,14 +383,117 @@ public class CPDFPageUtil {
     }
 
     public CPDFAnnotation getAnnotation(int pageIndex, String annotPtr) {
+        if (document == null || annotPtr == null) {
+            return null;
+        }
+        long targetPtr;
+        try {
+            targetPtr = Long.parseLong(annotPtr);
+        } catch (NumberFormatException e) {
+            return null;
+        }
         CPDFPage page = document.pageAtIndex(pageIndex);
         List<CPDFAnnotation> annotations = page.getAnnotations();
         if (annotations == null || !page.isValid()) {
             return null;
         }
         for (CPDFAnnotation annotation : annotations) {
-            if (annotation.getAnnotPtr() == Long.parseLong(annotPtr)) {
+            if (annotation.getAnnotPtr() == targetPtr) {
                 return annotation;
+            }
+        }
+        return null;
+    }
+
+    private FlutterCPDFWidget getWidgetImpl(CPDFWidget widget) {
+        if (widget instanceof CPDFTextWidget) {
+            return widgetsImpls.get(WidgetType.Widget_TextField);
+        } else if (widget instanceof CPDFCheckboxWidget) {
+            return widgetsImpls.get(WidgetType.Widget_CheckBox);
+        } else if (widget instanceof CPDFRadiobuttonWidget) {
+            return widgetsImpls.get(WidgetType.Widget_RadioButton);
+        } else if (widget instanceof CPDFListboxWidget) {
+            return widgetsImpls.get(WidgetType.Widget_ListBox);
+        } else if (widget instanceof CPDFComboboxWidget) {
+            return widgetsImpls.get(WidgetType.Widget_ComboBox);
+        } else if (widget instanceof CPDFSignatureWidget) {
+            return widgetsImpls.get(WidgetType.Widget_SignatureFields);
+        } else if (widget instanceof CPDFPushbuttonWidget) {
+            return widgetsImpls.get(WidgetType.Widget_PushButton);
+        }
+        return widgetsImpls.get(widget.getWidgetType());
+    }
+
+    public CPDFAnnotation getAnnotationOrReply(int pageIndex, String annotPtr) {
+        CPDFAnnotation annotation = getAnnotation(pageIndex, annotPtr);
+        if (annotation != null) {
+            return annotation;
+        }
+        return getReplyAnnotation(pageIndex, annotPtr);
+    }
+
+    public CPDFAnnotation getAnnotationOrReply(int pageIndex, String annotPtr,
+            @Nullable String nativeId, @Nullable String replyKey, @Nullable String parentUuid) {
+        CPDFAnnotation annotation = getAnnotation(pageIndex, annotPtr);
+        if (annotation != null) {
+            return annotation;
+        }
+        return getReplyAnnotation(pageIndex, annotPtr, nativeId, replyKey, parentUuid);
+    }
+
+    public CPDFReplyAnnotation getReplyAnnotation(int pageIndex, String annotPtr) {
+        return getReplyAnnotation(pageIndex, annotPtr, null, null, null);
+    }
+
+    public CPDFReplyAnnotation getReplyAnnotation(int pageIndex, String replyId,
+            @Nullable String nativeId, @Nullable String replyKey, @Nullable String parentUuid) {
+        if (document == null || replyId == null) {
+            return null;
+        }
+        CPDFReplyAnnotation reply = getReplyAnnotationFromPage(pageIndex, replyId, nativeId,
+                replyKey, parentUuid);
+        if (reply != null) {
+            return reply;
+        }
+        int pageCount = document.getPageCount();
+        for (int i = 0; i < pageCount; i++) {
+            if (i == pageIndex) {
+                continue;
+            }
+            reply = getReplyAnnotationFromPage(i, replyId, nativeId, replyKey, parentUuid);
+            if (reply != null) {
+                return reply;
+            }
+        }
+        return null;
+    }
+
+    private CPDFReplyAnnotation getReplyAnnotationFromPage(int pageIndex, String replyId,
+            @Nullable String nativeId, @Nullable String replyKey, @Nullable String parentUuid) {
+        if (pageIndex < 0 || pageIndex >= document.getPageCount()) {
+            return null;
+        }
+        CPDFPage page = document.pageAtIndex(pageIndex);
+        if (page == null || !page.isValid()) {
+            return null;
+        }
+        List<CPDFAnnotation> annotations = page.getAnnotations();
+        if (annotations == null) {
+            return null;
+        }
+        for (CPDFAnnotation annotation : annotations) {
+            if (annotation == null || !annotation.isValid()) {
+                continue;
+            }
+            CPDFReplyAnnotation[] replies = annotation.getAllReplyAnnotations();
+            if (replies == null) {
+                continue;
+            }
+            for (int i = 0; i < replies.length; i++) {
+                CPDFReplyAnnotation reply = replies[i];
+                if (isTargetReply(annotation, reply, i, replyId, nativeId, replyKey, parentUuid)) {
+                    return reply;
+                }
             }
         }
         return null;
@@ -285,6 +523,172 @@ public class CPDFPageUtil {
             }
         }
         return false;
+    }
+
+    private HashMap<String, Object> getReplyAnnotationData(CPDFReplyAnnotation reply,
+            @Nullable CPDFAnnotation parent, int replyIndex) {
+        if (reply == null || !reply.isValid()) {
+            return null;
+        }
+        String nativeId = reply.getAnnotPtr() + "";
+        String parentUuid = parent != null ? parent.getAnnotPtr() + "" : "";
+        String stableId = reply.getName();
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("type", "unknown");
+        map.put("page", reply.pdfPage.getPageNum());
+        map.put("title", reply.getTitle());
+        map.put("content", reply.getContent());
+        map.put("uuid", hasText(stableId) ? stableId : nativeId);
+        map.put("nativeId", nativeId);
+        map.put("replyKey", buildReplyKey(parent, reply, replyIndex));
+        map.put("parentUuid", parentUuid);
+        RectF rect = reply.getRect();
+        if (rect != null) {
+            Map<String, Float> rectMap = new HashMap<>();
+            rectMap.put("left", CAppUtils.roundTo2f(rect.left));
+            rectMap.put("top", CAppUtils.roundTo2f(rect.top));
+            rectMap.put("right", CAppUtils.roundTo2f(rect.right));
+            rectMap.put("bottom", CAppUtils.roundTo2f(rect.bottom));
+            map.put("rect", rectMap);
+        }
+        if (reply.getCreationDate() != null) {
+            map.put("createDate", CDateUtil.transformToTimestamp(reply.getCreationDate()));
+        }
+        if (reply.getRecentlyModifyDate() != null) {
+            map.put("modifyDate", CDateUtil.transformToTimestamp(reply.getRecentlyModifyDate()));
+        }
+        map.put("markState", getAnnotationMarkState(reply));
+        map.put("reviewState", getAnnotationReviewState(reply));
+        return map;
+    }
+
+    private boolean isTargetReply(@Nullable CPDFAnnotation parent,
+            @Nullable CPDFReplyAnnotation reply, int replyIndex, @Nullable String replyId,
+            @Nullable String nativeId, @Nullable String replyKey, @Nullable String parentUuid) {
+        if (reply == null || !reply.isValid()) {
+            return false;
+        }
+        String stableId = reply.getName();
+        if (hasText(stableId) && stableId.equals(replyId)) {
+            return true;
+        }
+        String runtimeId = reply.getAnnotPtr() + "";
+        if (runtimeId.equals(replyId) || runtimeId.equals(nativeId)) {
+            return true;
+        }
+        if (hasText(replyKey) && replyKey.equals(buildReplyKey(parent, reply, replyIndex))) {
+            return true;
+        }
+        return hasText(parentUuid) && parent != null
+                && parentUuid.equals(parent.getAnnotPtr() + "") && runtimeId.equals(replyId);
+    }
+
+    private String ensureReplyStableId(CPDFReplyAnnotation reply) {
+        String name = reply.getName();
+        if (hasText(name)) {
+            return name;
+        }
+        String stableId = REPLY_STABLE_ID_PREFIX + UUID.randomUUID();
+        if (reply.setName(stableId)) {
+            return stableId;
+        }
+        name = reply.getName();
+        return hasText(name) ? name : "";
+    }
+
+    private int getReplyIndex(CPDFAnnotation parent, CPDFReplyAnnotation targetReply) {
+        CPDFReplyAnnotation[] replies = parent.getAllReplyAnnotations();
+        if (replies == null) {
+            return -1;
+        }
+        for (int i = 0; i < replies.length; i++) {
+            CPDFReplyAnnotation reply = replies[i];
+            if (reply != null && reply.isValid()
+                    && reply.getAnnotPtr() == targetReply.getAnnotPtr()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private String buildReplyKey(@Nullable CPDFAnnotation parent,
+            @Nullable CPDFReplyAnnotation reply, int replyIndex) {
+        if (reply == null || !reply.isValid()) {
+            return "";
+        }
+        String parentUuid = parent != null ? parent.getAnnotPtr() + "" : "";
+        RectF rect = reply.getRect();
+        return parentUuid + "|" + replyIndex + "|" + safeString(reply.getTitle()) + "|"
+                + safeString(reply.getContent()) + "|" + dateToMillis(reply.getCreationDate()) + "|"
+                + dateToMillis(reply.getRecentlyModifyDate()) + "|" + rectKey(rect);
+    }
+
+    private long dateToMillis(@Nullable CPDFDate date) {
+        if (date == null) {
+            return 0L;
+        }
+        return CDateUtil.transformToTimestamp(date);
+    }
+
+    private String rectKey(@Nullable RectF rect) {
+        if (rect == null) {
+            return "";
+        }
+        return CAppUtils.roundTo2f(rect.left) + "," + CAppUtils.roundTo2f(rect.top) + ","
+                + CAppUtils.roundTo2f(rect.right) + "," + CAppUtils.roundTo2f(rect.bottom);
+    }
+
+    private String safeString(@Nullable String value) {
+        return value == null ? "" : value;
+    }
+
+    private boolean hasText(@Nullable String value) {
+        return value != null && value.length() > 0;
+    }
+
+    private CPDFAnnotation.MarkState stringToMarkState(@Nullable String state) {
+        if ("marked".equals(state)) {
+            return CPDFAnnotation.MarkState.MARKED;
+        }
+        return CPDFAnnotation.MarkState.UNMARKED;
+    }
+
+    private CPDFAnnotation.ReviewState stringToReviewState(@Nullable String state) {
+        if ("accepted".equals(state)) {
+            return CPDFAnnotation.ReviewState.REVIEW_ACCEPTED;
+        }
+        if ("rejected".equals(state)) {
+            return CPDFAnnotation.ReviewState.REVIEW_REJECTED;
+        }
+        if ("cancelled".equals(state)) {
+            return CPDFAnnotation.ReviewState.REVIEW_CANCELLED;
+        }
+        if ("completed".equals(state)) {
+            return CPDFAnnotation.ReviewState.REVIEW_COMPLETED;
+        }
+        if ("error".equals(state)) {
+            return CPDFAnnotation.ReviewState.REVIEW_ERROR;
+        }
+        return CPDFAnnotation.ReviewState.REVIEW_NONE;
+    }
+
+    private String reviewStateToString(CPDFAnnotation.ReviewState state) {
+        if (state == CPDFAnnotation.ReviewState.REVIEW_ACCEPTED) {
+            return "accepted";
+        }
+        if (state == CPDFAnnotation.ReviewState.REVIEW_REJECTED) {
+            return "rejected";
+        }
+        if (state == CPDFAnnotation.ReviewState.REVIEW_CANCELLED) {
+            return "cancelled";
+        }
+        if (state == CPDFAnnotation.ReviewState.REVIEW_COMPLETED) {
+            return "completed";
+        }
+        if (state == CPDFAnnotation.ReviewState.REVIEW_ERROR) {
+            return "error";
+        }
+        return "none";
     }
 
     public boolean updateWidget(int pageIndex, String annotPtr,
@@ -377,7 +781,7 @@ public class CPDFPageUtil {
     }
 
     public boolean addAnnotations(@Nullable CPDFReaderView readerView, List<HashMap<String, Object>> annotations) {
-        if (document == null) {
+        if (document == null || annotations == null) {
             return false;
         }
         boolean allSuccess = true;
@@ -390,6 +794,7 @@ public class CPDFPageUtil {
             if (pageIndex < 0 || pageIndex >= document.getPageCount()) {
                 Log.w("ComPDFKit", "Failed to add annotation of type: " + annotationType
                         + " due to invalid page index: " + pageIndex + ". Skipping.");
+                allSuccess = false;
                 continue;
             }
             FlutterCPDFAnnotation rcpdfAnnotation = annotImpls.get(type);
@@ -399,9 +804,11 @@ public class CPDFPageUtil {
                 }
                 CPDFAnnotation annotation = rcpdfAnnotation.addAnnotation(document, annotMap);
                 if (annotation != null && annotation.isValid()) {
-                    CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
-                    if (pageView != null) {
-                        pageView.addAnnotation(annotation, false);
+                    if (readerView != null) {
+                        CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
+                        if (pageView != null) {
+                            pageView.addAnnotation(annotation, false);
+                        }
                     }
                 } else {
                     allSuccess = false;
@@ -414,7 +821,7 @@ public class CPDFPageUtil {
     }
 
     public boolean addWidgets(@Nullable CPDFReaderView readerView, List<HashMap<String, Object>> widgets) {
-        if (document == null) {
+        if (document == null || widgets == null) {
             return false;
         }
         boolean allSuccess = true;
@@ -427,6 +834,7 @@ public class CPDFPageUtil {
             if (pageIndex < 0 || pageIndex >= document.getPageCount()) {
                 Log.w("ComPDFKit", "Failed to add widget of type: " + widgetTypeStr + " due to invalid page index: "
                         + pageIndex + ". Skipping.");
+                allSuccess = false;
                 continue;
             }
             FlutterCPDFWidget cpdfWidget = widgetsImpls.get(type);
@@ -436,9 +844,11 @@ public class CPDFPageUtil {
                 }
                 CPDFWidget widget = cpdfWidget.addWidget(document, widgetMap);
                 if (widget != null && widget.isValid()) {
-                    CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
-                    if (pageView != null) {
-                        pageView.addAnnotation(widget, false);
+                    if (readerView != null) {
+                        CPDFPageView pageView = (CPDFPageView) readerView.getChild(pageIndex);
+                        if (pageView != null) {
+                            pageView.addAnnotation(widget, false);
+                        }
                     }
                 } else {
                     allSuccess = false;

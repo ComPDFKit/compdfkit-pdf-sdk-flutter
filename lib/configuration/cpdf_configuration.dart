@@ -152,6 +152,12 @@ class CPDFToolbarConfig {
 
   final bool mainToolbarVisible;
 
+  /// Controls whether the top toolbar mode-switch title and entry are shown.
+  ///
+  /// This does not hide the whole top toolbar. Use [mainToolbarVisible] for
+  /// that behavior.
+  final bool mainToolbarTitleVisible;
+
   final bool annotationToolbarVisible;
 
   final bool contentEditorToolbarVisible;
@@ -183,6 +189,7 @@ class CPDFToolbarConfig {
       CPDFToolbarAction.snip
     ],
     this.mainToolbarVisible = true,
+    this.mainToolbarTitleVisible = true,
     this.annotationToolbarVisible = true,
     this.showInkToggleButton = true,
     this.contentEditorToolbarVisible = true,
@@ -221,6 +228,7 @@ class CPDFToolbarConfig {
         'customMoreMenuItems':
             customMoreMenuItems.map((e) => e.toJson()).toList(),
         'mainToolbarVisible': mainToolbarVisible,
+        'mainToolbarTitleVisible': mainToolbarTitleVisible,
         'annotationToolbarVisible': annotationToolbarVisible,
         'contentEditorToolbarVisible': contentEditorToolbarVisible,
         'formToolbarVisible': formToolbarVisible,
@@ -408,6 +416,17 @@ class CPDFAnnotationsConfig {
   /// subsequent tap will add the custom link to the PDF.
   final bool autoShowLinkDialog;
 
+  /// In annotation mode, when tapping the PDF page after selecting
+  /// `CPDFAnnotationType.note`, whether to automatically show the default note
+  /// edit dialog.
+  /// Default: true. If set to false, the default note edit dialog will not be
+  /// displayed. You can handle note content editing yourself via the
+  /// `CPDFReaderWidget(onAnnotationCreationPreparedCallback: ...)` callback,
+  /// then call `controller.document.updateAnnotation(annotation)` to save the
+  /// custom content or `controller.document.removeAnnotation(annotation)` to
+  /// cancel the created note.
+  final bool autoShowNoteEditDialog;
+
   /// Intercept click actions on existing note annotations.
   /// Default is false (not intercepted). Clicking a note annotation will directly pop up the note content editing dialog.
   /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptAnnotationActionCallback].
@@ -429,6 +448,7 @@ class CPDFAnnotationsConfig {
       this.autoShowPicPicker = true,
       this.autoShowStampPicker = true,
       this.autoShowLinkDialog = true,
+      this.autoShowNoteEditDialog = true,
       this.interceptNoteAction = false,
       this.interceptLinkAction = false});
 
@@ -441,6 +461,7 @@ class CPDFAnnotationsConfig {
         'autoShowPicPicker': autoShowPicPicker,
         'autoShowStampPicker': autoShowStampPicker,
         'autoShowLinkDialog': autoShowLinkDialog,
+        'autoShowNoteEditDialog': autoShowNoteEditDialog,
         'interceptNoteAction': interceptNoteAction,
         'interceptLinkAction': interceptLinkAction
       };
@@ -570,26 +591,18 @@ class CPDFFormsConfig {
 
   final bool showCreatePushButtonOptionsDialog;
 
-  /// Intercept list box click event.
-  /// Default is false (not intercepted), clicking the list box directly shows the list box options dialog.
-  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
-  /// Developers can handle displaying a custom list box options dialog via the callback.
-  /// Note: only support android platform in version 2.6.2
-  final bool interceptListBoxAction;
+  /// Intercept all form widget click actions.
+  ///
+  /// When set to true, all form widget click actions are intercepted via
+  /// [CPDFReaderWidget.onInterceptWidgetActionCallback].
+  final bool interceptAllFormWidgetActions;
 
-  /// Intercept combo box click event.
-  /// Default is false (not intercepted), clicking the combo box directly shows the combo box options dialog.
-  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
-  /// Developers can handle displaying a custom combo box options dialog via the callback.
-  /// Note: only support android platform in version 2.6.2
-  final bool interceptComboBoxAction;
-
-  /// Intercept button click event.
-  /// Default is false (not intercepted), clicking the button directly triggers the button action.
-  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptWidgetActionCallback].
-  /// Developers can handle button click actions via the callback.
-  /// Note: only support android platform in version 2.6.2
-  final bool interceptPushButtonAction;
+  /// Form widget types whose click actions should be intercepted.
+  ///
+  /// When a widget type is included, clicking that form widget is intercepted via
+  /// [CPDFReaderWidget.onInterceptWidgetActionCallback] instead of running the
+  /// native Tools default behavior.
+  final List<CPDFFormType> interceptFormWidgetActions;
 
   const CPDFFormsConfig(
       {this.availableTypes = CPDFFormType.values,
@@ -598,9 +611,8 @@ class CPDFFormsConfig {
       this.showCreateListBoxOptionsDialog = true,
       this.showCreateComboBoxOptionsDialog = true,
       this.showCreatePushButtonOptionsDialog = true,
-      this.interceptListBoxAction = false,
-      this.interceptComboBoxAction = false,
-      this.interceptPushButtonAction = false});
+      this.interceptAllFormWidgetActions = false,
+      this.interceptFormWidgetActions = const []});
 
   Map<String, dynamic> toJson() => {
         'availableTypes': availableTypes.map((e) => e.name).toList(),
@@ -609,9 +621,9 @@ class CPDFFormsConfig {
         'showCreateListBoxOptionsDialog': showCreateListBoxOptionsDialog,
         'showCreateComboBoxOptionsDialog': showCreateComboBoxOptionsDialog,
         'showCreatePushButtonOptionsDialog': showCreatePushButtonOptionsDialog,
-        'interceptListBoxAction': interceptListBoxAction,
-        'interceptComboBoxAction': interceptComboBoxAction,
-        'interceptPushButtonAction': interceptPushButtonAction
+        'interceptAllFormWidgetActions': interceptAllFormWidgetActions,
+        'interceptFormWidgetActions':
+            interceptFormWidgetActions.map((e) => e.name).toList()
       };
 }
 

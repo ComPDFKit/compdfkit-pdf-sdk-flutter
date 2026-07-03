@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_link_annotation.dart';
+import 'package:compdfkit_flutter/annotation/cpdf_note_annotation.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
 import 'package:compdfkit_flutter_example/widgets/dialogs/link_config_dialog.dart';
@@ -34,10 +35,12 @@ import '../../constants/asset_paths.dart';
 /// - Custom stamp picker using [StampListPage]
 /// - Custom image picker using [FilePicker]
 /// - Custom link configuration with [LinkConfigDialog]
+/// - Custom note edit dialog using [CPDFAnnotationsConfig.autoShowNoteEditDialog]
 ///
 /// Key classes/APIs used:
 /// - [CPDFAnnotationsConfig.autoShowSignPicker]: Disable built-in signature picker
 /// - [CPDFAnnotationsConfig.autoShowStampPicker]: Disable built-in stamp picker
+/// - [CPDFAnnotationsConfig.autoShowNoteEditDialog]: Disable built-in note edit dialog
 /// - [CPDFReaderWidgetController.addSignAnnot]: Add signature annotation
 /// - [CPDFReaderWidgetController.addStampAnnot]: Add stamp annotation
 /// - [CPDFLinkAnnotation]: Link annotation configuration
@@ -88,7 +91,9 @@ class _CustomAnnotationCreationPageState
           autoShowLinkDialog: false,
           autoShowPicPicker: false,
           autoShowStampPicker: false,
+          autoShowNoteEditDialog: false,
           availableTypes: [
+            CPDFAnnotationType.note,
             CPDFAnnotationType.signature,
             CPDFAnnotationType.stamp,
             CPDFAnnotationType.pictures,
@@ -119,6 +124,9 @@ class _CustomAnnotationCreationPageState
         break;
       case CPDFAnnotationType.link:
         _showLinkDialog(annotation);
+        break;
+      case CPDFAnnotationType.note:
+        _showNoteDialog(annotation);
         break;
       default:
         break;
@@ -180,5 +188,77 @@ class _CustomAnnotationCreationPageState
       printJsonString(jsonEncode(annotation.toJson()));
       await controller?.document.updateAnnotation(annotation);
     }
+  }
+
+  Future<void> _showNoteDialog(CPDFAnnotation? annotation) async {
+    if (annotation is! CPDFNoteAnnotation) return;
+
+    final content = await showDialog<String?>(
+      context: context,
+      builder: (context) =>
+          _NoteContentDialog(initialContent: annotation.content),
+    );
+
+    if (!mounted) {
+      return;
+    }
+    if (content == null) {
+      await controller?.document.removeAnnotation(annotation);
+      return;
+    }
+    annotation.content = content;
+    printJsonString(jsonEncode(annotation.toJson()));
+    await controller?.document.updateAnnotation(annotation);
+  }
+}
+
+class _NoteContentDialog extends StatefulWidget {
+  const _NoteContentDialog({required this.initialContent});
+
+  final String initialContent;
+
+  @override
+  State<_NoteContentDialog> createState() => _NoteContentDialogState();
+}
+
+class _NoteContentDialogState extends State<_NoteContentDialog> {
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.initialContent);
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Note Content'),
+      content: TextField(
+        controller: _textController,
+        autofocus: true,
+        minLines: 3,
+        maxLines: 6,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_textController.text),
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }

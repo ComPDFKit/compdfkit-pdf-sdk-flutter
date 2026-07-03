@@ -22,6 +22,8 @@ public abstract class FlutterCPDFBaseAnnotation implements FlutterCPDFAnnotation
     map.put("title", annotation.getTitle());
     map.put("content", annotation.getContent());
     map.put("uuid", annotation.getAnnotPtr()+"");
+    map.put("markState", getAnnotationMarkState(annotation));
+    map.put("reviewState", getAnnotationReviewState(annotation));
     RectF rect = annotation.getRect();
     if (rect != null){
       Map<String, Float> rectMap = new HashMap<>();
@@ -44,6 +46,36 @@ public abstract class FlutterCPDFBaseAnnotation implements FlutterCPDFAnnotation
   }
 
   public abstract void getAnnotationConvert(com.compdfkit.core.annotation.CPDFAnnotation annotation, HashMap<String, Object> map);
+
+  private String getAnnotationMarkState(CPDFAnnotation annotation) {
+    if (annotation == null || !annotation.isValid()) {
+      return "unmarked";
+    }
+    return annotation.getMarkedAnnotState() == CPDFAnnotation.MarkState.MARKED ? "marked" : "unmarked";
+  }
+
+  private String getAnnotationReviewState(CPDFAnnotation annotation) {
+    if (annotation == null || !annotation.isValid()) {
+      return "none";
+    }
+    CPDFAnnotation.ReviewState state = annotation.getReviewAnnotState();
+    if (state == CPDFAnnotation.ReviewState.REVIEW_ACCEPTED) {
+      return "accepted";
+    }
+    if (state == CPDFAnnotation.ReviewState.REVIEW_REJECTED) {
+      return "rejected";
+    }
+    if (state == CPDFAnnotation.ReviewState.REVIEW_CANCELLED) {
+      return "cancelled";
+    }
+    if (state == CPDFAnnotation.ReviewState.REVIEW_COMPLETED) {
+      return "completed";
+    }
+    if (state == CPDFAnnotation.ReviewState.REVIEW_ERROR) {
+      return "error";
+    }
+    return "none";
+  }
 
   @Override
   public void updateAnnotation(CPDFAnnotation annotation, HashMap<String, Object> annotMap) {

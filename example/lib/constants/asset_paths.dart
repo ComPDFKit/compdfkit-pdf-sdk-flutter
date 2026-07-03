@@ -98,6 +98,19 @@ class AppAssets {
   /// General sample PDF document
   static const String pdfDocument = 'pdfs/PDF_Document.pdf';
 
+  /// Single-page PDFs used by the PDF file thumbnail list example.
+  static const List<String> thumbnailFileListPdfs = [
+    'pdfs/thumbnail_file_list/pdf_document_page_001.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_002.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_003.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_004.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_005.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_006.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_007.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_008.pdf',
+    'pdfs/thumbnail_file_list/pdf_document_page_009.pdf',
+  ];
+
   /// Annotation and form test PDF
   static const String annotTestPdf = 'pdfs/annot_test.pdf';
 

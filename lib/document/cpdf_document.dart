@@ -23,7 +23,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../annotation/cpdf_annotation.dart';
+import '../annotation/cpdf_annotation_reply.dart';
 import '../annotation/cpdf_image_annotation.dart';
+import '../annotation/form/cpdf_signature_widget.dart';
 import '../annotation/form/cpdf_widget.dart';
 import '../compdfkit.dart';
 import '../configuration/attributes/cpdf_editor_text_attr.dart';
@@ -50,31 +52,54 @@ class CPDFDocument {
   late final MethodChannel _channel;
 
   bool _isValid = false;
+  bool _isClosed = false;
 
   bool get isValid => _isValid;
 
+  final Expando<_CPDFReplyIdentity> _replyIdentities =
+      Expando<_CPDFReplyIdentity>('CPDFReplyIdentity');
+
   CPDFTextSearcher? _textSearcher;
 
-  // static Future<CPDFDocument> _createDocument() async {
-  //   var id = CpdfUuidUtil.generateShortUniqueId();
-  //   bool success = await ComPDFKit.createDocument(id);
-  //   if (!success) {
-  //     throw Exception('Failed to create document instance');
-  //   }
-  //   return CPDFDocument._(id);
-  // }
+  /// Creates a new PDF document without opening an existing file or using
+  /// [CPDFReaderWidget].
+  ///
+  /// The returned document can be modified with APIs such as
+  /// [insertBlankPage], [insertPageWithImagePath], and [saveAs].
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final document = await CPDFDocument.createDocument();
+  /// await document.insertBlankPage(pageIndex: 0);
+  /// await document.saveAs('/path/to/new_document.pdf');
+  /// ```
+  static Future<CPDFDocument> createDocument() async {
+    final id = CpdfUuidUtil.generateShortUniqueId();
+    final success = await ComPDFKit.createDocument(id);
+    if (!success) {
+      throw Exception('Failed to create document');
+    }
+    return CPDFDocument._(id, isValid: true);
+  }
 
+  /// Creates a document channel instance that can open an existing PDF file.
+  ///
+  /// Use [createDocument] when you want to create a new PDF document from
+  /// scratch.
   static Future<CPDFDocument> createInstance() async {
-    var id = CpdfUuidUtil.generateShortUniqueId();
-    bool success = await ComPDFKit.createDocumentInstance(id);
+    final id = CpdfUuidUtil.generateShortUniqueId();
+    final success = await ComPDFKit.createDocumentInstance(id);
     if (!success) {
       throw Exception('Failed to create document instance');
     }
     return CPDFDocument._(id);
   }
 
-  CPDFDocument._(String id) {
+  CPDFDocument._(String id, {bool isValid = false}) {
     _channel = MethodChannel('com.compdfkit.flutter.document_$id');
+    _isValid = isValid;
   }
 
   CPDFDocument.withController(int viewId)
@@ -89,6 +114,7 @@ class CPDFDocument {
       var type = CPDFDocumentError.values.where((e) => e.name == error).first;
       if (type == CPDFDocumentError.success) {
         _isValid = true;
+        _isClosed = false;
       }
       return type;
     } on PlatformException {
@@ -370,8 +396,161 @@ class CPDFDocument {
   ///         ));
   /// ```
   Future<bool> createWatermark(CPDFWatermark watermark) async {
+    final validationError = watermark.validateForCreate();
+    if (validationError != null) {
+      debugPrint('createWatermark error: $validationError');
+      return false;
+    }
     return await _channel.invokeMethod('create_watermark', watermark.toJson());
   }
+
+  // Temporarily hidden from the public API. Keep the implementation here so it
+  // can be restored in a future release.
+  /*
+  /// Gets the number of watermarks in the current document.
+  ///
+  /// **Returns:** The watermark count.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final int count = await controller.document.getWatermarkCount();
+  /// print('Watermark count: $count');
+  /// ```
+  Future<int> getWatermarkCount() async {
+    return await _channel.invokeMethod('get_watermark_count') ?? 0;
+  }
+
+  /// Gets the watermark at [index].
+  ///
+  /// **Parameters:**<br/>
+  ///   [index] - The watermark index.<br/>
+  ///   [exportImage] - Whether to export image watermark bitmap to a cache file.
+  ///
+  /// **Returns:** The watermark, or **null** if [index] is out of range.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final CPDFWatermark? watermark =
+  ///     await controller.document.getWatermark(0, exportImage: true);
+  ///
+  /// if (watermark != null) {
+  ///   print('Watermark type: ${watermark.type.name}');
+  ///   print('Watermark pages: ${watermark.pages}');
+  ///   print('Exported image path: ${watermark.imagePath}');
+  /// }
+  /// ```
+  Future<CPDFWatermark?> getWatermark(
+    int index, {
+    bool exportImage = false,
+  }) async {
+    final result = await _channel.invokeMethod('get_watermark', {
+      'index': index,
+      'export_image': exportImage,
+    });
+    if (result is! Map) {
+      return null;
+    }
+    return CPDFWatermark.fromJson(Map<String, dynamic>.from(result));
+  }
+
+  /// Gets all watermarks in the current document.
+  ///
+  /// **Parameters:**<br/>
+  ///   [exportImages] - Whether to export image watermark bitmaps to cache files.
+  ///
+  /// **Returns:** A list of watermarks.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final List<CPDFWatermark> watermarks =
+  ///     await controller.document.getWatermarks(exportImages: true);
+  ///
+  /// for (final CPDFWatermark watermark in watermarks) {
+  ///   print('#${watermark.index}: ${watermark.type.name}');
+  /// }
+  /// ```
+  Future<List<CPDFWatermark>> getWatermarks({
+    bool exportImages = false,
+  }) async {
+    final result = await _channel.invokeMethod('get_watermarks', {
+      'export_images': exportImages,
+    });
+    if (result is! List) {
+      return <CPDFWatermark>[];
+    }
+    return result.whereType<Map>().map((item) {
+      return CPDFWatermark.fromJson(Map<String, dynamic>.from(item));
+    }).toList();
+  }
+
+  /// Updates the watermark at [index].
+  ///
+  /// This method does not save the document. Call [save] or [saveAs] explicitly
+  /// after updating watermarks.
+  ///
+  /// **Parameters:**<br/>
+  ///   [index] - The watermark index.<br/>
+  ///   [watermark] - The new watermark properties.
+  ///
+  /// **Returns:** **true** if the watermark is updated, **false** otherwise.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final CPDFWatermark? watermark = await controller.document.getWatermark(0);
+  ///
+  /// if (watermark != null) {
+  ///   final bool success = await controller.document.updateWatermark(
+  ///     watermark.index,
+  ///     watermark.copyWith(
+  ///       textContent: 'Updated ComPDFKit',
+  ///       textColor: Colors.blue,
+  ///       opacity: 0.75,
+  ///     ),
+  ///   );
+  ///   print('Update watermark result: $success');
+  /// }
+  /// ```
+  Future<bool> updateWatermark(int index, CPDFWatermark watermark) async {
+    final validationError = watermark.validateForUpdate();
+    if (validationError != null) {
+      debugPrint('updateWatermark error: $validationError');
+      return false;
+    }
+    return await _channel.invokeMethod('update_watermark', {
+      ...watermark.toJson(),
+      'index': index,
+    });
+  }
+
+  /// Removes the watermark at [index].
+  ///
+  /// This method does not save the document. Call [save] or [saveAs] explicitly
+  /// after removing watermarks.
+  ///
+  /// **Parameters:**<br/>
+  ///   [index] - The watermark index.
+  ///
+  /// **Returns:** **true** if the watermark is removed, **false** otherwise.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final bool success = await controller.document.removeWatermark(0);
+  /// print('Remove watermark result: $success');
+  /// ```
+  Future<bool> removeWatermark(int index) async {
+    return await _channel.invokeMethod('remove_watermark', {'index': index});
+  }
+  */
 
   /// remove all watermark
   ///
@@ -384,12 +563,15 @@ class CPDFDocument {
   }
 
   Future<void> close() async {
-    if (!_isValid) return;
-    if (Platform.isIOS) {
+    if (_isClosed) {
       return;
     }
-    await _channel.invokeMethod('close');
-    _isValid = false;
+    try {
+      await _channel.invokeMethod('close');
+    } finally {
+      _isValid = false;
+      _isClosed = true;
+    }
   }
 
   /// Imports the form data from the specified XFDF file into the current PDF document.<br>
@@ -542,6 +724,33 @@ class CPDFDocument {
     });
   }
 
+  /// Copies a page in the current document and inserts the copy at the
+  /// specified index.
+  ///
+  /// **Parameters:**<br/>
+  ///   [pageIndex] - The zero-based index of the page to copy.<br/>
+  ///   [insertIndex] - The zero-based index where the copied page will be
+  ///   inserted. Use `-1` to append the copied page to the end of the document.
+  ///
+  /// **Returns:** `true` if the page is copied and inserted successfully,
+  /// otherwise `false`.
+  ///
+  /// Since v2.6.8
+  ///
+  /// example:
+  /// ```dart
+  /// final result = await document.copyPage(pageIndex: 0, insertIndex: -1);
+  /// ```
+  Future<bool> copyPage({
+    required int pageIndex,
+    required int insertIndex,
+  }) async {
+    return await _channel.invokeMethod('copy_page', {
+      'page_index': pageIndex,
+      'insert_index': insertIndex,
+    });
+  }
+
   /// Splits the specified pages from the current document and saves them as a new document.
   ///
   /// This function extracts the given pages from the current PDF document and saves them as a
@@ -561,6 +770,61 @@ class CPDFDocument {
   Future<bool> splitDocumentPages(String savePath, List<int> pages) async {
     return await _channel.invokeMethod(
         'split_document_pages', {'save_path': savePath, 'pages': pages});
+  }
+
+  /// Extracts images from the current PDF document into a directory.
+  ///
+  /// **Parameters:**<br/>
+  ///   [directoryPath] - The directory where extracted images will be saved.
+  ///   [pages] - Optional zero-based page indexes. If omitted or empty, images
+  ///   from all pages will be extracted.
+  ///
+  /// **Returns:** An extraction result containing success state, image count,
+  /// output directory, and image paths found in that directory after
+  /// extraction.
+  ///
+  /// example:
+  /// ```dart
+  /// final tempDir = await ComPDFKit.getTemporaryDirectory();
+  /// final outputDir = Directory('${tempDir.path}/extracted_images');
+  /// if (!await outputDir.exists()) {
+  ///   await outputDir.create(recursive: true);
+  /// }
+  ///
+  /// final result = await document.extractImages(
+  ///   directoryPath: outputDir.path,
+  ///   pages: [0, 1],
+  /// );
+  ///
+  /// if (result.success) {
+  ///   debugPrint('Extracted image count: ${result.count}');
+  ///   for (final imagePath in result.imagePaths) {
+  ///     debugPrint('Extracted image: $imagePath');
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// The generated image format is determined by the PDF embedded image data
+  /// and the native SDK. Extracted files may be JPEG, PNG, or another supported
+  /// image format.
+  ///
+  /// Since v2.6.8
+  Future<CPDFExtractImageResult> extractImages({
+    required String directoryPath,
+    List<int>? pages,
+  }) async {
+    final result = await _channel.invokeMethod('extract_images', {
+      'directory_path': directoryPath,
+      if (pages != null) 'pages': pages,
+    });
+    if (result is Map) {
+      return CPDFExtractImageResult.fromJson(
+        Map<String, dynamic>.from(result),
+      );
+    }
+    throw Exception(
+      'extractImages failed: unexpected result type ${result.runtimeType}',
+    );
   }
 
   /// Get the path of the current document.
@@ -595,6 +859,291 @@ class CPDFDocument {
       'page_index': annotation.page,
       'uuid': annotation.uuid,
     });
+  }
+
+  /// Adds a plain reply to an annotation.
+  ///
+  /// **Parameters:**<br/>
+  ///   [annotation] - The parent annotation to reply to.
+  ///   [content] - The reply content.
+  ///   [title] - The reply author or title.
+  ///
+  /// **Returns:** The created reply annotation, or null if creation fails.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotations = await document.pageAtIndex(0).getAnnotations();
+  /// if (annotations.isNotEmpty) {
+  ///   final reply = await document.addAnnotationReply(
+  ///     annotations.first,
+  ///     content: 'Please review this highlight.',
+  ///     title: 'ComPDFKit',
+  ///   );
+  ///   debugPrint('Reply id: ${reply?.uuid}');
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<CPDFReplyAnnotation?> addAnnotationReply(
+    CPDFAnnotation annotation, {
+    required String content,
+    String title = '',
+  }) async {
+    final result = await _channel.invokeMethod('add_annotation_reply', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+      'content': content,
+      'title': title,
+    });
+    if (result is Map) {
+      return _replyFromJson(Map<String, dynamic>.from(result));
+    }
+    return null;
+  }
+
+  /// Gets all replies attached to an annotation.
+  ///
+  /// Returned reply objects include their [CPDFReplyAnnotation.content],
+  /// [CPDFReplyAnnotation.markState], and [CPDFReplyAnnotation.reviewState].
+  /// Native mark/review state replies are kept as implementation details and
+  /// are not exposed through a separate reply type.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotations = await document.pageAtIndex(0).getAnnotations();
+  /// if (annotations.isNotEmpty) {
+  ///   final replies = await document.getAnnotationReplies(annotations.first);
+  ///   debugPrint('Reply count: ${replies.length}');
+  ///   if (replies.isNotEmpty) {
+  ///     debugPrint('First reply content: ${replies.first.content}');
+  ///     debugPrint('First reply mark state: ${replies.first.markState.name}');
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<List<CPDFReplyAnnotation>> getAnnotationReplies(
+    CPDFAnnotation annotation,
+  ) async {
+    final result = await _channel.invokeMethod('get_annotation_replies', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+    });
+    if (result is List) {
+      return result
+          .whereType<Map>()
+          .map((item) => _replyFromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    }
+    return [];
+  }
+
+  /// Updates a plain annotation reply.
+  ///
+  /// **Parameters:**<br/>
+  ///   [reply] - The reply annotation to update.
+  ///   [content] - The updated reply content.
+  ///   [title] - Optional updated reply author or title.
+  ///
+  /// Example:
+  /// ```dart
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   await document.updateAnnotationReply(
+  ///     replies.first,
+  ///     content: 'Updated reply content.',
+  ///   );
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<bool> updateAnnotationReply(
+    CPDFReplyAnnotation reply, {
+    required String content,
+    String? title,
+  }) async {
+    return await _channel.invokeMethod('update_annotation_reply', {
+      ..._annotationIdentityArgs(reply),
+      'content': content,
+      'title': title,
+    });
+  }
+
+  /// Removes a plain annotation reply.
+  ///
+  /// Example:
+  /// ```dart
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   await document.removeAnnotationReply(replies.first);
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<bool> removeAnnotationReply(CPDFReplyAnnotation reply) async {
+    return await _channel.invokeMethod('remove_annotation_reply', {
+      ..._annotationIdentityArgs(reply),
+    });
+  }
+
+  /// Removes all plain replies attached to an annotation.
+  ///
+  /// Mark and review state replies are preserved.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotations = await document.pageAtIndex(0).getAnnotations();
+  /// if (annotations.isNotEmpty) {
+  ///   await document.removeAllAnnotationReplies(annotations.first);
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<bool> removeAllAnnotationReplies(CPDFAnnotation annotation) async {
+    return await _channel.invokeMethod('remove_all_annotation_replies', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+    });
+  }
+
+  /// Sets the mark state of an annotation or annotation reply.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotation = (await document.pageAtIndex(0).getAnnotations()).first;
+  /// await document.setAnnotationMarkState(
+  ///   annotation,
+  ///   CPDFAnnotationMarkState.marked,
+  /// );
+  ///
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   await document.setAnnotationMarkState(
+  ///     replies.first,
+  ///     CPDFAnnotationMarkState.unmarked,
+  ///   );
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<bool> setAnnotationMarkState(
+    CPDFAnnotation annotation,
+    CPDFAnnotationMarkState state,
+  ) async {
+    return await _channel.invokeMethod('set_annotation_mark_state', {
+      ..._annotationIdentityArgs(annotation),
+      'mark_state': state.name,
+    });
+  }
+
+  /// Gets the mark state of an annotation or annotation reply.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotation = (await document.pageAtIndex(0).getAnnotations()).first;
+  /// final state = await document.getAnnotationMarkState(annotation);
+  /// debugPrint('Mark state: $state');
+  ///
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   final replyState = await document.getAnnotationMarkState(replies.first);
+  ///   debugPrint('Reply mark state: $replyState');
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<CPDFAnnotationMarkState> getAnnotationMarkState(
+    CPDFAnnotation annotation,
+  ) async {
+    final result = await _channel.invokeMethod('get_annotation_mark_state', {
+      ..._annotationIdentityArgs(annotation),
+    });
+    return CPDFAnnotationMarkState.fromString(result as String?);
+  }
+
+  /// Sets the review state of an annotation or annotation reply.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotation = (await document.pageAtIndex(0).getAnnotations()).first;
+  /// await document.setAnnotationReviewState(
+  ///   annotation,
+  ///   CPDFAnnotationReviewState.accepted,
+  /// );
+  ///
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   await document.setAnnotationReviewState(
+  ///     replies.first,
+  ///     CPDFAnnotationReviewState.completed,
+  ///   );
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<bool> setAnnotationReviewState(
+    CPDFAnnotation annotation,
+    CPDFAnnotationReviewState state,
+  ) async {
+    return await _channel.invokeMethod('set_annotation_review_state', {
+      ..._annotationIdentityArgs(annotation),
+      'review_state': state.name,
+    });
+  }
+
+  /// Gets the review state of an annotation or annotation reply.
+  ///
+  /// Example:
+  /// ```dart
+  /// final annotation = (await document.pageAtIndex(0).getAnnotations()).first;
+  /// final state = await document.getAnnotationReviewState(annotation);
+  /// debugPrint('Review state: $state');
+  ///
+  /// final replies = await document.getAnnotationReplies(annotation);
+  /// if (replies.isNotEmpty) {
+  ///   final replyState = await document.getAnnotationReviewState(replies.first);
+  ///   debugPrint('Reply review state: $replyState');
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<CPDFAnnotationReviewState> getAnnotationReviewState(
+    CPDFAnnotation annotation,
+  ) async {
+    final result = await _channel.invokeMethod('get_annotation_review_state', {
+      ..._annotationIdentityArgs(annotation),
+    });
+    return CPDFAnnotationReviewState.fromString(result as String?);
+  }
+
+  Map<String, dynamic> _annotationIdentityArgs(CPDFAnnotation annotation) {
+    final args = <String, dynamic>{
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+    };
+    if (annotation is CPDFReplyAnnotation) {
+      final identity = _replyIdentities[annotation];
+      args.addAll({
+        'native_id': identity?.nativeId,
+        'reply_key': identity?.replyKey,
+        'parent_uuid': identity?.parentUuid,
+      });
+    }
+    return args;
+  }
+
+  CPDFReplyAnnotation _replyFromJson(Map<String, dynamic> json) {
+    final reply = CPDFReplyAnnotation.fromJson(json);
+    _replyIdentities[reply] = _CPDFReplyIdentity(
+      nativeId: _stringOrNull(json['nativeId'] ?? json['native_id']),
+      replyKey: _stringOrNull(json['replyKey'] ?? json['reply_key']),
+      parentUuid: _stringOrNull(json['parentUuid'] ?? json['parent_uuid']),
+    );
+    return reply;
+  }
+
+  String? _stringOrNull(Object? value) {
+    return value is String && value.isNotEmpty ? value : null;
   }
 
   /// Removes a widget from the current page.
@@ -1068,6 +1617,29 @@ class CPDFDocument {
     });
   }
 
+  /// Adds an image signature to a signature form widget.
+  ///
+  /// Android supports both file paths and URI paths, such as
+  /// `content://media/external/images/media/123`.
+  ///
+  /// **example:**
+  /// ```dart
+  /// final result = await document.addSignatureImage(
+  ///   signatureWidget,
+  ///   '/path/to/signature.png',
+  /// );
+  /// ```
+  Future<bool> addSignatureImage(
+    CPDFSignatureWidget signatureWidget,
+    String imagePath,
+  ) async {
+    return await _channel.invokeMethod('add_widget_image_signature', {
+      'page_index': signatureWidget.page,
+      'uuid': signatureWidget.uuid,
+      'image_path': imagePath,
+    });
+  }
+
   /// Removes an edit area from the document.
   ///
   /// **example:**
@@ -1131,8 +1703,6 @@ class CPDFDocument {
       } else {
         data.remove('image');
       }
-    } else if (annotation.image != null) {
-      data['image'] = _stripDataUriPrefix(annotation.image!);
     }
     return data;
   }
@@ -1143,13 +1713,7 @@ class CPDFDocument {
     if (annotation.imageData != null) {
       return _normalizeImageData(annotation.imageData!);
     }
-    if (annotation.image == null) {
-      return null;
-    }
-    return {
-      'type': CPDFImageType.base64.name,
-      'data': _stripDataUriPrefix(annotation.image!),
-    };
+    return null;
   }
 
   Future<Map<String, dynamic>> _normalizeImageData(
@@ -1375,5 +1939,53 @@ class CPDFDocument {
       debugPrint('Error creating image area: ${e.message}');
       return false;
     }
+  }
+}
+
+class _CPDFReplyIdentity {
+  const _CPDFReplyIdentity({
+    this.nativeId,
+    this.replyKey,
+    this.parentUuid,
+  });
+
+  final String? nativeId;
+
+  final String? replyKey;
+
+  final String? parentUuid;
+}
+
+/// Result of extracting images from a PDF document.
+class CPDFExtractImageResult {
+  /// Whether the native extraction call completed successfully.
+  final bool success;
+
+  /// Number of image files found in [directoryPath] after extraction.
+  final int count;
+
+  /// Directory where images were written.
+  final String directoryPath;
+
+  /// Full paths of image files found in [directoryPath] after extraction.
+  final List<String> imagePaths;
+
+  /// Creates an image extraction result.
+  const CPDFExtractImageResult({
+    required this.success,
+    required this.count,
+    required this.directoryPath,
+    required this.imagePaths,
+  });
+
+  /// Creates an image extraction result from native JSON data.
+  factory CPDFExtractImageResult.fromJson(Map<String, dynamic> json) {
+    final rawPaths = json['image_paths'];
+    return CPDFExtractImageResult(
+      success: json['success'] == true,
+      count: (json['count'] as num?)?.toInt() ?? 0,
+      directoryPath: json['directory_path'] as String? ?? '',
+      imagePaths: rawPaths is List ? rawPaths.whereType<String>().toList() : [],
+    );
   }
 }

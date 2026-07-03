@@ -7,13 +7,22 @@
 
 import 'dart:convert';
 
+import 'package:compdfkit_flutter/annotation/form/cpdf_checkbox_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_combobox_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_listbox_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_pushbutton_widget.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_radiobutton_widget.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_signature_widget.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_text_widget.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
+import 'package:compdfkit_flutter/annotation/form/cpdf_widget_item.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/document/action/cpdf_goto_action.dart';
 import 'package:compdfkit_flutter/document/action/cpdf_named_action.dart';
+import 'package:compdfkit_flutter/document/action/cpdf_uri_action.dart';
+import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
+import 'package:compdfkit_flutter/util/cpdf_widget_util.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget.dart';
 import 'package:compdfkit_flutter/widgets/cpdf_reader_widget_controller.dart';
 import 'package:compdfkit_flutter_example/constants/asset_paths.dart';
@@ -24,22 +33,22 @@ import 'package:compdfkit_flutter_example/widgets/dialogs/link_action_dialog.dar
 import 'package:compdfkit_flutter_example/widgets/dialogs/option_selector_dialog.dart';
 import 'package:flutter/material.dart';
 
+import '../../features/annotations/signature_list_page.dart';
 import '../shared/example_document_loader.dart';
 
 /// Intercept Widget Action Example
 ///
-/// Demonstrates how to intercept form widget (ListBox/ComboBox) actions in Flutter.
+/// Demonstrates how to intercept form widget actions in Flutter.
 ///
 /// This example shows:
-/// - Configuring [CPDFFormsConfig.interceptListBoxAction] to intercept list box selections
-/// - Configuring [CPDFFormsConfig.interceptComboBoxAction] to intercept combo box selections
+/// - Configuring [CPDFFormsConfig.interceptFormWidgetActions] to intercept widget actions
 /// - Handling intercepted events via [CPDFReaderWidget.onInterceptWidgetActionCallback]
 ///
 /// Key classes/APIs used:
 /// - [CPDFFormsConfig]: Configuration for form widget interception
 /// - [CPDFOnInterceptWidgetActionCallback]: Callback for widget actions
-/// - [CPDFListBoxWidget]: List box widget with options and selected index
-/// - [CPDFComboBoxWidget]: Combo box widget with options and selected index
+/// - [CPDFDocument.updateWidget]: Applies custom handling for standard form widgets
+/// - [CPDFDocument.addSignatureImage]: Adds a selected image to a signature widget
 ///
 /// Usage:
 /// 1. Open the example
@@ -73,17 +82,23 @@ class _InterceptWidgetActionPage extends StatefulWidget {
 class _InterceptWidgetActionPageState
     extends State<_InterceptWidgetActionPage> {
   CPDFReaderWidgetController? _controller;
+  bool _didAddDemoWidgets = false;
 
   CPDFConfiguration get _configuration => CPDFConfiguration(
         modeConfig: const CPDFModeConfig(
           initialViewMode: CPDFViewMode.viewer,
         ),
         formsConfig: const CPDFFormsConfig(
-          // Enable interception of list box selection actions
-          interceptListBoxAction: true,
-          // Enable interception of combo box selection actions
-          interceptComboBoxAction: true,
-          interceptPushButtonAction: true,
+          // Enable interception of selected form widget actions.
+          interceptFormWidgetActions: [
+            CPDFFormType.textField,
+            CPDFFormType.checkBox,
+            CPDFFormType.radioButton,
+            CPDFFormType.listBox,
+            CPDFFormType.comboBox,
+            CPDFFormType.signaturesFields,
+            CPDFFormType.pushButton
+          ],
         ),
         readerViewConfig: CPDFReaderViewConfig(
           linkHighlight: PreferencesService.highlightLink,
@@ -120,12 +135,11 @@ class _InterceptWidgetActionPageState
             setState(() {
               _controller = controller;
             });
+            _addDemoWidgets(controller);
           },
           // ==================== Widget Action Interception ====================
-          // This callback handles intercepted form widget actions (ListBox/ComboBox)
-          // When interceptListBoxAction or interceptComboBoxAction is true in config,
-          // selecting items in these widgets will trigger this callback instead of
-          // the default native behavior.
+          // This callback handles intercepted form widget actions configured in
+          // interceptFormWidgetActions.
           onInterceptWidgetActionCallback: _handleWidgetAction,
         ),
       ),
@@ -135,12 +149,32 @@ class _InterceptWidgetActionPageState
   /// Handle intercepted form widget actions.
   ///
   /// This method is called when:
-  /// - A list box item is selected (when interceptListBoxAction is true)
-  /// - A combo box item is selected (when interceptComboBoxAction is true)
+  /// - A configured form widget action is intercepted
   void _handleWidgetAction(CPDFWidget widget) async {
     final type = widget.type;
-
+    debugPrint(
+      'Intercepted widget action: type=${widget.type.name}, '
+      'title=${widget.title}, uuid=${widget.uuid}',
+    );
     switch (type) {
+      case CPDFFormType.textField:
+        final textWidget = widget as CPDFTextWidget;
+        textWidget.text = 'Handled by Flutter';
+        await _controller?.document.updateWidget(textWidget);
+        break;
+
+      case CPDFFormType.checkBox:
+        final checkBox = widget as CPDFCheckBoxWidget;
+        checkBox.isChecked = !checkBox.isChecked;
+        await _controller?.document.updateWidget(checkBox);
+        break;
+
+      case CPDFFormType.radioButton:
+        final radioButton = widget as CPDFRadioButtonWidget;
+        radioButton.isChecked = !radioButton.isChecked;
+        await _controller?.document.updateWidget(radioButton);
+        break;
+
       case CPDFFormType.listBox:
         final listBox = widget as CPDFListBoxWidget;
         final selectItemIndex = listBox.selectItemAtIndex;
@@ -185,6 +219,11 @@ class _InterceptWidgetActionPageState
         );
         break;
 
+      case CPDFFormType.signaturesFields:
+        final signatureWidget = widget as CPDFSignatureWidget;
+        await _showSignaturePicker(signatureWidget);
+        break;
+
       default:
         break;
     }
@@ -215,7 +254,7 @@ class _InterceptWidgetActionPageState
         }
         break;
       case CPDFNamedActionType.print:
-        break;  
+        break;
       case CPDFNamedActionType.none:
         break;
     }
@@ -238,5 +277,140 @@ class _InterceptWidgetActionPageState
     if (result != null && result != selectedIndex) {
       await onSelected(result);
     }
+  }
+
+  Future<void> _showSignaturePicker(CPDFSignatureWidget signatureWidget) async {
+    final signPath = await showDialog<String?>(
+      context: context,
+      builder: (context) => const AlertDialog(
+        title: Text('Signature List'),
+        content: SignatureListPage(),
+      ),
+    );
+    if (signPath == null) {
+      return;
+    }
+    final success = await _controller?.document.addSignatureImage(
+      signatureWidget,
+      signPath,
+    );
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success == true
+            ? 'Signature image added'
+            : 'Failed to add signature image'),
+      ),
+    );
+  }
+
+  Future<void> _addDemoWidgets(CPDFReaderWidgetController controller) async {
+    if (_didAddDemoWidgets) {
+      return;
+    }
+    _didAddDemoWidgets = true;
+    final widgets = [
+      CPDFTextWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.textField),
+        page: 0,
+        rect: const CPDFRectF(left: 40, top: 799, right: 320, bottom: 701),
+        createDate: DateTime.fromMillisecondsSinceEpoch(1735696800000),
+        text: 'This is Text Fields',
+        isMultiline: true,
+        fillColor: const Color(0xFFBEBEBE),
+        borderColor: const Color(0xFF8BC34A),
+        borderWidth: 5,
+        fontColor: Colors.black,
+        fontSize: 14,
+        familyName: 'Times',
+        styleName: 'Bold',
+        alignment: CPDFAlignment.right,
+      ),
+      CPDFCheckBoxWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.checkBox),
+        page: 0,
+        rect: const CPDFRectF(left: 361, top: 778, right: 442, bottom: 704),
+        isChecked: true,
+        checkStyle: CPDFCheckStyle.circle,
+        checkColor: const Color(0xFF3CE930),
+        fillColor: const Color(0xFFE0E0E0),
+        borderColor: Colors.black,
+        borderWidth: 5,
+      ),
+      CPDFRadioButtonWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.radioButton),
+        page: 0,
+        rect: const CPDFRectF(left: 479, top: 789, right: 549, bottom: 715),
+        isChecked: true,
+        checkStyle: CPDFCheckStyle.cross,
+        checkColor: Colors.red,
+        fillColor: Colors.green,
+        borderColor: Colors.black,
+        borderWidth: 5,
+      ),
+      CPDFListBoxWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.listBox),
+        page: 0,
+        rect: const CPDFRectF(left: 53, top: 294, right: 294, bottom: 191),
+        selectItemAtIndex: 0,
+        options: [
+          CPDFWidgetItem(text: 'options-1', value: 'options-1'),
+          CPDFWidgetItem(text: 'options-2', value: 'options-2'),
+        ],
+        familyName: 'Times',
+        styleName: 'Bold',
+        fillColor: Colors.yellow,
+        borderColor: Colors.red,
+        borderWidth: 3,
+      ),
+      CPDFComboBoxWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.comboBox),
+        page: 0,
+        rect: const CPDFRectF(left: 354, top: 288, right: 557, bottom: 170),
+        selectItemAtIndex: 1,
+        options: [
+          CPDFWidgetItem(text: 'options-1', value: 'options-1'),
+          CPDFWidgetItem(text: 'options-2', value: 'options-2'),
+        ],
+        familyName: 'Times',
+        styleName: 'Bold',
+        fillColor: Colors.yellow,
+        borderColor: Colors.red,
+        borderWidth: 3,
+      ),
+      CPDFSignatureWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.signaturesFields),
+        page: 0,
+        rect: const CPDFRectF(left: 64, top: 649, right: 319, bottom: 527),
+        fillColor: const Color(0xFFE0E0E0),
+        borderColor: Colors.red,
+        borderWidth: 5,
+      ),
+      CPDFPushButtonWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.pushButton),
+        page: 0,
+        rect: const CPDFRectF(left: 366, top: 632, right: 520, bottom: 541),
+        fillColor: const Color(0xFFE0E0E0),
+        borderColor: Colors.red,
+        borderWidth: 5,
+        fontSize: 14,
+        buttonTitle: 'Jump Page 2',
+        action: CPDFGoToAction(pageIndex: 1),
+      ),
+      CPDFPushButtonWidget(
+        title: CPDFWidgetUtil.createFieldName(CPDFFormType.pushButton),
+        page: 0,
+        rect: const CPDFRectF(left: 365, top: 503, right: 501, bottom: 413),
+        fillColor: const Color(0xFFE0E0E0),
+        borderColor: Colors.red,
+        borderWidth: 5,
+        fontSize: 14,
+        buttonTitle: 'Click Me',
+        action: CPDFUriAction(uri: 'https://www.compdf.com'),
+      ),
+    ];
+    await controller.document.addWidgets(widgets);
   }
 }

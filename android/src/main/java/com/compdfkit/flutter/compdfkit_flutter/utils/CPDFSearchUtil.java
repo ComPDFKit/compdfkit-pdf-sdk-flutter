@@ -17,6 +17,7 @@ import com.compdfkit.core.page.CPDFPage;
 import com.compdfkit.core.page.CPDFTextPage;
 import com.compdfkit.core.page.CPDFTextRange;
 import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
+import com.compdfkit.ui.reader.CPDFReaderView;
 import com.compdfkit.ui.textsearch.CPDFTextSearcher;
 import com.compdfkit.ui.textsearch.ITextSearcher;
 import io.flutter.plugin.common.MethodCall;
@@ -67,16 +68,18 @@ public class CPDFSearchUtil {
     int pageIndex = call.argument("page_index");
     int textRangeIndex = call.argument("text_range_index");
     iTextSearcher.searchBegin(pageIndex, textRangeIndex);
-    if (pdfView != null) {
-      pdfView.getCPdfReaderView().invalidateAllChildren();
+    CPDFReaderView readerView = getReaderView(pdfView);
+    if (readerView != null) {
+      readerView.invalidateAllChildren();
     }
   }
 
   public static void clearSearch(Context context, @Nullable CPDFViewCtrl pdfView, CPDFDocument document) {
     ITextSearcher iTextSearcher = getTextSearcher(context, pdfView, document);
     iTextSearcher.cancelSearch();
-    if (pdfView != null) {
-      pdfView.getCPdfReaderView().invalidateAllChildren();
+    CPDFReaderView readerView = getReaderView(pdfView);
+    if (readerView != null) {
+      readerView.invalidateAllChildren();
     }
   }
 
@@ -91,11 +94,19 @@ public class CPDFSearchUtil {
   }
 
   private static ITextSearcher getTextSearcher(Context context, @Nullable CPDFViewCtrl pdfView, CPDFDocument document) {
-    if (pdfView != null) {
-      return pdfView.getCPdfReaderView().getTextSearcher();
-    } else {
-      return new CPDFTextSearcher(context, document);
+    CPDFReaderView readerView = getReaderView(pdfView);
+    if (readerView != null) {
+      return readerView.getTextSearcher();
     }
+    return new CPDFTextSearcher(context, document);
+  }
+
+  @Nullable
+  private static CPDFReaderView getReaderView(@Nullable CPDFViewCtrl pdfView) {
+    if (pdfView == null) {
+      return null;
+    }
+    return pdfView.getCPdfReaderView();
   }
 
 }

@@ -578,6 +578,10 @@ enum CPDFEvent {
   /// Data type: Map<String, dynamic> with type and pageIndex.
   pencilDrawingCompleted,
 
+  /// Fired when a pencil drawing is discarded.
+  /// Data type: Map<String, dynamic> with type and pageIndex.
+  pencilDrawingDiscarded,
+
   /// Fired when an annotation is selected.
   /// Data type: CPDFAnnotation and its subclasses.
   annotationsSelected,

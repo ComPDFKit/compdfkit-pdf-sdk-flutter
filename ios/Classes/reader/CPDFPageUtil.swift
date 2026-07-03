@@ -47,6 +47,310 @@ class CPDFPageUtil: NSObject {
         
         return annotaionDicts
     }
+
+    func addAnnotationReply(
+        uuid: String,
+        content: String,
+        title: String
+    ) -> [String: Any]? {
+        guard let annotation = self.getAnnotation(formUUID: uuid),
+              let reply = annotation.createReply() else {
+            return nil
+        }
+        reply.contents = content
+        if !title.isEmpty {
+            reply.setUserName(title)
+        }
+        reply.setModificationDate(Date())
+        return getReplyAnnotationData(reply, parent: annotation, index: replyIndex(parent: annotation, targetReply: reply))
+    }
+
+    func getAnnotationReplies(uuid: String) -> [[String: Any]] {
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return []
+        }
+        return (annotation.replyAnnotations ?? []).enumerated().compactMap { index, reply in
+            guard reply.replyAnnotationType == .reply else {
+                return nil
+            }
+            return getReplyAnnotationData(reply, parent: annotation, index: index)
+        }
+    }
+
+    func updateAnnotationReply(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?,
+        content: String,
+        title: String?
+    ) -> Bool {
+        guard let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) else {
+            return false
+        }
+        reply.contents = content
+        if let title = title {
+            reply.setUserName(title)
+        }
+        reply.setModificationDate(Date())
+        return true
+    }
+
+    func removeAnnotationReply(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?
+    ) -> Bool {
+        guard let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) else {
+            return false
+        }
+        reply.page?.removeAnnotation(reply)
+        return true
+    }
+
+    func removeAllAnnotationReplies(uuid: String) -> Bool {
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return false
+        }
+        for reply in annotation.replyAnnotations ?? [] {
+            if reply.replyAnnotationType == .reply {
+                reply.page?.removeAnnotation(reply)
+            }
+        }
+        return true
+    }
+
+    func setAnnotationMarkState(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?,
+        state: String
+    ) -> Bool {
+        if let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) {
+            return setAnnotationMarkState(reply, state: markState(from: state))
+        }
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return false
+        }
+        return setAnnotationMarkState(annotation, state: markState(from: state))
+    }
+
+    func getAnnotationMarkState(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?
+    ) -> String {
+        if let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) {
+            return annotationMarkStateString(reply)
+        }
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return "unmarked"
+        }
+        return annotationMarkStateString(annotation)
+    }
+
+    func setAnnotationReviewState(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?,
+        state: String
+    ) -> Bool {
+        if let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) {
+            return setAnnotationReviewState(reply, state: reviewState(from: state))
+        }
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return false
+        }
+        return setAnnotationReviewState(annotation, state: reviewState(from: state))
+    }
+
+    func getAnnotationReviewState(
+        uuid: String,
+        nativeId: String?,
+        replyKey: String?,
+        parentUuid: String?
+    ) -> String {
+        if let reply = self.getReplyAnnotation(
+            uuid: uuid,
+            nativeId: nativeId,
+            replyKey: replyKey,
+            parentUuid: parentUuid
+        ) {
+            return annotationReviewStateString(reply)
+        }
+        guard let annotation = self.getAnnotation(formUUID: uuid) else {
+            return "none"
+        }
+        return annotationReviewStateString(annotation)
+    }
+
+    private func getReplyAnnotationData(
+        _ reply: CPDFAnnotation,
+        parent: CPDFAnnotation?,
+        index: Int
+    ) -> [String: Any] {
+        let nativeId = CPDFUtil.getMemoryAddress(reply)
+        let parentUuid = parent.map { CPDFUtil.getMemoryAddress($0) } ?? ""
+        var replyDict: [String: Any] = [:]
+        replyDict["uuid"] = nativeId
+        replyDict["nativeId"] = nativeId
+        replyDict["replyKey"] = buildReplyKey(parent: parent, reply: reply, index: index)
+        replyDict["parentUuid"] = parentUuid
+        replyDict["type"] = "unknown"
+        replyDict["title"] = reply.userName()
+        replyDict["page"] = pageIndex
+        replyDict["content"] = reply.contents
+        if reply.modificationDate() != nil {
+            replyDict["modifyDate"] = Int(
+                reply.modificationDate().timeIntervalSince1970 * 1000
+            )
+        }
+        replyDict["markState"] = annotationMarkStateString(reply)
+        replyDict["reviewState"] = annotationReviewStateString(reply)
+        replyDict["rect"] = getAnnotationRect(bounds: reply.bounds)
+        return replyDict
+    }
+
+    private func setAnnotationMarkState(
+        _ annotation: CPDFAnnotation,
+        state: CPDFAnnotationState
+    ) -> Bool {
+        if let reply = findStateReply(annotation: annotation, type: .mark) {
+            return reply.setAnnotState(state)
+        }
+        return annotation.createReplyStateAnnotation(state) != nil
+    }
+
+    private func setAnnotationReviewState(
+        _ annotation: CPDFAnnotation,
+        state: CPDFAnnotationState
+    ) -> Bool {
+        if let reply = findStateReply(annotation: annotation, type: .review) {
+            return reply.setAnnotState(state)
+        }
+        return annotation.createReplyStateAnnotation(state) != nil
+    }
+
+    private func findStateReply(
+        annotation: CPDFAnnotation,
+        type: CPDFReplyAnnotationType
+    ) -> CPDFAnnotation? {
+        for reply in annotation.replyAnnotations ?? [] {
+            if reply.replyAnnotationType == type {
+                return reply
+            }
+        }
+        return nil
+    }
+
+    private func replyIndex(parent: CPDFAnnotation, targetReply: CPDFAnnotation) -> Int {
+        for (index, reply) in (parent.replyAnnotations ?? []).enumerated() {
+            if CPDFUtil.getMemoryAddress(reply) == CPDFUtil.getMemoryAddress(targetReply) {
+                return index
+            }
+        }
+        return -1
+    }
+
+    private func buildReplyKey(
+        parent: CPDFAnnotation?,
+        reply: CPDFAnnotation,
+        index: Int
+    ) -> String {
+        let parentUuid = parent.map { CPDFUtil.getMemoryAddress($0) } ?? ""
+        let modifyDate = reply.modificationDate().map {
+            Int($0.timeIntervalSince1970 * 1000)
+        } ?? 0
+        let bounds = [
+            rounded(reply.bounds.origin.x),
+            rounded(reply.bounds.origin.y),
+            rounded(reply.bounds.size.width),
+            rounded(reply.bounds.size.height)
+        ].joined(separator: ",")
+        return [
+            parentUuid,
+            "\(index)",
+            reply.userName() ?? "",
+            reply.contents ?? "",
+            "\(modifyDate)",
+            bounds
+        ].joined(separator: "|")
+    }
+
+    private func rounded(_ value: CGFloat) -> String {
+        return String(format: "%.2f", Double(value))
+    }
+
+    private func markState(from state: String) -> CPDFAnnotationState {
+        return state == "marked" ? .marked : .unMarked
+    }
+
+    private func markStateString(from state: CPDFAnnotationState) -> String {
+        return state == .marked ? "marked" : "unmarked"
+    }
+
+    private func reviewState(from state: String) -> CPDFAnnotationState {
+        switch state {
+        case "accepted":
+            return .accepted
+        case "rejected":
+            return .rejected
+        case "cancelled":
+            return .canceled
+        case "completed":
+            return .completed
+        case "error":
+            return .error
+        default:
+            return .none
+        }
+    }
+
+    private func reviewStateString(from state: CPDFAnnotationState) -> String {
+        switch state {
+        case .accepted:
+            return "accepted"
+        case .rejected:
+            return "rejected"
+        case .canceled:
+            return "cancelled"
+        case .completed:
+            return "completed"
+        case .error:
+            return "error"
+        default:
+            return "none"
+        }
+    }
     
     func getAnnotation(FormAnnotation annotation: CPDFAnnotation) -> Dictionary<String, Any> {
         var annotaionDict: [String : Any] = [:]
@@ -454,7 +758,25 @@ class CPDFPageUtil: NSObject {
         default:
             print("Unhandled type: \(type)")
         }
+        if annotaionDict["type"] != nil {
+            annotaionDict["markState"] = annotationMarkStateString(annotation)
+            annotaionDict["reviewState"] = annotationReviewStateString(annotation)
+        }
         return annotaionDict
+    }
+
+    private func annotationMarkStateString(_ annotation: CPDFAnnotation) -> String {
+        guard let reply = findStateReply(annotation: annotation, type: .mark) else {
+            return "unmarked"
+        }
+        return markStateString(from: reply.getAnnotState())
+    }
+
+    private func annotationReviewStateString(_ annotation: CPDFAnnotation) -> String {
+        guard let reply = findStateReply(annotation: annotation, type: .review) else {
+            return "none"
+        }
+        return reviewStateString(from: reply.getAnnotState())
     }
     
     func getForms() -> [Dictionary<String, Any>] {
@@ -653,7 +975,7 @@ class CPDFPageUtil: NSObject {
             }
             
         default:
-            print("Unhandled type: \(type)")
+            print("Unhandled widget type: \(widgetType)")
         }
         
         return formDict
@@ -1153,6 +1475,36 @@ class CPDFPageUtil: NSObject {
             }
         }
         
+        return nil
+    }
+
+    public func getReplyAnnotation(
+        uuid: String,
+        nativeId: String? = nil,
+        replyKey: String? = nil,
+        parentUuid: String? = nil
+    ) -> CPDFAnnotation? {
+        let annoations = page?.annotations ?? []
+        for annotation in annoations {
+            for (index, reply) in (annotation.replyAnnotations ?? []).enumerated() {
+                guard reply.replyAnnotationType == .reply else {
+                    continue
+                }
+                let currentNativeId = CPDFUtil.getMemoryAddress(reply)
+                if currentNativeId == uuid || currentNativeId == nativeId {
+                    return reply
+                }
+                if let replyKey = replyKey,
+                   replyKey == buildReplyKey(parent: annotation, reply: reply, index: index) {
+                    return reply
+                }
+                if let parentUuid = parentUuid,
+                   parentUuid == CPDFUtil.getMemoryAddress(annotation),
+                   currentNativeId == uuid {
+                    return reply
+                }
+            }
+        }
         return nil
     }
     

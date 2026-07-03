@@ -1,3 +1,27 @@
+## 2.6.9
+1. Added support for ComPDFKit PDF SDK for iOS V2.6.9.
+2. Added support for ComPDFKit PDF SDK for Android V2.6.9.
+3. Added `CPDFDocument.createDocument()` to create a new PDF document without opening an existing file or using `CPDFReaderWidget`.
+4. Added a document API example for creating a PDF, inserting pages, adding annotations and form widgets, saving, and opening the generated file.
+5. Added APIs for managing annotation replies and review states.
+6. Added page text extraction APIs and image extraction APIs.
+7. Added a PDF page thumbnail ImageProvider, thumbnail widget, cache options, and related examples.
+8. Added an example for previewing thumbnails from multiple PDF documents.
+9. Added a page copy API.
+10. Added support for filling signature form fields with image signatures.
+11. Added support for intercepting form widget click actions.
+12. Added support for intercepting Note annotation creation and editing dialogs.
+13. Added `mainToolbarTitleVisible` configuration to show or hide the main toolbar mode-switch title.
+14. Added a callback event for discarded Pencil drawings on iOS.
+15. Improved Android document APIs to support operations on documents created without a reader view.
+16. Improved Android annotation click behavior configuration and annotation property panel interaction.
+17. Improved Android external storage adaptation in ComPDFKit_Tools, including public directory saving and storage permission handling.
+18. Fixed an Android crash when adding annotations or form widgets to a document created without `CPDFReaderWidget`.
+19. Fixed several Android reader layout and fullscreen page-position issues.
+20. Fixed several Android annotation, form, watermark, toolbar icon, file export, media scan, opacity, signature image, and font loading stability issues.
+21. Fixed an issue on iOS where the bottom toolbar state could be incorrect after search ends.
+22. Fixed Android form dialogs appearing after programmatic annotation or widget additions.
+
 ## 2.6.8
 1. Added support for ComPDFKit PDF SDK for iOS V2.6.8.
 2. Added support for ComPDFKit PDF SDK for Android V2.6.8.

@@ -33,6 +33,8 @@ class CPDFNoteAnnotation extends CPDFAnnotation {
     super.content,
     super.uuid = '',
     super.createDate,
+    super.markState,
+    super.reviewState,
     required super.rect,
     required this.color,
     this.alpha = 255,
@@ -46,6 +48,8 @@ class CPDFNoteAnnotation extends CPDFAnnotation {
         content: common.content,
         uuid: common.uuid,
         createDate: common.createDate,
+        markState: common.markState,
+        reviewState: common.reviewState,
         rect: common.rect,
         color: HexColor.fromHex(json['color'] ?? '#000000'),
         alpha: (json['alpha'] as num?)?.toDouble() ?? 255.0);

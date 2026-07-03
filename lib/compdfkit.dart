@@ -9,6 +9,8 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/document/cpdf_font_name.dart';
+export 'package:compdfkit_flutter/annotation/cpdf_annotation_state.dart';
+export 'package:compdfkit_flutter/thumbnail/cpdf_page_thumbnail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 

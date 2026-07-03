@@ -8,7 +8,9 @@
 import 'package:compdfkit_flutter/annotation/cpdf_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_markup_annotation.dart';
 import 'package:compdfkit_flutter/annotation/form/cpdf_widget.dart';
+import 'package:compdfkit_flutter/page/cpdf_text_line.dart';
 import 'package:compdfkit_flutter/page/cpdf_text_range.dart';
+import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -177,6 +179,112 @@ class CPDFPage {
       'length': range.length,
     });
     return result ?? '';
+  }
+
+  /// Retrieves all text on the current page.
+  ///
+  /// Returns an empty string if the page has no text content.
+  ///
+  /// example:
+  /// ```dart
+  /// final int pageIndex = await controller.getCurrentPageIndex();
+  /// final CPDFPage page = controller.document.pageAtIndex(pageIndex);
+  /// final String text = await page.getAllText();
+  /// print(text);
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<String> getAllText() async {
+    final result = await _channel.invokeMethod('get_page_text', {
+      'page_index': pageIndex,
+    });
+    return result ?? '';
+  }
+
+  /// Retrieves text inside the specified rectangle on the current page.
+  ///
+  /// **Parameters:**<br/>
+  ///   [rect] - The page-space rectangle used to extract bounded text.
+  ///
+  /// **Returns:** Text contained in the rectangle, or an empty string.
+  ///
+  /// example:
+  /// ```dart
+  /// final CPDFPage page = controller.document.pageAtIndex(0);
+  /// const CPDFRectF rect = CPDFRectF(
+  ///   left: 40,
+  ///   top: 760,
+  ///   right: 560,
+  ///   bottom: 680,
+  /// );
+  /// final String text = await page.getTextInRect(rect);
+  /// print(text);
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<String> getTextInRect(CPDFRectF rect) async {
+    final result = await _channel.invokeMethod('get_page_text_in_rect', {
+      'page_index': pageIndex,
+      'rect': rect.toJson(),
+    });
+    return result ?? '';
+  }
+
+  /// Retrieves all text lines on the current page.
+  ///
+  /// Each [CPDFTextLine] contains the line range and bounds in page
+  /// coordinates. Use [getTextByLine] to retrieve the text for a line.
+  ///
+  /// example:
+  /// ```dart
+  /// final CPDFPage page = controller.document.pageAtIndex(0);
+  /// final List<CPDFTextLine> lines = await page.getTextLines();
+  /// for (final CPDFTextLine line in lines) {
+  ///   final String lineText = await page.getTextByLine(line);
+  ///   print('line ${line.lineIndex}: $lineText');
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<List<CPDFTextLine>> getTextLines() async {
+    final rawList = await _channel.invokeMethod('get_page_text_lines', {
+      'page_index': pageIndex,
+    });
+    if (rawList is! List) return [];
+    return rawList
+        .whereType<Map>()
+        .map((item) => CPDFTextLine.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  /// Retrieves text for a line returned by [getTextLines].
+  ///
+  /// example:
+  /// ```dart
+  /// final CPDFPage page = controller.document.pageAtIndex(0);
+  /// final List<CPDFTextLine> lines = await page.getTextLines();
+  /// if (lines.isNotEmpty) {
+  ///   final CPDFTextLine firstLine = lines.first;
+  ///   final String text = await page.getTextByLine(firstLine);
+  ///   await controller.setDisplayPageIndex(
+  ///     pageIndex: firstLine.pageIndex,
+  ///     rectList: [firstLine.rect],
+  ///   );
+  ///   print(text);
+  /// }
+  /// ```
+  ///
+  /// Since v2.6.8
+  Future<String> getTextByLine(CPDFTextLine line) async {
+    if (line.pageIndex != pageIndex) {
+      throw ArgumentError(
+          'The line pageIndex (${line.pageIndex}) does not match this pageIndex ($pageIndex).');
+    }
+    return getText(CPDFTextRange(
+      pageIndex: pageIndex,
+      location: line.location,
+      length: line.length,
+    ));
   }
 }
 

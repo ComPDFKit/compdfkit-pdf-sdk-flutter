@@ -151,6 +151,11 @@ public class CPDFConstants {
     public static final String SET_PASSWORD = "set_password";
     public static final String CREATE_WATERMARK = "create_watermark";
     public static final String REMOVE_ALL_WATERMARKS = "remove_all_watermarks";
+    public static final String GET_WATERMARK_COUNT = "get_watermark_count";
+    public static final String GET_WATERMARK = "get_watermark";
+    public static final String GET_WATERMARKS = "get_watermarks";
+    public static final String UPDATE_WATERMARK = "update_watermark";
+    public static final String REMOVE_WATERMARK = "remove_watermark";
     public static final String GET_ENCRYPT_ALGORITHM = "get_encrypt_algorithm";
     public static final String SET_IMPORT_FONT_DIRECTORY = "set_import_font_directory";
     public static final String UPDATE_IMPORT_FONT_DIRECTORY = "update_import_font_directory";
@@ -162,7 +167,17 @@ public class CPDFConstants {
     public static final String IMPORT_DOCUMENT = "import_document";
     public static final String INSERT_BLANK_PAGE = "insert_blank_page";
     public static final String SPLIT_DOCUMENT_PAGES = "split_document_pages";
+    public static final String EXTRACT_IMAGES = "extract_images";
     public static final String GET_ANNOTATIONS = "get_annotations";
+    public static final String ADD_ANNOTATION_REPLY = "add_annotation_reply";
+    public static final String GET_ANNOTATION_REPLIES = "get_annotation_replies";
+    public static final String UPDATE_ANNOTATION_REPLY = "update_annotation_reply";
+    public static final String REMOVE_ANNOTATION_REPLY = "remove_annotation_reply";
+    public static final String REMOVE_ALL_ANNOTATION_REPLIES = "remove_all_annotation_replies";
+    public static final String SET_ANNOTATION_MARK_STATE = "set_annotation_mark_state";
+    public static final String GET_ANNOTATION_MARK_STATE = "get_annotation_mark_state";
+    public static final String SET_ANNOTATION_REVIEW_STATE = "set_annotation_review_state";
+    public static final String GET_ANNOTATION_REVIEW_STATE = "get_annotation_review_state";
     public static final String RENDER_ANNOTATION_APPEARANCE = "render_annotation_appearance";
     public static final String GET_WIDGETS = "get_widgets";
 
@@ -196,6 +211,7 @@ public class CPDFConstants {
     public static final String SET_WIDGET_BACKGROUND_COLOR = "set_widget_background_color";
 
     public static final String INSERT_IMAGE_WITH_PATH = "insert_page_with_image_path";
+    public static final String COPY_PAGE = "copy_page";
     public static final String GET_PAGE_ROTATION = "get_page_rotation";
     public static final String SET_PAGE_ROTATION = "set_page_rotation";
     public static final String REMOVE_PAGES = "remove_pages";
@@ -209,6 +225,9 @@ public class CPDFConstants {
     public static final String SEARCH_TEXT_SELECTION = "search_text_selection";
     public static final String SEARCH_TEXT_CLEAR = "search_text_clear";
     public static final String GET_SEARCH_TEXT = "get_search_text";
+    public static final String GET_PAGE_TEXT = "get_page_text";
+    public static final String GET_PAGE_TEXT_IN_RECT = "get_page_text_in_rect";
+    public static final String GET_PAGE_TEXT_LINES = "get_page_text_lines";
     public static final String GET_DEFAULT_ANNOTATION_ATTR = "get_default_annotation_attr";
     public static final String SET_DEFAULT_ANNOTATION_ATTR = "set_default_annotation_attr";
     public static final String GET_DEFAULT_WIDGET_ATTR = "get_default_widget_attr";
@@ -244,6 +263,7 @@ public class CPDFConstants {
     public static final String PREPARE_NEXT_LINK = "prepare_next_link";
     public static final String UPDATE_EVENT_SUBSCRIPTION = "update_event_subscription";
     public static final String UPDATE_WIDGET = "update_widget";
+    public static final String ADD_WIDGET_IMAGE_SIGNATURE = "add_widget_image_signature";
     public static final String REMOVE_EDIT_AREA = "remove_edit_area";
     public static final String ADD_ANNOTATIONS = "add_annotations";
     public static final String ADD_WIDGETS = "add_widgets";

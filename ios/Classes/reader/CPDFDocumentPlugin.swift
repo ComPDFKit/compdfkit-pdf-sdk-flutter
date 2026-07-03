@@ -224,6 +224,10 @@ public class CPDFDocumentPlugin {
                 let password = info?["password"] as? String ?? ""
                 let isOwnerPassword = self.document?.checkOwnerPassword(password) ?? false
                 result(isOwnerPassword)
+            case CPDFConstants.close:
+                self.document = nil
+                self._methodChannel.setMethodCallHandler(nil)
+                result(true)
             case CPDFConstants.hasChange:
                 let isModified = self.document?.isModified() ?? false
                 result(isModified)
@@ -367,6 +371,21 @@ public class CPDFDocumentPlugin {
                 self.document?.write(to: url, isSaveFontSubset: true)
                 self.pdfViewController?.pdfListView?.layoutDocumentView()
                 result(nil)
+            case CPDFConstants.getWatermarkCount:
+                result(self.document?.watermarks()?.count ?? 0)
+            case CPDFConstants.getWatermark:
+                self.getWatermark(call: call, result: result)
+            case CPDFConstants.getWatermarks:
+                let info = call.arguments as? [String: Any]
+                let exportImages: Bool = self.getValue(from: info, key: "export_images", defaultValue: false)
+                let watermarks = self.document?.watermarks() ?? []
+                result(watermarks.enumerated().map { index, watermark in
+                    self.toWatermarkMap(watermark, index: index, exportImage: exportImages)
+                })
+            case CPDFConstants.updateWatermark:
+                self.updateWatermark(call: call, result: result)
+            case CPDFConstants.removeWatermark:
+                self.removeWatermark(call: call, result: result)
             case CPDFConstants.importWidgets:
                 let importPath = call.arguments as? String ?? ""
                 
@@ -471,6 +490,50 @@ public class CPDFDocumentPlugin {
                 
                 let success = self.document?.insertPage(size, withImage: imagePath, at: UInt(pageIndex))
                 result(success)
+            case CPDFConstants.copyPage:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                var insertIndex = self.getValue(from: info, key: "insert_index", defaultValue: -1)
+                guard let document = self.document else {
+                    result(false)
+                    return
+                }
+
+                let pageCount = Int(document.pageCount)
+                guard pageIndex >= 0 && pageIndex < pageCount else {
+                    result(false)
+                    return
+                }
+
+                if insertIndex == -1 {
+                    insertIndex = pageCount
+                }
+                guard insertIndex >= 0 && insertIndex <= pageCount else {
+                    result(false)
+                    return
+                }
+
+                var sourceIndexSet = IndexSet()
+                sourceIndexSet.insert(pageIndex)
+
+                guard let copiedDocument = CPDFDocument() else {
+                    result(false)
+                    return
+                }
+
+                let copySuccess = copiedDocument.importPages(sourceIndexSet, from: document, at: 0)
+                guard copySuccess else {
+                    result(false)
+                    return
+                }
+
+                var copiedIndexSet = IndexSet()
+                copiedIndexSet.insert(0)
+                let success = document.importPages(copiedIndexSet, from: copiedDocument, at: UInt(insertIndex))
+                if success {
+                    self.pdfViewController?.pdfListView?.layoutDocumentView()
+                }
+                result(success)
             case CPDFConstants.splitDocumentPages:
                 let info = call.arguments as? [String: Any]
                 
@@ -488,6 +551,8 @@ public class CPDFDocumentPlugin {
                 
                 let success = document?.write(to: URL(fileURLWithPath: savePath), isSaveFontSubset: true) ?? false
                 result(success)
+            case CPDFConstants.extractImages:
+                self.extractImages(call: call, result: result)
             case CPDFConstants.getDocumentPath:
                 let path = self.document?.documentURL.path ?? ""
                 result(path)
@@ -537,6 +602,149 @@ public class CPDFDocumentPlugin {
                 let annotations = pageUtil.getAnnotations()
                 
                 result(annotations)
+            case CPDFConstants.addAnnotationReply:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let content = self.getValue(from: info, key: "content", defaultValue: "")
+                let title = self.getValue(from: info, key: "title", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                if let reply = pageUtil.addAnnotationReply(uuid: uuid, content: content, title: title) {
+                    self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                    result(reply)
+                } else {
+                    result(nil)
+                }
+            case CPDFConstants.getAnnotationReplies:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                result(pageUtil.getAnnotationReplies(uuid: uuid))
+            case CPDFConstants.updateAnnotationReply:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let content = self.getValue(from: info, key: "content", defaultValue: "")
+                let title = info?["title"] as? String
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                let success = pageUtil.updateAnnotationReply(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid,
+                    content: content,
+                    title: title
+                )
+                if success {
+                    self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                }
+                result(success)
+            case CPDFConstants.removeAnnotationReply:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                let success = pageUtil.removeAnnotationReply(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid
+                )
+                if success {
+                    self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                }
+                result(success)
+            case CPDFConstants.removeAllAnnotationReplies:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                let success = pageUtil.removeAllAnnotationReplies(uuid: uuid)
+                if success {
+                    self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                }
+                result(success)
+            case CPDFConstants.setAnnotationMarkState:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let state = self.getValue(from: info, key: "mark_state", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                result(pageUtil.setAnnotationMarkState(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid,
+                    state: state
+                ))
+            case CPDFConstants.getAnnotationMarkState:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                result(pageUtil.getAnnotationMarkState(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid
+                ))
+            case CPDFConstants.setAnnotationReviewState:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let state = self.getValue(from: info, key: "review_state", defaultValue: "")
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                result(pageUtil.setAnnotationReviewState(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid,
+                    state: state
+                ))
+            case CPDFConstants.getAnnotationReviewState:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let nativeId = info?["native_id"] as? String
+                let replyKey = info?["reply_key"] as? String
+                let parentUuid = info?["parent_uuid"] as? String
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                result(pageUtil.getAnnotationReviewState(
+                    uuid: uuid,
+                    nativeId: nativeId,
+                    replyKey: replyKey,
+                    parentUuid: parentUuid
+                ))
             case CPDFConstants.getWidgets:
                 let pageIndex = call.arguments as? Int ?? 0
                 let page = self.document?.page(at: UInt(pageIndex))
@@ -638,7 +846,13 @@ public class CPDFDocumentPlugin {
                 let renderWidth = self.getValue(from: info, key: "width", defaultValue: 0)
                 let renderHeight = self.getValue(from: info, key: "height", defaultValue: 0)
                 let compression = self.getValue(from: info, key: "compression", defaultValue: "png")
-                //                let backgroundColor = self.getValue(from: info, key: "background_color", defaultValue: "#FFFFFF")
+                let backgroundColor = self.getValue(from: info, key: "background_color", defaultValue: "#FFFFFF")
+                let drawAnnot = self.getValue(from: info, key: "draw_annot", defaultValue: true)
+                let drawForm = self.getValue(from: info, key: "draw_form", defaultValue: true)
+                // TODO: Apply backgroundColor, drawAnnot, and drawForm when the iOS native renderer supports these options.
+                _ = backgroundColor
+                _ = drawAnnot
+                _ = drawForm
                 print("getPageImageBytes pageIndex:\(pageIndex), width:\(renderWidth), height:\(renderHeight)")
                 guard let document = self.document else {
                     result(["error": "document is nil"])
@@ -748,6 +962,43 @@ public class CPDFDocumentPlugin {
             case CPDFConstants.getSearchText:
                 let info = call.arguments as? [String: Any]
                 result(CPDFSearchUtil.getSearchText(from: self.document, info: info!))
+
+            case CPDFConstants.getPageText:
+                let info = call.arguments as? [String: Any]
+                guard let pageIndex = self.validatedPageIndex(
+                    from: info,
+                    errorCode: "GET_PAGE_TEXT_FAIL",
+                    result: result
+                ) else {
+                    return
+                }
+                result(CPDFPageTextUtil.getPageText(from: self.document, pageIndex: pageIndex))
+
+            case CPDFConstants.getPageTextInRect:
+                let info = call.arguments as? [String: Any]
+                guard let pageIndex = self.validatedPageIndex(
+                    from: info,
+                    errorCode: "GET_PAGE_TEXT_IN_RECT_FAIL",
+                    result: result
+                ) else {
+                    return
+                }
+                result(CPDFPageTextUtil.getPageTextInRect(
+                    from: self.document,
+                    pageIndex: pageIndex,
+                    rectInfo: info?["rect"] as? [String: Any]
+                ))
+
+            case CPDFConstants.getPageTextLines:
+                let info = call.arguments as? [String: Any]
+                guard let pageIndex = self.validatedPageIndex(
+                    from: info,
+                    errorCode: "GET_PAGE_TEXT_LINES_FAIL",
+                    result: result
+                ) else {
+                    return
+                }
+                result(CPDFPageTextUtil.getPageTextLines(from: self.document, pageIndex: pageIndex))
                 
             case CPDFConstants.updateAnnotation:
                 let info = call.arguments as? [String: Any]
@@ -774,6 +1025,22 @@ public class CPDFDocumentPlugin {
                 pageUtil.updateWidget(pageIndex: pageIndex, uuid: uuid, properties: properties)
                 self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
                 result(true)
+                
+            case CPDFConstants.addWidgetImageSignature:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                let imagePath = self.getValue(from: info, key: "image_path", defaultValue: "")
+                
+                let page = self.document?.page(at: UInt(pageIndex))
+                let pageUtil = CPDFPageUtil(page: page)
+                pageUtil.pageIndex = pageIndex
+                pageUtil.addWidgetImageSignature(uuid: uuid, imagePath: URL(fileURLWithPath: imagePath)) { success in
+                    if success {
+                        self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
+                    }
+                    result(success)
+                }
                 
             case CPDFConstants.addAnnotations:
                 let info = call.arguments as? [String: Any]
@@ -812,6 +1079,271 @@ public class CPDFDocumentPlugin {
         return String(describing: pointer)
     }
     
+    private func getWatermark(call: FlutterMethodCall, result: FlutterResult) {
+        guard let watermark = self.watermark(from: call) else {
+            result(nil)
+            return
+        }
+        let info = call.arguments as? [String: Any]
+        let exportImage: Bool = self.getValue(from: info, key: "export_image", defaultValue: false)
+        result(self.toWatermarkMap(watermark, index: self.watermarkIndex(from: call), exportImage: exportImage))
+    }
+
+    private func updateWatermark(call: FlutterMethodCall, result: FlutterResult) {
+        guard let watermark = self.watermark(from: call) else {
+            result(false)
+            return
+        }
+        let info = call.arguments as? [String: Any]
+        let requestedType: String = self.getValue(from: info, key: "type", defaultValue: "")
+        if !requestedType.isEmpty && requestedType != self.watermarkTypeName(watermark.type) {
+            result(false)
+            return
+        }
+        if let validationError = self.validateWatermarkInfo(info, watermark: watermark) {
+            result(FlutterError(code: "WATERMARK_FAIL", message: validationError, details: nil))
+            return
+        }
+        guard self.applyWatermarkInfo(info, to: watermark, result: result) else {
+            return
+        }
+        let success = self.document?.updateWatermark(watermark) ?? false
+        if success {
+            self.pdfViewController?.pdfListView?.layoutDocumentView()
+        }
+        result(success)
+    }
+
+    private func removeWatermark(call: FlutterMethodCall, result: FlutterResult) {
+        guard let watermark = self.watermark(from: call) else {
+            result(false)
+            return
+        }
+        let success = self.document?.removeWatermark(watermark) ?? false
+        if success {
+            self.pdfViewController?.pdfListView?.layoutDocumentView()
+        }
+        result(success)
+    }
+
+    private func watermark(from call: FlutterMethodCall) -> CPDFWatermark? {
+        let index = self.watermarkIndex(from: call)
+        let watermarks = self.document?.watermarks() ?? []
+        guard index >= 0 && index < watermarks.count else {
+            return nil
+        }
+        return watermarks[index]
+    }
+
+    private func watermarkIndex(from call: FlutterMethodCall) -> Int {
+        let info = call.arguments as? [String: Any]
+        return self.getValue(from: info, key: "index", defaultValue: -1)
+    }
+
+    private func toWatermarkMap(_ watermark: CPDFWatermark, index: Int, exportImage: Bool) -> [String: Any] {
+        let exportedImage = self.exportWatermarkImage(watermark, index: index, exportImage: exportImage)
+        return [
+            "index": index,
+            "type": self.watermarkTypeName(watermark.type),
+            "text_content": watermark.text ?? "",
+            "image_path": exportedImage.path,
+            "is_image_exported": exportedImage.exported,
+            "text_color": self.hexString(from: watermark.textColor),
+            "font_size": watermark.fontSize,
+            "scale": watermark.scale,
+            "rotation": watermark.rotation,
+            "opacity": watermark.opacity,
+            "vertical_alignment": self.verticalAlignmentName(watermark.verticalPosition),
+            "horizontal_alignment": self.horizontalAlignmentName(watermark.horizontalPosition),
+            "vertical_offset": watermark.ty,
+            "horizontal_offset": watermark.tx,
+            "pages": watermark.pageString ?? "",
+            "is_front": watermark.isFront,
+            "is_tile_page": watermark.isTilePage,
+            "horizontal_spacing": watermark.horizontalSpacing,
+            "vertical_spacing": watermark.verticalSpacing
+        ]
+    }
+
+    private func exportWatermarkImage(
+        _ watermark: CPDFWatermark,
+        index: Int,
+        exportImage: Bool
+    ) -> (path: String, exported: Bool) {
+        guard exportImage, watermark.type == .image, let image = watermark.image,
+              let imageData = image.pngData() else {
+            return ("", false)
+        }
+        let documentKey = abs((self.document?.documentURL?.path ?? "document").hashValue)
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("compdfkit")
+            .appendingPathComponent("watermarks")
+            .appendingPathComponent("\(documentKey)")
+        do {
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+            let fileName = "watermark_\(index)_\(Int(Date().timeIntervalSince1970 * 1000))_\(UUID().uuidString).png"
+            let fileURL = directory.appendingPathComponent(fileName)
+            try imageData.write(to: fileURL, options: .atomic)
+            return (fileURL.path, true)
+        } catch {
+            NSLog("ComPDFKit-Flutter: Failed to export watermark image: \(error.localizedDescription)")
+            return ("", false)
+        }
+    }
+
+    private func validateWatermarkInfo(
+        _ info: [String: Any]?,
+        watermark: CPDFWatermark
+    ) -> String? {
+        let pages: String = self.getValue(from: info, key: "pages", defaultValue: "")
+        if pages.isEmpty {
+            return "The page range cannot be empty, please set the page range, for example: pages: \"0,1,2,3\""
+        }
+
+        if watermark.type == .text {
+            let textContent: String = self.getValue(from: info, key: "text_content", defaultValue: "")
+            if textContent.isEmpty {
+                return "Add text watermark, the text cannot be empty"
+            }
+        } else if watermark.type == .image {
+            let imagePath: String = self.getValue(from: info, key: "image_path", defaultValue: "")
+            if imagePath.isEmpty && watermark.image == nil {
+                return "image path is empty"
+            }
+        }
+
+        return nil
+    }
+
+    private func applyWatermarkInfo(
+        _ info: [String: Any]?,
+        to watermark: CPDFWatermark,
+        result: FlutterResult
+    ) -> Bool {
+        let pages: String = self.getValue(from: info, key: "pages", defaultValue: "")
+        let textContent: String = self.getValue(from: info, key: "text_content", defaultValue: "")
+        let imagePath: String = self.getValue(from: info, key: "image_path", defaultValue: "")
+        let textColor: String = self.getValue(from: info, key: "text_color", defaultValue: "#000000")
+        let fontSize: Int = self.getValue(from: info, key: "font_size", defaultValue: 30)
+        let scale: Double = self.getValue(from: info, key: "scale", defaultValue: 1.0)
+        let rotation: Double = self.getValue(from: info, key: "rotation", defaultValue: 45.0)
+        let opacity: Double = self.getValue(from: info, key: "opacity", defaultValue: 1.0)
+        let verticalAlignment: String = self.getValue(
+            from: info,
+            key: "vertical_alignment",
+            defaultValue: "center"
+        )
+        let horizontalAlignment: String = self.getValue(
+            from: info,
+            key: "horizontal_alignment",
+            defaultValue: "center"
+        )
+        let verticalOffset: Double = self.getValue(from: info, key: "vertical_offset", defaultValue: 0.0)
+        let horizontalOffset: Double = self.getValue(from: info, key: "horizontal_offset", defaultValue: 0.0)
+        let isFront: Bool = self.getValue(from: info, key: "is_front", defaultValue: true)
+        let isTilePage: Bool = self.getValue(from: info, key: "is_tile_page", defaultValue: false)
+        let horizontalSpacing: Double = self.getValue(from: info, key: "horizontal_spacing", defaultValue: 0.0)
+        let verticalSpacing: Double = self.getValue(from: info, key: "vertical_spacing", defaultValue: 0.0)
+
+        if watermark.type == .text {
+            watermark.text = textContent
+            watermark.cFont = CPDFFont(familyName: "Helvetica", fontStyle: "")
+            watermark.fontSize = CGFloat(fontSize)
+            watermark.textColor = ColorHelper.colorWithHexString(hex: textColor)
+        } else if watermark.type == .image {
+            if !imagePath.isEmpty {
+                guard let image = UIImage(contentsOfFile: imagePath) else {
+                    result(FlutterError(code: "WATERMARK_FAIL", message: "image path is invalid", details: nil))
+                    return false
+                }
+                watermark.image = image
+            }
+        }
+        watermark.opacity = opacity
+        watermark.scale = scale
+        watermark.isTilePage = isTilePage
+        watermark.isFront = isFront
+        watermark.tx = horizontalOffset
+        watermark.ty = verticalOffset
+        watermark.rotation = rotation
+        watermark.pageString = pages
+        watermark.horizontalPosition = self.watermarkHorizontalPosition(horizontalAlignment)
+        watermark.verticalPosition = self.watermarkVerticalPosition(verticalAlignment)
+        if isTilePage {
+            watermark.verticalSpacing = verticalSpacing
+            watermark.horizontalSpacing = horizontalSpacing
+        }
+        return true
+    }
+
+    private func watermarkTypeName(_ type: CPDFWatermarkType) -> String {
+        return type == .image ? "image" : "text"
+    }
+
+    private func watermarkVerticalPosition(_ value: String) -> CPDFWatermarkVerticalPosition {
+        if value == "top" {
+            return .top
+        }
+        if value == "bottom" {
+            return .bottom
+        }
+        return .center
+    }
+
+    private func watermarkHorizontalPosition(_ value: String) -> CPDFWatermarkHorizontalPosition {
+        if value == "left" {
+            return .left
+        }
+        if value == "right" {
+            return .right
+        }
+        return .center
+    }
+
+    private func verticalAlignmentName(_ position: CPDFWatermarkVerticalPosition) -> String {
+        switch position {
+        case .top:
+            return "top"
+        case .bottom:
+            return "bottom"
+        default:
+            return "center"
+        }
+    }
+
+    private func horizontalAlignmentName(_ position: CPDFWatermarkHorizontalPosition) -> String {
+        switch position {
+        case .left:
+            return "left"
+        case .right:
+            return "right"
+        default:
+            return "center"
+        }
+    }
+
+    private func hexString(from color: UIColor?) -> String {
+        guard let color = color else {
+            return "#000000"
+        }
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return String(
+            format: "#%02X%02X%02X%02X",
+            Int(alpha * 255),
+            Int(red * 255),
+            Int(green * 255),
+            Int(blue * 255)
+        )
+    }
+
     private func createWatermark(call: FlutterMethodCall, result: FlutterResult) {
         let info = call.arguments as? [String: Any]
         // text, image
@@ -906,7 +1438,6 @@ public class CPDFDocumentPlugin {
             }
             
             self.document?.addWatermark(textWatermark)
-            self.document?.updateWatermark(textWatermark)
         } else if type == "image" {
             let imageWatermark = CPDFWatermark(document: self.document, type: .image)
             
@@ -917,6 +1448,7 @@ public class CPDFDocumentPlugin {
             imageWatermark?.isFront = isFront
             imageWatermark?.tx = horizontalOffset
             imageWatermark?.ty = verticalOffset
+
             imageWatermark?.rotation = rotation
             imageWatermark?.pageString = pages
             imageWatermark?.horizontalPosition = horizontal
@@ -928,7 +1460,6 @@ public class CPDFDocumentPlugin {
             }
             
             self.document?.addWatermark(imageWatermark)
-            self.document?.updateWatermark(imageWatermark)
         }
         
         
@@ -940,6 +1471,144 @@ public class CPDFDocumentPlugin {
             return defaultValue
         }
         return value
+    }
+
+    private func extractImages(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let info = call.arguments as? [String: Any]
+        let directoryPath = self.getValue(from: info, key: "directory_path", defaultValue: "")
+
+        guard !directoryPath.isEmpty else {
+            result(FlutterError(
+                code: "EXTRACT_IMAGES_FAIL",
+                message: "directory_path is empty",
+                details: nil))
+            return
+        }
+
+        guard let document = self.document else {
+            result(FlutterError(
+                code: "EXTRACT_IMAGES_FAIL",
+                message: "document is nil",
+                details: nil))
+            return
+        }
+
+        let pages = self.getValue(from: info, key: "pages", defaultValue: [Int]())
+        guard let indexSet = self.extractImageIndexSet(
+            pages: pages,
+            pageCount: Int(document.pageCount),
+            result: result
+        ) else {
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let fileManager = FileManager.default
+                if fileManager.fileExists(atPath: directoryPath) {
+                    var isDirectory: ObjCBool = false
+                    fileManager.fileExists(atPath: directoryPath, isDirectory: &isDirectory)
+                    if !isDirectory.boolValue {
+                        DispatchQueue.main.async {
+                            result(FlutterError(
+                                code: "EXTRACT_IMAGES_FAIL",
+                                message: "directory_path is not a directory: \(directoryPath)",
+                                details: nil))
+                        }
+                        return
+                    }
+                } else {
+                    try fileManager.createDirectory(
+                        atPath: directoryPath,
+                        withIntermediateDirectories: true,
+                        attributes: nil)
+                }
+
+                _ = document.extractImage(fromPages: indexSet, toPath: directoryPath)
+                let imagePaths = self.filePaths(in: directoryPath)
+                let resultMap: [String: Any] = [
+                    "success": true,
+                    "count": imagePaths.count,
+                    "directory_path": directoryPath,
+                    "image_paths": imagePaths
+                ]
+
+                DispatchQueue.main.async {
+                    result(resultMap)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    result(FlutterError(
+                        code: "EXTRACT_IMAGES_FAIL",
+                        message: error.localizedDescription,
+                        details: nil))
+                }
+            }
+        }
+    }
+
+    private func extractImageIndexSet(
+        pages: [Int],
+        pageCount: Int,
+        result: @escaping FlutterResult
+    ) -> IndexSet? {
+        if pages.isEmpty {
+            return IndexSet(integersIn: 0..<pageCount)
+        }
+
+        var indexSet = IndexSet()
+        for page in pages {
+            guard page >= 0 && page < pageCount else {
+                result(FlutterError(
+                    code: "EXTRACT_IMAGES_FAIL",
+                    message: "Invalid page index: \(page)",
+                    details: nil))
+                return nil
+            }
+            indexSet.insert(page)
+        }
+        return indexSet
+    }
+
+    private func filePaths(in directoryPath: String) -> [String] {
+        guard let fileNames = try? FileManager.default.contentsOfDirectory(atPath: directoryPath) else {
+            return []
+        }
+
+        return fileNames.compactMap { fileName in
+            let path = (directoryPath as NSString).appendingPathComponent(fileName)
+            var isDirectory: ObjCBool = false
+            if FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+               !isDirectory.boolValue {
+                return path
+            }
+            return nil
+        }.sorted()
+    }
+
+    private func validatedPageIndex(
+        from info: [String: Any]?,
+        errorCode: String,
+        result: @escaping FlutterResult
+    ) -> Int? {
+        guard let document = self.document else {
+            result(FlutterError(
+                code: errorCode,
+                message: "document is nil",
+                details: nil))
+            return nil
+        }
+
+        let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: -1)
+        guard pageIndex >= 0 && pageIndex < document.pageCount else {
+            result(FlutterError(
+                code: errorCode,
+                message: "Invalid page index: \(pageIndex)",
+                details: nil))
+            return nil
+        }
+
+        return pageIndex
     }
 
     private func renderAnnotationAppearance(call: FlutterMethodCall, result: @escaping FlutterResult) {

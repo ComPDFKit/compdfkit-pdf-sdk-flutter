@@ -11,9 +11,11 @@ import '../shared/category_info.dart';
 import '../shared/example_item.dart';
 import '../shared/example_route_type.dart';
 import 'bookmarks_example.dart';
+import 'create_document_example.dart';
 import 'document_info_example.dart';
 import 'import_export_xfdf_example.dart';
 import 'open_document_example.dart';
+import 'page_thumbnail_provider_example.dart';
 import 'render_page_example.dart';
 import 'search_text_example.dart';
 
@@ -24,6 +26,17 @@ final CategoryInfo documentApiCategory = CategoryInfo(
   icon: Icons.api,
   description: 'Pure API examples using CPDFDocument (no UI widget)',
   examples: [
+    ExampleItem(
+      title: 'Create Document',
+      description: 'Create a new PDF using CPDFDocument',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const CreateDocumentExample(),
+      visual: const ExampleVisual(
+        icon: Icons.note_add,
+        backgroundColor: Color(0xFFE8F5E9),
+        iconColor: Color(0xFF2E7D32),
+      ),
+    ),
     ExampleItem(
       title: 'Open Document',
       description: 'Open PDF using CPDFDocument',
@@ -77,6 +90,17 @@ final CategoryInfo documentApiCategory = CategoryInfo(
         icon: Icons.image,
         backgroundColor: Color(0xFFFFF3E0),
         iconColor: Color(0xFFE65100),
+      ),
+    ),
+    ExampleItem(
+      title: 'Page Thumbnail Provider',
+      description: 'Use an opened document as an ImageProvider thumbnail',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const PageThumbnailProviderExample(),
+      visual: const ExampleVisual(
+        icon: Icons.photo_size_select_actual,
+        backgroundColor: Color(0xFFEDE7F6),
+        iconColor: Color(0xFF5E35B1),
       ),
     ),
     ExampleItem(

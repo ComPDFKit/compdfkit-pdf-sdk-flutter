@@ -36,6 +36,8 @@ class CPDFFreeTextAnnotation extends CPDFAnnotation {
     required super.content,
     required super.uuid,
     super.createDate,
+    super.markState,
+    super.reviewState,
     required super.rect,
     required this.textAttribute,
     this.alpha = 255,
@@ -50,6 +52,8 @@ class CPDFFreeTextAnnotation extends CPDFAnnotation {
       content: common.content,
       uuid: common.uuid,
       createDate: common.createDate,
+      markState: common.markState,
+      reviewState: common.reviewState,
       rect: common.rect,
       textAttribute: CPDFTextAttribute.fromJson(
           Map<String, dynamic>.from(json['textAttribute'] ?? {})),

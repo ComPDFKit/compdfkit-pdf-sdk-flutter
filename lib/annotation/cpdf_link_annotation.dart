@@ -32,6 +32,8 @@ class CPDFLinkAnnotation extends CPDFAnnotation {
     required super.content,
     super.uuid = '',
     super.createDate,
+    super.markState,
+    super.reviewState,
     required super.rect,
     this.action,
   }) : super(type: CPDFAnnotationType.link);
@@ -44,6 +46,8 @@ class CPDFLinkAnnotation extends CPDFAnnotation {
         content: common.content,
         uuid: common.uuid,
         createDate: common.createDate,
+        markState: common.markState,
+        reviewState: common.reviewState,
         rect: common.rect,
         action: json['action'] != null
             ? CPDFAction.fromJson(

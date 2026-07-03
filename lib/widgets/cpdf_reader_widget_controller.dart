@@ -150,6 +150,12 @@ class CPDFReaderWidgetController {
           _eventListeners[CPDFEvent.pencilDrawingCompleted]
               ?.forEach((cb) => cb(map));
           break;
+        case 'pencilDrawingDiscarded':
+          dynamic pencilDrawingData = call.arguments;
+          final map = Map<String, dynamic>.from(pencilDrawingData);
+          _eventListeners[CPDFEvent.pencilDrawingDiscarded]
+              ?.forEach((cb) => cb(map));
+          break;
         case 'annotationsSelected':
           dynamic annotationData = call.arguments;
           final map = Map<String, dynamic>.from(annotationData);

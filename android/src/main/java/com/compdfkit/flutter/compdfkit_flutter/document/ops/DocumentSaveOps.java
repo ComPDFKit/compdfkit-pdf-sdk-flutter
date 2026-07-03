@@ -16,6 +16,7 @@ import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.core.document.CPDFDocument.PDFDocumentSaveType;
 import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
 import com.compdfkit.flutter.compdfkit_flutter.document.resolver.CPDFDocumentSourceResolver;
+import com.compdfkit.tools.common.views.pdfview.CPDFViewCtrl;
 import io.flutter.plugin.common.MethodChannel;
 
 public final class DocumentSaveOps {
@@ -26,8 +27,9 @@ public final class DocumentSaveOps {
     public static void save(@NonNull CPDFDocumentContext context, boolean saveIncremental,
             boolean fontSubSet, @NonNull MethodChannel.Result result) {
         CPDFDocument document = context.requireDocument();
-        if (context.getPdfView() != null) {
-            context.getPdfView().savePDF(saveIncremental, fontSubSet, (s, uri) -> result.success(true),
+        CPDFViewCtrl pdfView = context.getPdfView();
+        if (pdfView != null) {
+            pdfView.savePDF(saveIncremental, fontSubSet, (s, uri) -> result.success(true),
                     e -> result.success(false));
             return;
         }
@@ -52,8 +54,9 @@ public final class DocumentSaveOps {
     public static boolean saveAs(@NonNull CPDFDocumentContext context, @NonNull String savePath,
             boolean removeSecurity, boolean fontSubSet) throws CPDFDocumentException {
         CPDFDocument document = context.requireDocument();
-        if (context.getPdfView() != null) {
-            context.getPdfView().exitEditMode();
+        CPDFViewCtrl pdfView = context.getPdfView();
+        if (pdfView != null) {
+            pdfView.exitEditMode();
         }
         boolean saveResult;
         if (CPDFDocumentSourceResolver.isContentSource(savePath)) {

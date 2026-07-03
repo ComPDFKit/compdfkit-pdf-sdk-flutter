@@ -18,7 +18,6 @@ import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 /// An image-based stamp/annotation that extends [CPDFAnnotation].
 ///
 /// Key properties:
-/// - [image]: Deprecated legacy Base64-encoded image string.
 /// - [imageData]: Preferred image source descriptor.
 ///
 /// Serialization:
@@ -27,15 +26,6 @@ import 'package:compdfkit_flutter/util/cpdf_rectf.dart';
 ///
 /// {@category annotations}
 class CPDFImageAnnotation extends CPDFAnnotation {
-  /// Legacy Base64 encoded image string representing the image annotation.
-  ///
-  /// Deprecated: Use [imageData] instead.
-  ///
-  /// for example:iVBORw0KGgoAAAANSUhEUgAAAgIAAABzCAY...
-  @Deprecated(
-      'Use imageData instead. This legacy Base64 field will be removed in a future release.')
-  final String? image;
-
   /// Preferred image source for this annotation.
   final CPDFImageData? imageData;
 
@@ -43,12 +33,11 @@ class CPDFImageAnnotation extends CPDFAnnotation {
       {super.title,
       super.content,
       super.createDate,
+      super.markState,
+      super.reviewState,
       required super.page,
       super.uuid = '',
       required super.rect,
-      @Deprecated(
-        'Use imageData instead. This legacy Base64 field will be removed in a future release.')
-      this.image,
       this.imageData})
       : super(type: CPDFAnnotationType.pictures);
 
@@ -268,19 +257,23 @@ class CPDFImageAnnotation extends CPDFAnnotation {
   factory CPDFImageAnnotation.fromJson(Map<String, dynamic> json) {
     final common = CPDFAnnotation.fromJson(json);
     final imageDataJson = json['imageData'];
+    final legacyImage = json['image'];
     return CPDFImageAnnotation(
       title: common.title,
       content: common.content,
       createDate: common.createDate,
+      markState: common.markState,
+      reviewState: common.reviewState,
       page: common.page,
       uuid: common.uuid,
       rect: common.rect,
-      image: json['image'],
       imageData: imageDataJson is Map<String, dynamic>
           ? CPDFImageData.fromJson(imageDataJson)
           : imageDataJson is Map
               ? CPDFImageData.fromJson(Map<String, dynamic>.from(imageDataJson))
-              : null,
+              : legacyImage is String && legacyImage.isNotEmpty
+                  ? _legacyImageToImageData(legacyImage)
+                  : null,
     );
   }
 
@@ -288,9 +281,15 @@ class CPDFImageAnnotation extends CPDFAnnotation {
   Map<String, dynamic> toJson() {
     return {
       ...super.toJson(),
-      'image': image,
       'imageData': imageData?.toJson(),
       'stampType': 'image',
     };
   }
+}
+
+CPDFImageData _legacyImageToImageData(String legacyImage) {
+  if (legacyImage.startsWith('data:')) {
+    return CPDFImageData.fromDataUri(legacyImage);
+  }
+  return CPDFImageData.fromBase64(legacyImage);
 }

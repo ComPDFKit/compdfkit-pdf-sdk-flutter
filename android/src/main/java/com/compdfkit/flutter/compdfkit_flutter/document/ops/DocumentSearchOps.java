@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import com.compdfkit.core.document.CPDFDocument;
 import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
 import com.compdfkit.flutter.compdfkit_flutter.utils.CPDFSearchUtil;
+import com.compdfkit.ui.reader.CPDFReaderView;
 import com.compdfkit.ui.textsearch.CPDFTextSearcher;
 import com.compdfkit.ui.textsearch.ITextSearcher;
 import io.flutter.plugin.common.MethodCall;
@@ -48,8 +49,9 @@ public final class DocumentSearchOps {
 
     private static ITextSearcher resolveTextSearcher(@NonNull CPDFDocumentContext context,
             @NonNull CPDFDocument document) {
-        if (context.getReaderView() != null) {
-            return context.getReaderView().getTextSearcher();
+        CPDFReaderView readerView = context.getReaderView();
+        if (readerView != null) {
+            return readerView.getTextSearcher();
         }
         return new CPDFTextSearcher(context.getContext(), document);
     }

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import '../shared/category_info.dart';
 import '../shared/example_item.dart';
 import '../shared/example_route_type.dart';
-import 'add_watermark_example.dart';
+import 'watermark_example.dart';
 import 'digital_signature_example.dart';
 import 'document_permissions_example.dart';
 import 'remove_password_example.dart';
@@ -48,10 +48,10 @@ final CategoryInfo securityCategory = CategoryInfo(
       ),
     ),
     ExampleItem(
-      title: 'Add Watermark',
-      description: 'Add text or image watermark',
+      title: 'Watermark',
+      description: 'Add, inspect, update, or remove watermarks',
       routeType: ExampleRouteType.pageBuilder,
-      pageBuilder: (context) => const AddWatermarkExample(),
+      pageBuilder: (context) => const WatermarkExample(),
       visual: const ExampleVisual(
         icon: Icons.water_drop,
         backgroundColor: Color(0xFFE0F2F1),

@@ -222,44 +222,44 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 }
             });
 
-            readerView.setSelectAnnotCallback(new CPDFSelectAnnotCallback() {
-                @Override
-                public void onAnnotationSelected(CPDFPageView cpdfPageView,
+            documentFragment.pdfView.addOnPDFSelectAnnotChangeListener(
+                new CPDFSelectAnnotCallback() {
+                    @Override
+                    public void onAnnotationSelected(CPDFPageView cpdfPageView,
                         CPDFBaseAnnotImpl<CPDFAnnotation> cpdfBaseAnnot) {
-                    String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
-                            ? "formFieldsSelected" : "annotationsSelected";
-                    // Only parse and send data when event is subscribed
-                        if (viewContext.getSubscribedEvents().contains(eventName)) {
-                        HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
-                            viewContext.getDocumentPlugin(),
-                                documentFragment.pdfView.getCPdfReaderView()
-                                        .getPDFDocument(),
-                                cpdfBaseAnnot.onGetAnnotation());
-                        ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
-                            eventName, annotData);
-                    }
-                }
-
-                @Override
-                public void onAnnotationDeselected(CPDFPageView cpdfPageView,
-                        @Nullable CPDFBaseAnnotImpl<CPDFAnnotation> cpdfBaseAnnot) {
-                    if (cpdfBaseAnnot != null) {
                         String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
-                                ? "formFieldsDeselected" : "annotationsDeselected";
+                            ? "formFieldsSelected" : "annotationsSelected";
                         // Only parse and send data when event is subscribed
                         if (viewContext.getSubscribedEvents().contains(eventName)) {
                             HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
                                 viewContext.getDocumentPlugin(),
-                                    documentFragment.pdfView.getCPdfReaderView()
-                                            .getPDFDocument(),
-                                    cpdfBaseAnnot.onGetAnnotation());
+                                documentFragment.pdfView.getCPdfReaderView()
+                                    .getPDFDocument(),
+                                cpdfBaseAnnot.onGetAnnotation());
                             ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
-                                    eventName, annotData);
+                                eventName, annotData);
                         }
                     }
-                }
-            });
 
+                    @Override
+                    public void onAnnotationDeselected(CPDFPageView cpdfPageView,
+                        @Nullable CPDFBaseAnnotImpl<CPDFAnnotation> cpdfBaseAnnot) {
+                        if (cpdfBaseAnnot != null) {
+                            String eventName = cpdfBaseAnnot.getAnnotType() == Type.WIDGET
+                                ? "formFieldsDeselected" : "annotationsDeselected";
+                            // Only parse and send data when event is subscribed
+                            if (viewContext.getSubscribedEvents().contains(eventName)) {
+                                HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
+                                    viewContext.getDocumentPlugin(),
+                                    documentFragment.pdfView.getCPdfReaderView()
+                                        .getPDFDocument(),
+                                    cpdfBaseAnnot.onGetAnnotation());
+                                ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                                    eventName, annotData);
+                            }
+                        }
+                    }
+                });
             pdfView.addSelectEditAreaChangeListener(type -> {
                 if (type == CEditToolbar.SELECT_AREA_NONE) {
                     // Only send event when subscribed
@@ -292,6 +292,8 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                 Map<String, Object> map = new HashMap<>();
                 if (type == CAnnotationType.PIC) {
                     map.put("type", "pictures");
+                } else if (type == CAnnotationType.TEXT) {
+                    map.put("type", "note");
                 } else {
                     map.put("type", type.name().toLowerCase());
                 }

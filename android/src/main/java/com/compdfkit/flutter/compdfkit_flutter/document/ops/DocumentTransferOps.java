@@ -21,6 +21,7 @@ import com.compdfkit.flutter.compdfkit_flutter.document.resolver.CPDFDocumentSou
 import com.compdfkit.flutter.compdfkit_flutter.utils.FileUtils;
 import com.compdfkit.tools.annotation.pdfannotationlist.data.CPDFAnnotDatas;
 import com.compdfkit.tools.common.utils.CFileUtils;
+import com.compdfkit.ui.reader.CPDFReaderView;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -46,8 +47,9 @@ public final class DocumentTransferOps {
 
             boolean importResult = document.importAnnotations(xfdfFilePath,
                     cacheFile.getAbsolutePath());
-            if (importResult && context.getReaderView() != null) {
-                context.getReaderView().reloadPages();
+            CPDFReaderView readerView = context.getReaderView();
+            if (importResult && readerView != null) {
+                readerView.reloadPages();
             }
             return importResult;
         } catch (Exception e) {
@@ -87,8 +89,9 @@ public final class DocumentTransferOps {
                 return false;
             }
             boolean importResult = CPDFAnnotDatas.importWidgets(document, xfdfFilePath);
-            if (importResult && context.getReaderView() != null) {
-                context.getReaderView().reloadPages();
+            CPDFReaderView readerView = context.getReaderView();
+            if (importResult && readerView != null) {
+                readerView.reloadPages();
             }
             return importResult;
         } catch (Exception e) {
@@ -168,8 +171,9 @@ public final class DocumentTransferOps {
                     : insertPosition;
             boolean importResult = document.importPages(importDocument, pagesArray,
                     resolvedInsertPosition);
-            if (importResult && context.getReaderView() != null) {
-                context.getReaderView().reloadPages();
+            CPDFReaderView readerView = context.getReaderView();
+            if (importResult && readerView != null) {
+                readerView.reloadPages();
             }
             return importResult;
         } finally {
