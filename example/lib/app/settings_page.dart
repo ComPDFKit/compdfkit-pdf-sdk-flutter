@@ -22,8 +22,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _highlightLink = false;
-  bool _highlightForm = false;
+  bool _highlightLink = true;
+  bool _highlightForm = true;
   String _documentAuthor = '';
   late final Future<String?> _sdkVersionFuture = _loadSdkVersion();
 

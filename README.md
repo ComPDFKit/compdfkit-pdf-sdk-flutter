@@ -157,7 +157,7 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* A minSdkVersion of `21` or higher.
+* A minSdkVersion of `23` or higher.
 * A `compileSdkVersion` of `34` or higher.
 * A `targetSdkVersion` of `34` or higher.
 * Android ABI(s): x86, x86_64, armeabi-v7a, arm64-v8a.
@@ -230,7 +230,7 @@ open android/app/build.gradle
  android {
      defaultConfig {
 -        minSdkVersion flutter.minSdkVersion
-+        minSdkVersion 21
++        minSdkVersion 23
          ...
      }
  }
@@ -268,7 +268,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.6.9
++  compdfkit_flutter: ^3.0.0
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -315,7 +315,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^2.6.9
++  compdfkit_flutter: ^3.0.0
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -337,8 +337,8 @@ open ios/Podfile
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.6.9'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '2.6.9'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.0.0'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.0.0'
  end
 ```
 

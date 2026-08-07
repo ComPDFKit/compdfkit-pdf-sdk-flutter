@@ -404,9 +404,6 @@ class CPDFDocument {
     return await _channel.invokeMethod('create_watermark', watermark.toJson());
   }
 
-  // Temporarily hidden from the public API. Keep the implementation here so it
-  // can be restored in a future release.
-  /*
   /// Gets the number of watermarks in the current document.
   ///
   /// **Returns:** The watermark count.
@@ -451,6 +448,7 @@ class CPDFDocument {
       'index': index,
       'export_image': exportImage,
     });
+    _debugPrintWatermarkData('getWatermark result', result);
     if (result is! Map) {
       return null;
     }
@@ -481,6 +479,7 @@ class CPDFDocument {
     final result = await _channel.invokeMethod('get_watermarks', {
       'export_images': exportImages,
     });
+    _debugPrintWatermarkData('getWatermarks result', result);
     if (result is! List) {
       return <CPDFWatermark>[];
     }
@@ -550,7 +549,6 @@ class CPDFDocument {
   Future<bool> removeWatermark(int index) async {
     return await _channel.invokeMethod('remove_watermark', {'index': index});
   }
-  */
 
   /// remove all watermark
   ///
@@ -560,6 +558,11 @@ class CPDFDocument {
   /// ```
   Future<void> removeAllWatermarks() async {
     return await _channel.invokeMethod('remove_all_watermarks');
+  }
+
+  void _debugPrintWatermarkData(String label, Object? data) {
+    final formattedData = const JsonEncoder.withIndent('  ').convert(data);
+    debugPrint('$label:\n$formattedData');
   }
 
   Future<void> close() async {

@@ -68,8 +68,7 @@ public final class DocumentWatermarkOps {
                     result.error(ERROR_WATERMARK_FAIL, "Failed to create watermark", "");
                     return;
                 }
-                watermark.update();
-                watermark.release();
+                watermark.create();
                 reloadPagesIfAttached(context);
                 result.success(true);
             });
@@ -81,8 +80,7 @@ public final class DocumentWatermarkOps {
             result.error(ERROR_WATERMARK_FAIL, "Failed to create watermark", "");
             return;
         }
-        watermark.update();
-        watermark.release();
+        watermark.create();
         reloadPagesIfAttached(context);
         result.success(true);
     }
@@ -202,7 +200,8 @@ public final class DocumentWatermarkOps {
                 watermarkCount--) {
             CPDFWatermark watermark = document.getWatermark(watermarkCount - 1);
             if (watermark != null) {
-                watermark.clear();
+                boolean clearResult = watermark.clear();
+                Log.i("水印", "移除结果:" + clearResult);
                 watermark.release();
             }
         }

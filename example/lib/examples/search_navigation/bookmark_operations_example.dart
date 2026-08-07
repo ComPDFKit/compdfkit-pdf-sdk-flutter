@@ -144,7 +144,7 @@ class _BookmarkOperationsPageState
       return;
     }
     final result = await controller.document.addBookmark(
-      title: 'ComPDFKit Bookmark',
+      title: 'ComPDF Bookmark',
       pageIndex: pageIndex,
     );
     debugPrint('Add bookmark result: $result');

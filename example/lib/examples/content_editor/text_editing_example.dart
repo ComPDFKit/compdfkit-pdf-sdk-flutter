@@ -64,6 +64,7 @@ class _TextEditingPageState extends ExampleBaseState<_TextEditingPage> {
   static const List<String> _menuActions = [
     'Enter Text Editing',
     'Insert Text',
+    'Search'
   ];
 
   @override
@@ -77,6 +78,10 @@ class _TextEditingPageState extends ExampleBaseState<_TextEditingPage> {
         ),
         annotationsConfig: CPDFAnnotationsConfig(
           annotationAuthor: PreferencesService.documentAuthor,
+        ),
+        toolbarConfig: CPDFToolbarConfig(
+          mainToolbarVisible:false,
+          contentEditorToolbarVisible: false,
         ),
         readerViewConfig: CPDFReaderViewConfig(
           linkHighlight: PreferencesService.highlightLink,
@@ -96,6 +101,9 @@ class _TextEditingPageState extends ExampleBaseState<_TextEditingPage> {
       case 'Insert Text':
         _insertText(controller);
         break;
+      case 'Search':
+        controller.showTextSearchView();
+        break;
     }
   }
 
@@ -110,7 +118,7 @@ class _TextEditingPageState extends ExampleBaseState<_TextEditingPage> {
   Future<void> _insertText(CPDFReaderWidgetController controller) async {
     final result = await controller.document.createNewTextArea(
       pageIndex: 0,
-      content: 'ComPDFKit Insert Text Example',
+      content: 'ComPDF Insert Text Example',
       offset: const Offset(50, 800),
       maxWidth: 300,
       attr: const CPDFEditorTextAttr(

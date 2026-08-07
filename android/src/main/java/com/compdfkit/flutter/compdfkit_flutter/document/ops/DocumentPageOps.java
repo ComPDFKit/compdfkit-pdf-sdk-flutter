@@ -123,9 +123,8 @@ public final class DocumentPageOps {
         if (targetIndex < 0 || targetIndex > pageCount) {
             return false;
         }
-        CPDFPage copiedPage = document.copyPage(pageIndex);
-        return copiedPage != null && copiedPage.isValid()
-                && document.addPage(copiedPage, targetIndex);
+        CPDFPage copiedPage = document.copyPage(pageIndex, targetIndex);
+        return copiedPage != null && copiedPage.isValid();
     }
 
     public static int getPageRotation(@NonNull CPDFDocumentContext context, int pageIndex) {

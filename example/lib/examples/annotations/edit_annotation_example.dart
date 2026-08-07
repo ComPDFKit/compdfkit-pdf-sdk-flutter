@@ -119,7 +119,7 @@ class _EditAnnotationPageState extends ExampleBaseState<_EditAnnotationPage> {
     // ==================== Edit Annotation Properties ====================
     for (var annotation in annotations) {
       // Update common properties
-      annotation.title = 'ComPDFKit-A';
+      annotation.title = 'ComPDF-A';
       annotation.content = 'update ${annotation.type.name} annotation';
 
       // Update type-specific properties

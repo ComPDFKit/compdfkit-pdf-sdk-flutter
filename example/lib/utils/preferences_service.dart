@@ -52,9 +52,9 @@ class PreferencesService {
 
   /// Gets the highlight link setting.
   ///
-  /// Returns false if not set.
+  /// Returns true if not set.
   static bool get highlightLink {
-    return _prefs?.getBool(_keyHighlightLink) ?? false;
+    return _prefs?.getBool(_keyHighlightLink) ?? true;
   }
 
   /// Sets the highlight link setting.
@@ -67,9 +67,9 @@ class PreferencesService {
 
   /// Gets the highlight form setting.
   ///
-  /// Returns false if not set.
+  /// Returns true if not set.
   static bool get highlightForm {
-    return _prefs?.getBool(_keyHighlightForm) ?? false;
+    return _prefs?.getBool(_keyHighlightForm) ?? true;
   }
 
   /// Sets the highlight form setting.

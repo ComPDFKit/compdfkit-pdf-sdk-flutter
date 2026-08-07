@@ -44,13 +44,13 @@ class HomeHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ComPDFKit',
+                    'ComPDF',
                     style: textTheme.titleLarge
                         ?.copyWith(fontSize: 22, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'ComPDFKit Flutter Demo',
+                    'Flutter PDF SDK · Examples',
                     style: textTheme.bodySmall?.copyWith(
                       fontSize: 13,
                       color: colorScheme.onSurfaceVariant,

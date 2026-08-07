@@ -39,7 +39,6 @@ class CPDFUriAction extends CPDFAction {
       : uri = 'mailto:$email',
         super(actionType: CPDFActionType.uri);
 
-  @override
   factory CPDFUriAction.fromJson(Map<String, dynamic> json) {
     return CPDFUriAction(uri: json["uri"] ?? '');
   }

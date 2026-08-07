@@ -367,8 +367,6 @@ public class CPDFDocumentPlugin {
                 for watermark in watrmarks {
                     self.document?.removeWatermark(watermark)
                 }
-                let url = self.document?.documentURL
-                self.document?.write(to: url, isSaveFontSubset: true)
                 self.pdfViewController?.pdfListView?.layoutDocumentView()
                 result(nil)
             case CPDFConstants.getWatermarkCount:
@@ -1086,7 +1084,13 @@ public class CPDFDocumentPlugin {
         }
         let info = call.arguments as? [String: Any]
         let exportImage: Bool = self.getValue(from: info, key: "export_image", defaultValue: false)
-        result(self.toWatermarkMap(watermark, index: self.watermarkIndex(from: call), exportImage: exportImage))
+        let watermarkInfo = self.toWatermarkMap(
+            watermark,
+            index: self.watermarkIndex(from: call),
+            exportImage: exportImage
+        )
+        self.debugPrintWatermarkData("getWatermark result", data: watermarkInfo)
+        result(watermarkInfo)
     }
 
     private func updateWatermark(call: FlutterMethodCall, result: FlutterResult) {
@@ -1161,8 +1165,18 @@ public class CPDFDocumentPlugin {
             "is_front": watermark.isFront,
             "is_tile_page": watermark.isTilePage,
             "horizontal_spacing": watermark.horizontalSpacing,
-            "vertical_spacing": watermark.verticalSpacing
+            "vertical_spacing": watermark.verticalSpacing,
         ]
+    }
+
+    private func debugPrintWatermarkData(_ label: String, data: [String: Any]) {
+        guard JSONSerialization.isValidJSONObject(data),
+              let jsonData = try? JSONSerialization.data(withJSONObject: data, options: [.prettyPrinted]),
+              let jsonString = String(data: jsonData, encoding: .utf8) else {
+            print("ComPDFKit-Flutter: \(label): \(data)")
+            return
+        }
+        print("ComPDFKit-Flutter: \(label):\\n\(jsonString)")
     }
 
     private func exportWatermarkImage(
@@ -1251,7 +1265,6 @@ public class CPDFDocumentPlugin {
 
         if watermark.type == .text {
             watermark.text = textContent
-            watermark.cFont = CPDFFont(familyName: "Helvetica", fontStyle: "")
             watermark.fontSize = CGFloat(fontSize)
             watermark.textColor = ColorHelper.colorWithHexString(hex: textColor)
         } else if watermark.type == .image {
@@ -1345,6 +1358,10 @@ public class CPDFDocumentPlugin {
     }
 
     private func createWatermark(call: FlutterMethodCall, result: FlutterResult) {
+        guard let document = self.document else {
+            result(false)
+            return
+        }
         let info = call.arguments as? [String: Any]
         // text, image
         let type : String = self.getValue(from: info, key: "type", defaultValue: "")
@@ -1394,7 +1411,7 @@ public class CPDFDocumentPlugin {
         default:
             horizontal = .center
         }
-        
+        print("createWatermark: Pages: \(pages)")
         if(pages.isEmpty){
             result(FlutterError(code: "WATERMARK_FAIL", message: "The page range cannot be empty, please set the page range, for example: pages: \"0,1,2,3\"", details: nil))
             return
@@ -1413,57 +1430,69 @@ public class CPDFDocumentPlugin {
         }
         
         if type == "text" {
-            let textWatermark = CPDFWatermark(document: self.document, type: .text)
+            guard let textWatermark = CPDFWatermark(document: document, type: .text) else {
+                result(false)
+                return
+            }
             
-            textWatermark?.text = textContent
-            print("textColor:\(textColor)")
+            textWatermark.text = textContent
             let font = CPDFFont(familyName: "Helvetica", fontStyle: "")
-            textWatermark?.cFont = font
-            textWatermark?.opacity = opacity
-            textWatermark?.fontSize = CGFloat(fontSize)
-            textWatermark?.textColor = ColorHelper.colorWithHexString(hex: textColor)
-            textWatermark?.scale = scale
-            textWatermark?.isTilePage = isTilePage
-            textWatermark?.isFront = isFront
-            textWatermark?.tx = horizontalOffset
-            textWatermark?.ty = verticalOffset
-            textWatermark?.rotation = rotation
-            textWatermark?.pageString = pages
-            textWatermark?.horizontalPosition = horizontal
-            textWatermark?.verticalPosition = vertical
+            textWatermark.cFont = font
+            textWatermark.opacity = opacity
+            textWatermark.fontSize = CGFloat(fontSize)
+            textWatermark.textColor = ColorHelper.colorWithHexString(hex: textColor)
+            textWatermark.scale = scale
+            textWatermark.isTilePage = isTilePage
+            textWatermark.isFront = isFront
+            textWatermark.tx = horizontalOffset
+            textWatermark.ty = verticalOffset
+            textWatermark.rotation = rotation
+            textWatermark.pageString = pages
+            textWatermark.horizontalPosition = horizontal
+            textWatermark.verticalPosition = vertical
             
-            if textWatermark?.isTilePage == true {
-                textWatermark?.verticalSpacing = verticalSpacing
-                textWatermark?.horizontalSpacing = horizontalSpacing
+            if textWatermark.isTilePage {
+                textWatermark.verticalSpacing = verticalSpacing
+                textWatermark.horizontalSpacing = horizontalSpacing
             }
             
-            self.document?.addWatermark(textWatermark)
+            document.addWatermark(textWatermark)
         } else if type == "image" {
-            let imageWatermark = CPDFWatermark(document: self.document, type: .image)
-            
-            imageWatermark?.image = UIImage.init(contentsOfFile: imagePath)
-            imageWatermark?.opacity = opacity
-            imageWatermark?.scale = scale
-            imageWatermark?.isTilePage = isTilePage
-            imageWatermark?.isFront = isFront
-            imageWatermark?.tx = horizontalOffset
-            imageWatermark?.ty = verticalOffset
-
-            imageWatermark?.rotation = rotation
-            imageWatermark?.pageString = pages
-            imageWatermark?.horizontalPosition = horizontal
-            imageWatermark?.verticalPosition = vertical
-            
-            if imageWatermark?.isTilePage == true {
-                imageWatermark?.verticalSpacing = verticalSpacing
-                imageWatermark?.horizontalSpacing = horizontalSpacing
+            guard let image = UIImage(contentsOfFile: imagePath) else {
+                result(FlutterError(code: "WATERMARK_FAIL", message: "image path is invalid", details: nil))
+                return
+            }
+            guard let imageWatermark = CPDFWatermark(document: document, type: .image) else {
+                result(false)
+                return
             }
             
-            self.document?.addWatermark(imageWatermark)
+            imageWatermark.image = image
+            imageWatermark.opacity = opacity
+            imageWatermark.scale = scale
+            imageWatermark.isTilePage = isTilePage
+            imageWatermark.isFront = isFront
+            imageWatermark.tx = horizontalOffset
+            imageWatermark.ty = verticalOffset
+
+            imageWatermark.rotation = rotation
+            imageWatermark.pageString = pages
+            imageWatermark.horizontalPosition = horizontal
+            imageWatermark.verticalPosition = vertical
+            
+            if imageWatermark.isTilePage {
+                imageWatermark.verticalSpacing = verticalSpacing
+                imageWatermark.horizontalSpacing = horizontalSpacing
+            }
+            
+            document.addWatermark(imageWatermark)
+        } else {
+            result(FlutterError(code: "WATERMARK_FAIL", message: "Invalid watermark type", details: nil))
+            return
         }
         
-        
         self.pdfViewController?.pdfListView?.layoutDocumentView()
+        result(true)
     }
     
     func getValue<T>(from info: [String: Any]?, key: String, defaultValue: T) -> T {

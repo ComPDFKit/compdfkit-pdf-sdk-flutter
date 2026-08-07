@@ -16,7 +16,7 @@ class AppConstants {
   // ==================== Company Details ====================
 
   /// Default document author name
-  static const String documentAuthor = 'ComPDFKit';
+  static const String documentAuthor = 'ComPDF';
 
   /// Support email address
   static const String supportEmail = 'support@compdf.com';

@@ -1,6 +1,6 @@
 name: compdfkit_flutter
 description: ComPDFKit for Flutter is a comprehensive SDK that allows you to quickly add PDF functionality to Android and iOS Flutter applications.
-version: 2.6.9
+version: 3.0.0
 homepage: https://www.compdf.com?utm_source=pubdev&utm_medium=dev&utm_campaign=compdf_flutter&ref_platform_id=pubdev_compdfkit
 repository: https://github.com/ComPDFKit/compdfkit-pdf-sdk-flutter
 issue_tracker: https://www.compdf.com?utm_source=pubdev&utm_medium=dev&utm_campaign=compdf_flutter&ref_platform_id=pubdev_compdfkit

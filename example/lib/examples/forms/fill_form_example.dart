@@ -116,7 +116,7 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
 
     for (final widget in widgets) {
       if (widget is CPDFTextWidget) {
-        widget.title = 'TextFields---ComPDFKit';
+        widget.title = 'TextFields---ComPDF';
         widget.fillColor = const Color(0xFFF5F7FA);
         widget.borderColor = const Color(0xFF4A90E2);
         widget.borderWidth = 1;
@@ -128,7 +128,7 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
         widget.familyName = 'Helvetica';
         widget.styleName = 'Regular';
       } else if (widget is CPDFCheckBoxWidget) {
-        widget.title = 'CheckBox---ComPDFKit';
+        widget.title = 'CheckBox---ComPDF';
         widget.fillColor = Colors.white;
         widget.borderColor = const Color(0xFF5CB85C);
         widget.borderWidth = 2;
@@ -136,7 +136,7 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
         widget.checkStyle = CPDFCheckStyle.check;
         widget.isChecked = true;
       } else if (widget is CPDFRadioButtonWidget) {
-        widget.title = 'RadioButton---ComPDFKit';
+        widget.title = 'RadioButton---ComPDF';
         widget.fillColor = Colors.white;
         widget.borderColor = const Color(0xFF5BC0DE);
         widget.borderWidth = 2;
@@ -148,9 +148,9 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
         widget.borderColor = const Color(0xFF9B59B6);
         widget.borderWidth = 1;
         widget.options = [
-          CPDFWidgetItem(text: 'ComPDFKit-Android', value: 'ComPDFKit-Android'),
-          CPDFWidgetItem(text: 'ComPDFKit-Flutter', value: 'ComPDFKit-Flutter'),
-          CPDFWidgetItem(text: 'ComPDFKit-RN', value: 'ComPDFKit-RN'),
+          CPDFWidgetItem(text: 'ComPDF-Android', value: 'ComPDF-Android'),
+          CPDFWidgetItem(text: 'ComPDF-Flutter', value: 'ComPDF-Flutter'),
+          CPDFWidgetItem(text: 'ComPDF-RN', value: 'ComPDF-RN'),
         ];
         widget.selectItemAtIndex = 1;
         widget.familyName = 'Helvetica';
@@ -162,9 +162,9 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
         widget.borderColor = const Color(0xFF3498DB);
         widget.borderWidth = 1;
         widget.options = [
-          CPDFWidgetItem(text: 'ComPDFKit-Android', value: 'ComPDFKit-Android'),
-          CPDFWidgetItem(text: 'ComPDFKit-Flutter', value: 'ComPDFKit-Flutter'),
-          CPDFWidgetItem(text: 'ComPDFKit-RN', value: 'ComPDFKit-RN'),
+          CPDFWidgetItem(text: 'ComPDF-Android', value: 'ComPDF-Android'),
+          CPDFWidgetItem(text: 'ComPDF-Flutter', value: 'ComPDF-Flutter'),
+          CPDFWidgetItem(text: 'ComPDF-RN', value: 'ComPDF-RN'),
         ];
         widget.selectItemAtIndex = 2;
         widget.familyName = 'Helvetica';
@@ -179,7 +179,7 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
         widget.fillColor = const Color(0xFF4A90E2);
         widget.borderColor = const Color(0xFF357ABD);
         widget.borderWidth = 1;
-        widget.buttonTitle = 'ComPDFKit';
+        widget.buttonTitle = 'ComPDF';
         widget.action = CPDFUriAction(uri: 'http://www.compdf.com');
         widget.fontColor = Colors.white;
         widget.fontSize = 14;

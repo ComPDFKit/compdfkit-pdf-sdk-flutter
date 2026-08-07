@@ -25,12 +25,16 @@ import '../shared/example_document_loader.dart';
 /// - Adding image watermarks from asset files with scaling and opacity
 /// - Configuring watermark alignment (horizontal and vertical)
 /// - Applying watermarks to specific pages
+/// - Counting, reading, updating, and removing individual watermarks
 /// - Removing all document watermarks
 ///
 /// Key classes/APIs used:
 /// - [CPDFWatermark.text]: Creates a text-based watermark configuration
 /// - [CPDFWatermark.image]: Creates an image-based watermark configuration
 /// - [CPDFDocument.createWatermark]: Applies watermark to the document
+/// - [CPDFDocument.getWatermarkCount]: Gets the current watermark count
+/// - [CPDFDocument.getWatermark] and [CPDFDocument.getWatermarks]: Read watermarks
+/// - [CPDFDocument.updateWatermark] and [CPDFDocument.removeWatermark]: Modify watermarks
 /// - [CPDFDocument.removeAllWatermarks]: Removes all existing watermarks
 /// - [CPDFWatermarkHorizontalAlignment]: Horizontal positioning options
 /// - [CPDFWatermarkVerticalAlignment]: Vertical positioning options
@@ -40,7 +44,8 @@ import '../shared/example_document_loader.dart';
 /// 2. Tap the menu to select watermark action
 /// 3. Choose "Add Text Watermark" for red "ComPDFKit" text overlay
 /// 4. Choose "Add Image Watermark" for rotated logo overlay
-/// 5. Choose "Remove All Watermarks" to clear existing watermarks
+/// 5. Use the remaining actions to inspect, update, or remove watermarks
+/// 6. Choose "Remove All Watermarks" to clear existing watermarks
 class WatermarkExample extends StatelessWidget {
   /// Constructor
   const WatermarkExample({super.key});
@@ -68,6 +73,11 @@ class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
   static const List<String> _menuActions = [
     'Add Text Watermark',
     'Add Image Watermark',
+    'Get Watermark Count',
+    'Get First Watermark',
+    'Get All Watermarks',
+    'Update First Watermark',
+    'Remove First Watermark',
     'Remove All Watermarks',
   ];
 
@@ -83,6 +93,11 @@ class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
           linkHighlight: PreferencesService.highlightLink,
           formFieldHighlight: PreferencesService.highlightForm,
         ),
+        globalConfig: CPDFGlobalConfig(
+          watermark: CPDFWatermarkConfig(
+            saveAsNewFile: false
+          )
+        ),
       );
 
   @override
@@ -97,6 +112,21 @@ class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
       case 'Add Image Watermark':
         _createImageWatermark(controller);
         break;
+      case 'Get Watermark Count':
+        _getWatermarkCount(controller);
+        break;
+      case 'Get First Watermark':
+        _getFirstWatermark(controller);
+        break;
+      case 'Get All Watermarks':
+        _getAllWatermarks(controller);
+        break;
+      case 'Update First Watermark':
+        _updateFirstWatermark(controller);
+        break;
+      case 'Remove First Watermark':
+        _removeFirstWatermark(controller);
+        break;
       case 'Remove All Watermarks':
         _removeAllWatermarks(controller);
         break;
@@ -108,7 +138,7 @@ class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
   ) async {
     final success = await controller.document.createWatermark(
       CPDFWatermark.text(
-        textContent: 'ComPDFKit',
+        textContent: 'ComPDF',
         scale: 1.0,
         fontSize: 56,
         rotation: 0,
@@ -146,6 +176,61 @@ class _WatermarkPageState extends ExampleBaseState<_WatermarkPage> {
   ) async {
     await controller.document.removeAllWatermarks();
     _showMessage('All watermarks removed');
+  }
+
+  Future<void> _getWatermarkCount(
+    CPDFReaderWidgetController controller,
+  ) async {
+    final count = await controller.document.getWatermarkCount();
+    _showMessage('Watermark count: $count');
+  }
+
+  Future<void> _getFirstWatermark(
+    CPDFReaderWidgetController controller,
+  ) async {
+    final watermark = await controller.document.getWatermark(0, exportImage: true);
+    if (watermark == null) {
+      _showMessage('No watermark found');
+      return;
+    }
+    _showMessage(
+        'First watermark: #${watermark.index} (${watermark.type.name})');
+  }
+
+  Future<void> _getAllWatermarks(
+    CPDFReaderWidgetController controller,
+  ) async {
+    final watermarks = await controller.document.getWatermarks(exportImages: true);
+    _showMessage('Watermarks: ${watermarks.length}');
+  }
+
+  Future<void> _updateFirstWatermark(
+    CPDFReaderWidgetController controller,
+  ) async {
+    final watermark = await controller.document.getWatermark(0, exportImage: true);
+    if (watermark == null) {
+      _showMessage('No watermark to update');
+      return;
+    }
+    final success = await controller.document.updateWatermark(
+      watermark.index,
+      watermark.copyWith(rotation: watermark.rotation + 15),
+    );
+    _showMessage(
+        success ? 'First watermark updated' : 'Failed to update watermark');
+  }
+
+  Future<void> _removeFirstWatermark(
+    CPDFReaderWidgetController controller,
+  ) async {
+    final watermark = await controller.document.getWatermark(0);
+    if (watermark == null) {
+      _showMessage('No watermark to remove');
+      return;
+    }
+    final success = await controller.document.removeWatermark(watermark.index);
+    _showMessage(
+        success ? 'First watermark removed' : 'Failed to remove watermark');
   }
 
   void _showMessage(String message) {

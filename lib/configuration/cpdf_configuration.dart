@@ -238,6 +238,27 @@ class CPDFToolbarConfig {
       };
 }
 
+/// Accessibility configuration for the PDF reader view.
+///
+/// Since v3.0.0, this configuration is currently only supported on Android.
+class CPDFAccessibilityConfig {
+  /// Whether hardware keyboard navigation is enabled.
+  final bool keyboardNavigationEnabled;
+
+  /// Whether TalkBack support is enabled.
+  final bool talkBackEnabled;
+
+  const CPDFAccessibilityConfig({
+    this.keyboardNavigationEnabled = false,
+    this.talkBackEnabled = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'keyboardNavigationEnabled': keyboardNavigationEnabled,
+        'talkBackEnabled': talkBackEnabled,
+      };
+}
+
 /// pdf readerView configuration
 class CPDFReaderViewConfig {
   // Highlight hyperlink annotations in pdf
@@ -310,6 +331,11 @@ class CPDFReaderViewConfig {
   /// Default value: true
   final bool enableDoubleTapZoom;
 
+  /// Accessibility configuration for keyboard navigation and TalkBack.
+  ///
+  /// Since v3.0.0, this configuration is currently only effective on Android.
+  final CPDFAccessibilityConfig accessibilityConfig;
+
   CPDFReaderViewConfig({
     this.linkHighlight = true,
     this.formFieldHighlight = true,
@@ -329,6 +355,7 @@ class CPDFReaderViewConfig {
     this.enableCreateEditTextInput = true,
     this.enableCreateImagePickerDialog = true,
     this.enableDoubleTapZoom = false,
+    this.accessibilityConfig = const CPDFAccessibilityConfig(),
     CPDFUiStyleConfig? uiStyle,
   }) : uiStyle = uiStyle ?? CPDFUiStyleConfig.create();
 
@@ -350,8 +377,9 @@ class CPDFReaderViewConfig {
         'annotationsVisible': annotationsVisible,
         'enableCreateEditTextInput': enableCreateEditTextInput,
         'enableCreateImagePickerDialog': enableCreateImagePickerDialog,
-        'uiStyle': uiStyle.toJson(),
-        'enableDoubleTapZoom': enableDoubleTapZoom
+        'enableDoubleTapZoom': enableDoubleTapZoom,
+        'accessibilityConfig': accessibilityConfig.toJson(),
+        'uiStyle': uiStyle.toJson()
       };
 }
 

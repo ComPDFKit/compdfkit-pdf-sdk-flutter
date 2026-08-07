@@ -164,7 +164,7 @@ class _CreateFormFieldsPageState
         familyName: 'Times',
         styleName: 'Bold',
         options: [
-          CPDFWidgetItem(text: 'ComPDFKit', value: 'ComPDFKit'),
+          CPDFWidgetItem(text: 'ComPDF', value: 'ComPDF'),
           CPDFWidgetItem(text: 'Flutter SDK', value: 'Flutter SDK'),
         ],
         selectItemAtIndex: 0,
@@ -181,7 +181,7 @@ class _CreateFormFieldsPageState
         familyName: 'Times',
         styleName: 'Bold',
         options: [
-          CPDFWidgetItem(text: 'ComPDFKit', value: 'ComPDFKit'),
+          CPDFWidgetItem(text: 'ComPDF', value: 'ComPDF'),
           CPDFWidgetItem(text: 'Flutter SDK', value: 'Flutter SDK'),
         ],
         selectItemAtIndex: 0,

@@ -634,30 +634,35 @@ class CPDFViewCtrlPlugin {
                 result(nil)
             case CPDFConstants.prepareNextSignature:
                 let stringPath = call.arguments as? String ?? ""
-                if let image = UIImage(contentsOfFile: stringPath) {
-                    let annotation = CPDFSignatureAnnotation(document: self.pdfViewController.pdfListView?.document)
-                    if(annotation != nil) {
-                        annotation?.setImage(image)
-                        self.pdfViewController.pdfListView?.addAnnotation = annotation
-                    }
+                if let image = UIImage(contentsOfFile: stringPath),
+                   let pdfListView = self.pdfViewController.pdfListView,
+                   let document = pdfListView.document,
+                   let page = document.page(at: UInt(pdfListView.currentPageIndex)),
+                   let annotation = CPDFSignatureAnnotation(page: page, document: document) {
+                    annotation.setImage(image)
+                    pdfListView.addAnnotation = annotation
                 }
                 
             case CPDFConstants.prepareNextStamp:
                 let mode = call.arguments as? [String: Any] ?? [:]
                 let type = mode["type"] as? String ?? "standard"
+                guard let pdfListView = self.pdfViewController.pdfListView,
+                      let document = pdfListView.document,
+                      let page = document.page(at: UInt(pdfListView.currentPageIndex)) else {
+                    result(nil)
+                    return
+                }
                 if type == "image" {
                     let imagePath = mode["imagePath"] as? String ?? ""
-                    if let image = UIImage(contentsOfFile: imagePath) {
-                        let annotation = CPDFStampAnnotation(document: self.pdfViewController.pdfListView?.document, image: image)
-                        if(annotation != nil) {
-                            self.pdfViewController.pdfListView?.addAnnotation = annotation
-                        }
+                    if let image = UIImage(contentsOfFile: imagePath),
+                       let annotation = CPDFStampAnnotation(page: page, document: document, image: image) {
+                        pdfListView.addAnnotation = annotation
                     }
                 } else if type == "standard" {
                     let stampType = mode["standardStamp"] as? String ?? "Approved"
                     let index = CPDFEnumConvertUtil.stringToStandardStamp(stampType)
-                    let annotation = CPDFStampAnnotation(document: self.pdfViewController.pdfListView?.document, type: index)
-                    self.pdfViewController.pdfListView?.addAnnotation = annotation
+                    let annotation = CPDFStampAnnotation(page: page, document: document, standardType: index)
+                    pdfListView.addAnnotation = annotation
                 } else if type == "text" {
                     let stampText = mode["content"] as? String ?? ""
                     let detailText = mode["date"] as? String ?? ""
@@ -665,16 +670,17 @@ class CPDFViewCtrlPlugin {
                     let stampShapeSting = mode["shape"] as? String ?? "rect"
                     let stampStyle = CPDFEnumConvertUtil.stringToStampStyle(stampStyleSting)
                     let stampShape = CPDFEnumConvertUtil.stringToStampShape(stampShapeSting)
-                    let annotation = CPDFStampAnnotation(document:self.pdfViewController.pdfListView?.document, text: stampText, detailText: detailText, style: stampStyle, shape: stampShape)
-                    self.pdfViewController.pdfListView?.addAnnotation = annotation
+                    let annotation = CPDFStampAnnotation(page: page, document: document, text: stampText, detailText: detailText, style: stampStyle, shape: stampShape)
+                    pdfListView.addAnnotation = annotation
                 }
             case CPDFConstants.prepareNextImage:
                 let stringPath = call.arguments as? String ?? ""
-                if let image = UIImage(contentsOfFile: stringPath) {
-                    let annotation = CPDFStampAnnotation(document: self.pdfViewController.pdfListView?.document, image: image)
-                    if(annotation != nil) {
-                        self.pdfViewController.pdfListView?.addAnnotation = annotation
-                    }
+                if let image = UIImage(contentsOfFile: stringPath),
+                   let pdfListView = self.pdfViewController.pdfListView,
+                   let document = pdfListView.document,
+                   let page = document.page(at: UInt(pdfListView.currentPageIndex)),
+                   let annotation = CPDFStampAnnotation(page: page, document: document, image: image) {
+                    pdfListView.addAnnotation = annotation
                 }
             case CPDFConstants.updateEventSubscription:
                 if let args = call.arguments as? [String: Any],
