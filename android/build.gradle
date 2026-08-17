@@ -58,7 +58,7 @@ android {
         compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:3.0.0'
+        api 'com.compdf:compdfkit-tools:3.0.1'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'
