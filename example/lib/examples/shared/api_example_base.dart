@@ -42,6 +42,13 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
   /// Local PDF document path.
   String documentPath = '';
 
+  /// Whether [document] has been created and opened.
+  ///
+  /// [document] is a `late` field, so anything that touches it before this is
+  /// `true` throws a `LateInitializationError`. Subclasses should use it to
+  /// disable their actions while the sample document is still being extracted.
+  bool isDocumentReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +66,10 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
 
     document = await CPDFDocument.createInstance();
     final error = await document.open(file.path);
+    if (!mounted) {
+      return;
+    }
+    setState(() => isDocumentReady = true);
     applyLog('Open result: ${error.name}');
 
     onDocumentReady();
@@ -70,7 +81,13 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
   void onDocumentReady() {}
 
   /// Add log
+  ///
+  /// Safe to call after an `await`: logging from a task that outlives the page
+  /// is a no-op instead of a `setState() called after dispose()` error.
   void applyLog(String msg) {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       logs.add('$msg\n');
     });
@@ -78,6 +95,9 @@ class ApiExampleBaseState<T extends ApiExampleBase> extends State<T> {
 
   /// Clear logs
   void clearLogs() {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       logs.clear();
     });

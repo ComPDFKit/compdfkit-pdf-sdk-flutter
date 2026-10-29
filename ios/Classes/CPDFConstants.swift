@@ -103,6 +103,16 @@ class CPDFConstants {
     static let showDisplaySettingsView = "show_display_settings_view"
 
     static let showDocumentInfoView = "show_document_info_view"
+    static let generatePkcs12Certificate = "generate_pkcs12_certificate"
+    static let checkPkcs12CertificatePassword = "check_pkcs12_certificate_password"
+    static let loadPkcs12Certificate = "load_pkcs12_certificate"
+    static let configureTrustedCertificateDirectories = "configure_trusted_certificate_directories"
+    static let addTrustedCertificate = "add_trusted_certificate"
+    static let getDigitalSignatures = "get_digital_signatures"
+    static let verifyDigitalSignatureDocument = "verify_digital_signature"
+    static let writeSignature = "write_signature"
+    static let getLtvReadiness = "get_ltv_readiness"
+    static let addSignatureLtv = "add_signature_ltv"
     
     static let enterSnipMode = "enter_snip_mode"
     
@@ -117,6 +127,23 @@ class CPDFConstants {
     static let setPassword = "set_password"
     
     static let getEncryptAlgorithm = "get_encrypt_algorithm"
+
+    static let getHeaderFooter = "get_header_footer"
+    static let updateHeaderFooter = "update_header_footer"
+    static let clearHeaderFooter = "clear_header_footer"
+    static let getPdfStandardType = "get_pdf_standard_type"
+    static let convertToPdfStandard = "convert_to_pdf_standard"
+    static let getOptimizeOptions = "get_optimize_options"
+    static let optimizeDocumentToFile = "optimize_document_to_file"
+    static let cancelOptimize = "cancel_optimize"
+    /// Native to Dart callback carrying the index of the page being optimized.
+    static let onOptimizeProgress = "on_optimize_progress"
+    static let getBates = "get_bates"
+    static let updateBates = "update_bates"
+    static let clearBates = "clear_bates"
+    static let getBackground = "get_background"
+    static let updateBackground = "update_background"
+    static let clearBackground = "clear_background"
     
     static let createWatermark = "create_watermark"
     
@@ -245,6 +272,8 @@ class CPDFConstants {
     static let updateEventSubscription = "update_event_subscription"
     
     static let updateAnnotation = "update_annotation"
+    static let applyRedaction = "apply_redaction"
+    static let applyRedactions = "apply_redactions"
     static let updateWidget = "update_widget"
     static let addWidgetImageSignature = "add_widget_image_signature"
     

@@ -141,6 +141,7 @@ enum CPDFAnnotationType {
   pictures,
   link,
   sound,
+  redact,
   unknown;
 
   static CPDFAnnotationType fromString(String typeStr) {

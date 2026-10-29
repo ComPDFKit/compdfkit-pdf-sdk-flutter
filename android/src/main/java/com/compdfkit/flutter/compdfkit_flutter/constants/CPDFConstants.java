@@ -35,6 +35,22 @@ public class CPDFConstants {
     public static final String SDK_BUILD_TAG = "sdk_build_tag";
 
     public static final String OPEN_DOCUMENT = "open_document";
+    public static final String GET_HEADER_FOOTER = "get_header_footer";
+    public static final String UPDATE_HEADER_FOOTER = "update_header_footer";
+    public static final String CLEAR_HEADER_FOOTER = "clear_header_footer";
+    public static final String GET_PDF_STANDARD_TYPE = "get_pdf_standard_type";
+    public static final String CONVERT_TO_PDF_STANDARD = "convert_to_pdf_standard";
+    public static final String GET_OPTIMIZE_OPTIONS = "get_optimize_options";
+    public static final String OPTIMIZE_DOCUMENT_TO_FILE = "optimize_document_to_file";
+    public static final String CANCEL_OPTIMIZE = "cancel_optimize";
+    /** Native to Dart callback carrying the index of the page being optimized. */
+    public static final String ON_OPTIMIZE_PROGRESS = "on_optimize_progress";
+    public static final String GET_BATES = "get_bates";
+    public static final String UPDATE_BATES = "update_bates";
+    public static final String CLEAR_BATES = "clear_bates";
+    public static final String GET_BACKGROUND = "get_background";
+    public static final String UPDATE_BACKGROUND = "update_background";
+    public static final String CLEAR_BACKGROUND = "clear_background";
 
     public static final String GET_TEMP_DIRECTORY = "get_temporary_directory";
     public static final String REMOVE_SIGN_FILE_LIST = "remove_sign_file_list";
@@ -249,7 +265,19 @@ public class CPDFConstants {
     public static final String SAVE_CURRENT_INK = "save_current_ink";
 
     public static final String UPDATE_ANNOTATION = "update_annotation";
+    public static final String APPLY_REDACTION = "apply_redaction";
+    public static final String APPLY_REDACTIONS = "apply_redactions";
     public static final String GET_FONTS = "get_fonts";
+    public static final String GENERATE_PKCS12_CERTIFICATE = "generate_pkcs12_certificate";
+    public static final String CHECK_PKCS12_CERTIFICATE_PASSWORD = "check_pkcs12_certificate_password";
+    public static final String LOAD_PKCS12_CERTIFICATE = "load_pkcs12_certificate";
+    public static final String CONFIGURE_TRUSTED_CERTIFICATE_DIRECTORIES = "configure_trusted_certificate_directories";
+    public static final String ADD_TRUSTED_CERTIFICATE = "add_trusted_certificate";
+    public static final String GET_DIGITAL_SIGNATURES = "get_digital_signatures";
+    public static final String VERIFY_DIGITAL_SIGNATURE = "verify_digital_signature";
+    public static final String WRITE_SIGNATURE = "write_signature";
+    public static final String GET_LTV_READINESS = "get_ltv_readiness";
+    public static final String ADD_SIGNATURE_LTV = "add_signature_ltv";
     public static final String ANNOTATIONS_VISIBLE = "annotations_visible";
     public static final String IS_ANNOTATIONS_VISIBLE = "is_annotations_visible";
 

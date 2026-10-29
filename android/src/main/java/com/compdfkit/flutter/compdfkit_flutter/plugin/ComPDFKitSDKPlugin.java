@@ -13,6 +13,11 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_DOCUMENT_PLUGIN;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CREATE_URI;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_FONTS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GENERATE_PKCS12_CERTIFICATE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_PKCS12_CERTIFICATE_PASSWORD;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.LOAD_PKCS12_CERTIFICATE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONFIGURE_TRUSTED_CERTIFICATE_DIRECTORIES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_TRUSTED_CERTIFICATE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_TEMP_DIRECTORY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.INIT_SDK_KEYS;
@@ -34,6 +39,7 @@ import com.compdfkit.flutter.compdfkit_flutter.bridge.BaseMethodChannelPlugin;
 import com.compdfkit.flutter.compdfkit_flutter.bridge.ChannelResult;
 import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkActivityDelegate;
 import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkCoreOps;
+import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkCertificateOps;
 import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkDocumentOps;
 import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkFontOps;
 import com.compdfkit.flutter.compdfkit_flutter.sdk.SdkPluginRegistry;
@@ -141,6 +147,21 @@ public class ComPDFKitSDKPlugin extends BaseMethodChannelPlugin implements Plugi
             }
             case GET_FONTS:
                 SdkFontOps.getFonts(result);
+                break;
+            case GENERATE_PKCS12_CERTIFICATE:
+                SdkCertificateOps.generate(call, result);
+                break;
+            case CHECK_PKCS12_CERTIFICATE_PASSWORD:
+                SdkCertificateOps.check(call, result);
+                break;
+            case LOAD_PKCS12_CERTIFICATE:
+                SdkCertificateOps.load(context, call, result);
+                break;
+            case CONFIGURE_TRUSTED_CERTIFICATE_DIRECTORIES:
+                SdkCertificateOps.configure(call, result);
+                break;
+            case ADD_TRUSTED_CERTIFICATE:
+                SdkCertificateOps.addTrusted(context, call, result);
                 break;
             default:
                 break;

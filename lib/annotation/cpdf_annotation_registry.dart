@@ -12,6 +12,7 @@ import 'package:compdfkit_flutter/annotation/cpdf_ink_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_line_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_link_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_markup_annotation.dart';
+import 'package:compdfkit_flutter/annotation/cpdf_redact_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_signature_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_sound_annotation.dart';
 import 'package:compdfkit_flutter/annotation/cpdf_square_annotation.dart';
@@ -53,6 +54,7 @@ class CPDFAnnotationRegistry {
     CPDFAnnotationType.signature: (json) =>
         CPDFSignatureAnnotation.fromJson(json),
     CPDFAnnotationType.sound: (json) => CPDFSoundAnnotation.fromJson(json),
+    CPDFAnnotationType.redact: (json) => CPDFRedactAnnotation.fromJson(json),
   };
 
   static CPDFAnnotation fromJson(Map<String, dynamic> json) {

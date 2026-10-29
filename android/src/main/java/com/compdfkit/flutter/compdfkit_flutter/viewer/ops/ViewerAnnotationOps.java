@@ -88,7 +88,7 @@ public final class ViewerAnnotationOps {
                 result.success(null);
                 return true;
             case ANNOTATION_REDO:
-                documentFragment.annotationToolbar.undo();
+                documentFragment.annotationToolbar.redo();
                 result.success(null);
                 return true;
             case GET_DEFAULT_ANNOTATION_ATTR:

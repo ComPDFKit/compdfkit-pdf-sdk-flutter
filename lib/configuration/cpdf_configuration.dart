@@ -37,6 +37,9 @@ import 'attributes/form/cpdf_radiobutton_attr.dart';
 import 'attributes/form/cpdf_signature_widget_attr.dart';
 import 'attributes/form/cpdf_textfield_attr.dart';
 import 'cpdf_options.dart';
+import 'cpdf_creation_config.dart';
+
+export 'cpdf_creation_config.dart';
 
 /// modeConfig: Configuration of parameters that can be adjusted when opening a PDF interface.
 /// For example, setting the default display mode when opening, such as entering viewer or annotations mode.
@@ -69,6 +72,11 @@ class CPDFConfiguration {
 
   CPDFFormsConfig formsConfig;
 
+  /// Configuration for interactive annotation and form creation.
+  ///
+  /// Since v3.2.0
+  CPDFCreationConfig creationConfig;
+
   CPDFGlobalConfig globalConfig;
 
   CPDFContextMenuConfig contextMenuConfig;
@@ -81,6 +89,7 @@ class CPDFConfiguration {
       this.annotationsConfig = const CPDFAnnotationsConfig(),
       this.contentEditorConfig = const CPDFContentEditorConfig(),
       this.formsConfig = const CPDFFormsConfig(),
+      this.creationConfig = const CPDFCreationConfig(),
       this.globalConfig = const CPDFGlobalConfig(),
       this.contextMenuConfig = const CPDFContextMenuConfig()})
       : toolbarConfig = toolbarConfig ?? CPDFToolbarConfig(),
@@ -93,6 +102,7 @@ class CPDFConfiguration {
         'annotationsConfig': annotationsConfig.toJson(),
         'contentEditorConfig': contentEditorConfig.toJson(),
         'formsConfig': formsConfig.toJson(),
+        'creationConfig': creationConfig.toJson(),
         'global': globalConfig.toJson(),
         'contextMenuConfig': contextMenuConfig.toJson()
       });
@@ -630,6 +640,13 @@ class CPDFFormsConfig {
   /// When a widget type is included, clicking that form widget is intercepted via
   /// [CPDFReaderWidget.onInterceptWidgetActionCallback] instead of running the
   /// native Tools default behavior.
+  ///
+  /// example:
+  /// ```dart
+  /// const formsConfig = CPDFFormsConfig(
+  ///   interceptFormWidgetActions: [CPDFFormType.signaturesFields],
+  /// );
+  /// ```
   final List<CPDFFormType> interceptFormWidgetActions;
 
   const CPDFFormsConfig(

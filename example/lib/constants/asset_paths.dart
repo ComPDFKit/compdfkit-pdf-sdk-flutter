@@ -114,6 +114,9 @@ class AppAssets {
   /// Annotation and form test PDF
   static const String annotTestPdf = 'pdfs/annot_test.pdf';
 
+  /// One-page PDF with an unsigned Approval signature field.
+  static const String unsignedSignaturePdf = 'assets/unsigned_signature.pdf';
+
   /// Password-protected PDF (password: compdfkit)
   static const String passwordProtectedPdf =
       'pdfs/Password_compdfkit_Security_Sample_File.pdf';

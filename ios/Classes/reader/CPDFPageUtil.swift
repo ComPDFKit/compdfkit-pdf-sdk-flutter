@@ -362,7 +362,7 @@ class CPDFPageUtil: NSObject {
             if let markupAnnotation = annotation as? CPDFMarkupAnnotation {
                 let lowertype = CPDFUtil.lowercaseFirstLetter(of: type)
                 let memory = CPDFUtil.getMemoryAddress(markupAnnotation)
-                
+
                 annotaionDict["uuid"] = memory
                 annotaionDict["type"] = lowertype
                 annotaionDict["title"] = markupAnnotation.userName()
@@ -624,6 +624,37 @@ class CPDFPageUtil: NSObject {
                 ]
                 annotaionDict["textAttribute"] = fontDict
             }
+
+        case "Redact":
+            if let redactAnnotation = annotation as? CPDFRedactAnnotation {
+                annotaionDict["uuid"] = CPDFUtil.getMemoryAddress(redactAnnotation)
+                annotaionDict["type"] = "redact"
+                annotaionDict["title"] = redactAnnotation.userName()
+                annotaionDict["page"] = pageIndex
+                annotaionDict["content"] = redactAnnotation.contents
+                if let modificationDate = redactAnnotation.modificationDate() {
+                    annotaionDict["createDate"] = Int(
+                        modificationDate.timeIntervalSince1970 * 1000
+                    )
+                }
+                annotaionDict["rect"] = getAnnotationRect(
+                    bounds: redactAnnotation.bounds
+                )
+                annotaionDict["overlayText"] = redactAnnotation.overlayText()
+                annotaionDict["fillColor"] = redactAnnotation.interiorColor()?
+                    .toHexString() ?? "#FF000000"
+                annotaionDict["outlineColor"] = redactAnnotation.borderColor()?
+                    .toHexString()
+                annotaionDict["alignment"] = CPDFEnumConvertUtil
+                    .textAlignmentToString(redactAnnotation.alignment())
+                let textAttribute: [String: Any] = [
+                    "color": redactAnnotation.fontColor()?.toHexString() ?? "#FF000000",
+                    "familyName": redactAnnotation.cFont?.familyName ?? "Helvetica",
+                    "styleName": redactAnnotation.cFont?.styleName ?? "",
+                    "fontSize": redactAnnotation.fontSize,
+                ]
+                annotaionDict["textAttribute"] = textAttribute
+            }
             
         case "Stamp", "Image":
             if let stampAnnotation = annotation as? CPDFStampAnnotation {
@@ -748,8 +779,10 @@ class CPDFPageUtil: NSObject {
             print("Unhandled type: \(type)")
         }
         if annotaionDict["type"] != nil {
-            annotaionDict["markState"] = annotationMarkStateString(annotation)
-            annotaionDict["reviewState"] = annotationReviewStateString(annotation)
+            if !(annotation is CPDFRedactAnnotation) {
+                annotaionDict["markState"] = annotationMarkStateString(annotation)
+                annotaionDict["reviewState"] = annotationReviewStateString(annotation)
+            }
         }
         return annotaionDict
     }
@@ -817,7 +850,7 @@ class CPDFPageUtil: NSObject {
                 if widgetType == "PushButton" {
                     formDict["buttonTitle"] = buttonWidget.caption()
                     var actionDict: [String: Any] = [:]
-                    let action = buttonWidget.action
+                    let action = buttonWidget.action()
                     if(action != nil){
                         if let urlActions = action as? CPDFURLAction {
                             actionDict["actionType"] = "uri"
@@ -957,6 +990,7 @@ class CPDFPageUtil: NSObject {
                     .toHexString()
                 formDict["fillColor"] = signatureWidget.backgroundColor?
                     .toHexString()
+                formDict["isSigned"] = signatureWidget.isSigned()
             }
             
         default:
@@ -1215,6 +1249,45 @@ class CPDFPageUtil: NSObject {
                             familyName: familyName,
                             fontStyle: styleName
                         )
+                    }
+                }
+            case "Redact":
+                if let redactAnnotation = annotation as? CPDFRedactAnnotation {
+                    if let overlayText = properties["overlayText"] as? String {
+                        redactAnnotation.setOverlayText(overlayText)
+                    }
+                    if let fillColor = properties["fillColor"] as? String {
+                        redactAnnotation.setInteriorColor(
+                            ColorHelper.colorWithHexString(hex: fillColor)
+                        )
+                    }
+                    if let outlineColor = properties["outlineColor"] as? String {
+                        redactAnnotation.setBorderColor(
+                            ColorHelper.colorWithHexString(hex: outlineColor)
+                        )
+                    } else if properties.keys.contains("outlineColor") {
+                        redactAnnotation.setBorderColor(nil)
+                    }
+                    if let alignment = properties["alignment"] as? String {
+                        redactAnnotation.setAlignment(
+                            CPDFEnumConvertUtil.stringToTextAlignment(alignment)
+                        )
+                    }
+                    if let textAttribute = properties["textAttribute"] as? [String: Any] {
+                        let familyName = textAttribute["familyName"] as? String ?? "Helvetica"
+                        let styleName = textAttribute["styleName"] as? String ?? ""
+                        redactAnnotation.cFont = CPDFFont(
+                            familyName: familyName,
+                            fontStyle: styleName
+                        )
+                        if let fontSize = textAttribute["fontSize"] as? NSNumber {
+                            redactAnnotation.fontSize = CGFloat(truncating: fontSize)
+                        }
+                        if let textColor = textAttribute["color"] as? String {
+                            redactAnnotation.setFontColor(
+                                ColorHelper.colorWithHexString(hex: textColor)
+                            )
+                        }
                     }
                 }
             case "Link":
@@ -1669,6 +1742,58 @@ class CPDFPageUtil: NSObject {
                     } else {
                         overallSuccess = false
                     }
+
+                case "redact":
+                    guard let page = document.page(at: UInt(pageIndex)),
+                          let redact = CPDFRedactAnnotation(page: page, document: document) else {
+                        overallSuccess = false
+                        continue
+                    }
+                    redact.bounds = rect
+                    redact.contents = content
+                    if !title.isEmpty {
+                        redact.setUserName(title)
+                    }
+                    redact.setOverlayText(annot["overlayText"] as? String ?? "")
+                    redact.setInteriorColor(
+                        ColorHelper.colorWithHexString(
+                            hex: annot["fillColor"] as? String ?? "#FF000000"
+                        )
+                    )
+                    if let outlineColor = annot["outlineColor"] as? String {
+                        redact.setBorderColor(
+                            ColorHelper.colorWithHexString(hex: outlineColor)
+                        )
+                    } else if annot.keys.contains("outlineColor") {
+                        redact.setBorderColor(nil)
+                    }
+                    redact.setAlignment(
+                        CPDFEnumConvertUtil.stringToTextAlignment(
+                            annot["alignment"] as? String ?? "center"
+                        )
+                    )
+                    if let textAttribute = annot["textAttribute"] as? [String: Any] {
+                        redact.cFont = CPDFFont(
+                            familyName: textAttribute["familyName"] as? String ?? "Helvetica",
+                            fontStyle: textAttribute["styleName"] as? String ?? ""
+                        )
+                        if let fontSize = textAttribute["fontSize"] as? NSNumber {
+                            redact.fontSize = CGFloat(truncating: fontSize)
+                        }
+                        if let textColor = textAttribute["color"] as? String {
+                            redact.setFontColor(
+                                ColorHelper.colorWithHexString(hex: textColor)
+                            )
+                        }
+                    }
+                    if let createDate = annot["createDate"] as? NSNumber {
+                        redact.setModificationDate(
+                            Date(timeIntervalSince1970: createDate.doubleValue / 1000.0)
+                        )
+                    } else {
+                        redact.setModificationDate(Date())
+                    }
+                    page.updateAndAddAnnotation(redact)
 
                 case "line", "arrow":
                     guard let page = document.page(at: UInt(pageIndex)) else {
@@ -2368,7 +2493,6 @@ class CPDFPageUtil: NSObject {
         ]
         return rectDict;
     }
-    
 
     func saveImageToSandbox(_ image: UIImage) -> String? {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {

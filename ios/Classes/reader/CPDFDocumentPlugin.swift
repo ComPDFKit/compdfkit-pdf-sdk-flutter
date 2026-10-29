@@ -9,6 +9,7 @@
 //  This notice may not be removed from this file.
 
 import Foundation
+import UIKit
 import ComPDFKit
 import Flutter
 import ComPDFKit_Tools
@@ -22,6 +23,21 @@ public class CPDFDocumentPlugin {
     private var pdfViewController : CPDFViewController?
     
     
+    /// The document the plugin currently operates on.
+    var currentDocument: CPDFDocument? {
+        return document
+    }
+
+    /// The list view of the attached reader, or `nil` when the document is not shown in one.
+    var readerListView: CPDFListView? {
+        return pdfViewController?.pdfListView
+    }
+
+    /// Swaps in a document reopened from its source file, e.g. after an optimize run.
+    func replaceDocument(_ newDocument: CPDFDocument) {
+        document = newDocument
+    }
+
     init(uid : String, binaryMessager : FlutterBinaryMessenger) {
         _methodChannel = FlutterMethodChannel(name: "com.compdfkit.flutter.document_\(uid)", binaryMessenger: binaryMessager)
         registeryMethodChannel()
@@ -360,6 +376,69 @@ public class CPDFDocumentPlugin {
                 @unknown default:
                     result("noEncryptAlgo")
                 }
+            case CPDFConstants.getHeaderFooter:
+                result(self.headerFooterMap())
+            case CPDFConstants.updateHeaderFooter:
+                self.updateHeaderFooter(call: call, result: result)
+            case CPDFConstants.clearHeaderFooter:
+                guard let headerFooter = self.document?.headerFooter() else {
+                    result(false)
+                    return
+                }
+                let success = headerFooter.clear()
+                if success {
+                    self.pdfViewController?.pdfListView?.layoutDocumentView()
+                }
+                result(success)
+            case CPDFConstants.getPdfStandardType:
+                guard let document = self.document else {
+                    result(FlutterError(code: "DOCUMENT_INVALID", message: "The document is released or invalid.", details: nil))
+                    return
+                }
+                result(CPDFPdfStandardUtil.value(from: document.standardType()))
+            case CPDFConstants.convertToPdfStandard:
+                self.convertToPdfStandard(call: call, result: result)
+            case CPDFConstants.getOptimizeOptions:
+                CPDFDocumentOptimizeOps.getOptimizeOptions(document: self.document, result: result)
+            case CPDFConstants.optimizeDocumentToFile:
+                CPDFDocumentOptimizeOps.optimizeToFile(plugin: self, call: call, result: result)
+            case CPDFConstants.cancelOptimize:
+                CPDFDocumentOptimizeOps.cancel(result: result)
+            case CPDFConstants.getBates:
+                result(self.batesMap())
+            case CPDFConstants.updateBates:
+                self.updateBates(call: call, result: result)
+            case CPDFConstants.clearBates:
+                guard let bates = self.document?.bates() else {
+                    result(false)
+                    return
+                }
+                let batesClearResult = bates.clear()
+                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                result(batesClearResult)
+            case CPDFConstants.getBackground:
+                result(self.backgroundMap())
+            case CPDFConstants.updateBackground:
+                self.updateBackground(call: call, result: result)
+            case CPDFConstants.clearBackground:
+                guard let background = self.document?.background(),
+                      background.hasBackground else {
+                    result(false)
+                    return
+                }
+                let success = background.clear()
+                if success {
+                    self.pdfViewController?.pdfListView?.layoutDocumentView()
+                }
+                result(success)
+            case CPDFConstants.getDigitalSignatures:
+                self.getDigitalSignatures(result: result)
+            case CPDFConstants.verifyDigitalSignatureDocument:
+                self.verifyDigitalSignature(call: call, result: result)
+            case CPDFConstants.getLtvReadiness:
+                self.getLtvReadiness(result: result)
+            case CPDFConstants.addSignatureLtv:
+                self.addSignatureLtv(call: call, result: result)
             case CPDFConstants.createWatermark:
                 self.createWatermark(call: call, result: result)
             case CPDFConstants.removeAllWatermark:
@@ -1010,7 +1089,87 @@ public class CPDFDocumentPlugin {
                 pageUtil.updateAnnotation(pageIndex: pageIndex, uuid: uuid, properties: properties)
                 self.pdfViewController?.pdfListView?.setNeedsDisplayForVisiblePages()
                 result(true)
-                
+
+            case CPDFConstants.applyRedaction:
+                let info = call.arguments as? [String: Any]
+                let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: -1)
+                let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+                guard let document = self.document,
+                      pageIndex >= 0,
+                      pageIndex < document.pageCount,
+                      !uuid.isEmpty,
+                      let page = document.page(at: UInt(pageIndex)) else {
+                    result(FlutterError(
+                        code: "APPLY_REDACTION_FAIL",
+                        message: "Redaction arguments are invalid.",
+                        details: nil
+                    ))
+                    return
+                }
+                let pageUtil = CPDFPageUtil(page: page)
+                guard let redaction = pageUtil.getAnnotation(formUUID: uuid)
+                        as? CPDFRedactAnnotation else {
+                    result(FlutterError(
+                        code: "APPLY_REDACTION_FAIL",
+                        message: "Redaction annotation not found.",
+                        details: nil
+                    ))
+                    return
+                }
+                let redactionCount = page.annotations.filter {
+                    $0 is CPDFRedactAnnotation
+                }.count
+                redaction.applyRedaction()
+                page.reloadAnnotations()
+                guard page.annotations.filter({ $0 is CPDFRedactAnnotation }).count
+                        < redactionCount else {
+                    result(FlutterError(
+                        code: "APPLY_REDACTION_FAIL",
+                        message: "Failed to apply redaction.",
+                        details: nil
+                    ))
+                    return
+                }
+                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                result(nil)
+
+            case CPDFConstants.applyRedactions:
+                guard let document = self.document else {
+                    result(FlutterError(
+                        code: "APPLY_REDACTION_FAIL",
+                        message: "Document is unavailable.",
+                        details: nil
+                    ))
+                    return
+                }
+                var redactionCount = 0
+                for pageIndex in 0..<document.pageCount {
+                    if let page = document.page(at: UInt(pageIndex)) {
+                        redactionCount += page.annotations.filter {
+                            $0 is CPDFRedactAnnotation
+                        }.count
+                    }
+                }
+                document.applyRedactions()
+                var remainingRedactionCount = 0
+                for pageIndex in 0..<document.pageCount {
+                    if let page = document.page(at: UInt(pageIndex)) {
+                        page.reloadAnnotations()
+                        remainingRedactionCount += page.annotations.filter {
+                            $0 is CPDFRedactAnnotation
+                        }.count
+                    }
+                }
+                guard redactionCount == 0 || remainingRedactionCount == 0 else {
+                    result(FlutterError(
+                        code: "APPLY_REDACTION_FAIL",
+                        message: "Failed to apply all document redactions.",
+                        details: nil
+                    ))
+                    return
+                }
+                self.pdfViewController?.pdfListView?.layoutDocumentView()
+                result(nil)
             case CPDFConstants.updateWidget:
                 let info = call.arguments as? [String: Any]
                 let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: 0)
@@ -1039,6 +1198,9 @@ public class CPDFDocumentPlugin {
                     }
                     result(success)
                 }
+
+            case CPDFConstants.writeSignature:
+                self.writeSignature(call: call, result: result)
                 
             case CPDFConstants.addAnnotations:
                 let info = call.arguments as? [String: Any]
@@ -1075,6 +1237,450 @@ public class CPDFDocumentPlugin {
     func getMemoryAddress<T: AnyObject>(_ object: T) -> String {
         let pointer = Unmanaged.passUnretained(object).toOpaque()
         return String(describing: pointer)
+    }
+
+    private func getDigitalSignatures(result: @escaping FlutterResult) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let signatures = self.digitalSignaturesMap()
+            DispatchQueue.main.async {
+                result(signatures)
+            }
+        }
+    }
+
+    private func digitalSignaturesMap() -> [[String: Any]] {
+        guard let document = self.document else {
+            return []
+        }
+        return document.signatures()?.enumerated().map { index, signature in
+            // CPDFDocument.signatures() creates fresh CPDFSigner instances on
+            // every call. Verify this instance before serializing its state.
+            signature.verifySignature(with: document)
+            return self.digitalSignatureMap(signature, document: document, signatureIndex: index)
+        } ?? []
+    }
+
+    private func digitalSignatureMap(_ signature: CPDFSignature,
+                                     document: CPDFDocument,
+                                     signatureIndex: Int) -> [String: Any] {
+        let permission = max(1, min(3, signature.permissions))
+        let bounds = signature.bounds
+        return [
+            "signature_index": signatureIndex,
+            "field_name": signature.fieldName ?? "",
+            "page_index": Int(signature.pageIndex(with: document)),
+            "bounds": [
+                "left": bounds.minX,
+                "top": bounds.maxY,
+                "right": bounds.maxX,
+                "bottom": bounds.minY
+            ],
+            "name": signature.name ?? "",
+            "date": self.iso8601String(signature.date) ?? "",
+            "reason": signature.reason ?? "",
+            "location": signature.location ?? "",
+            "filter": signature.filter ?? "",
+            "sub_filter": signature.subFilter ?? "",
+            "permissions": permission,
+            "signers": (signature.signers ?? []).map { self.digitalSignerMap($0) },
+            "modifications": (signature.modifyInfos ?? []).map {
+                self.digitalModificationMap($0)
+            }
+        ]
+    }
+
+    private func digitalSignerMap(_ signer: CPDFSigner) -> [String: Any] {
+        return [
+            "signature_verified": signer.isSignVerified,
+            "certificate_trusted": signer.isCertTrusted,
+            "certificates": signer.certificates.map { self.digitalCertificateMap($0) }
+        ]
+    }
+
+    private func digitalCertificateMap(_ certificate: CPDFSignatureCertificate) -> [String: Any] {
+        let expired = Date() < certificate.validityStarts || Date() > certificate.validityEnds
+        return [
+            "version": certificate.version ?? "",
+            "serial_number": certificate.serialNumber ?? "",
+            // CPDFSignatureCertificate exposes the signature algorithm here,
+            // not the certificate public-key type. Keep this field empty until
+            // the iOS SDK exposes the same key type as Android.
+            "key_type": "",
+            "signature_algorithm": certificate.signatureAlgorithmOID ?? "",
+            "issuer": certificate.issuer ?? "",
+            "subject": certificate.subject ?? "",
+            "valid_from": self.iso8601String(certificate.validityStarts) ?? "",
+            "valid_to": self.iso8601String(certificate.validityEnds) ?? "",
+            "sha1_digest": certificate.sha1Digest ?? "",
+            "md5_digest": certificate.md5Digest ?? "",
+            "is_trusted": certificate.isTrusted,
+            "is_expired": expired
+        ]
+    }
+
+    private func digitalModificationMap(_ modification: CPDFModifyInfo) -> [String: Any] {
+        return [
+            "type": String(modification.type.rawValue),
+            "page_index": modification.pageIndex ?? -1,
+            "annotation_type": modification.annotationType ?? -1,
+            "form_type": modification.formType ?? -1,
+            "info": modification.info ?? ""
+        ]
+    }
+
+    private func verifyDigitalSignature(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let info = call.arguments as? [String: Any]
+        let index = self.getValue(from: info, key: "signature_index", defaultValue: -1)
+        guard index >= 0, let document = self.document,
+              let signatures = document.signatures(), index < signatures.count else {
+            result(FlutterError(code: "signature_verification_failed",
+                                message: "The digital signature could not be found.",
+                                details: nil))
+            return
+        }
+        let signature = signatures[index]
+        // Validation reads the saved file and may be slow; keep it off the UI thread.
+        DispatchQueue.global(qos: .userInitiated).async {
+            // This API updates CPDFSigner.isSignVerified and is required before
+            // exposing signer metadata to Flutter.
+            signature.verifySignature(with: document)
+            let signers = signature.signers ?? []
+            let trusted = signers.contains { $0.isCertTrusted }
+            let expired = signers.flatMap { $0.certificates }.contains {
+                Date() < $0.validityStarts || Date() > $0.validityEnds
+            }
+            let report = self.validationReport(for: signature, document: document)
+            let value: [String: Any] = [
+                "signature_valid": signature.verifySignature(document),
+                "document_unmodified": signature.verifyDocument(document),
+                "certificate_trusted": trusted,
+                "certificate_expired": expired,
+                "timestamp_trusted": signature.verifyTimestampAuthority(),
+                "timestamp_source": signature.timestampSource.rawValue,
+                "embedded_timestamp_valid": report.map { self.hasValidEmbeddedTimestamp($0) } as Any,
+                "ltv_enabled": self.documentLtvReady(document)
+            ]
+            DispatchQueue.main.async {
+                result(value)
+            }
+        }
+    }
+
+    private func getLtvReadiness(result: @escaping FlutterResult) {
+        guard let document = self.document else {
+            result(FlutterError(code: "invalid_document",
+                                message: "The PDF document is not valid.",
+                                details: nil))
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            // CPDFLtvService instances must not be shared across threads.
+            let readiness = CPDFLtvService().assessReadiness(of: document)
+            let value = self.ltvReadinessMap(readiness)
+            DispatchQueue.main.async {
+                result(value)
+            }
+        }
+    }
+
+    private func addSignatureLtv(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let info = call.arguments as? [String: Any]
+        let outputPath = self.getValue(from: info, key: "output_path", defaultValue: "")
+        let options = self.getValue(from: info, key: "options", defaultValue: [String: Any]())
+        let trustedCertificatePath = self.getValue(from: options, key: "trusted_certificate_path", defaultValue: "")
+        let appendDocumentTimestamp = self.getValue(from: options, key: "append_document_timestamp", defaultValue: false)
+        let ltaOutputPath = self.getValue(from: options, key: "lta_output_path", defaultValue: "")
+        let timestampServerUrl = self.getValue(from: options, key: "timestamp_server_url", defaultValue: "")
+
+        guard !outputPath.isEmpty else {
+            result(FlutterError(code: "ltv_output_invalid",
+                                message: "The LTV output request is invalid.",
+                                details: nil))
+            return
+        }
+        guard FileManager.default.fileExists(atPath: trustedCertificatePath) else {
+            result(FlutterError(code: "certificate_not_found",
+                                message: "The trusted certificate file could not be found.",
+                                details: nil))
+            return
+        }
+        var tsaClient: CPDFURLSessionTSAClient?
+        if appendDocumentTimestamp {
+            guard !ltaOutputPath.isEmpty, let tsaURL = self.timestampServerURL(timestampServerUrl) else {
+                result(FlutterError(code: "ltv_output_invalid",
+                                    message: "A document timestamp needs a TSA URL and a separate output path.",
+                                    details: nil))
+                return
+            }
+            tsaClient = CPDFURLSessionTSAClient(url: tsaURL)
+        }
+        guard let inputURL = self.document?.documentURL,
+              FileManager.default.fileExists(atPath: inputURL.path) else {
+            result(FlutterError(code: "invalid_document",
+                                message: "LTV material can only be added to a document saved as a file.",
+                                details: nil))
+            return
+        }
+        let inputPath = inputURL.path
+        guard self.isValidOutput(outputPath, inputPath: inputPath),
+              !appendDocumentTimestamp
+                || (self.isValidOutput(ltaOutputPath, inputPath: inputPath)
+                    && !self.isSamePath(outputPath, ltaOutputPath)) else {
+            result(FlutterError(code: "ltv_output_invalid",
+                                message: "The LTV output path must be a new file in an existing directory.",
+                                details: nil))
+            return
+        }
+
+        let prolongOptions = CPDFPadesProlongOptions()
+        prolongOptions.trustedCertPath = trustedCertificatePath
+        let ocspUrls = self.getValue(from: options, key: "ocsp_urls", defaultValue: [String]())
+        let crlUrls = self.getValue(from: options, key: "crl_urls", defaultValue: [String]())
+        prolongOptions.ocspURLs = ocspUrls.isEmpty ? nil : ocspUrls
+        prolongOptions.crlURLs = crlUrls.isEmpty ? nil : crlUrls
+        // The iOS default is YES; always set it so both platforms behave the same.
+        prolongOptions.appendDocumentTimestamp = appendDocumentTimestamp
+        prolongOptions.ltaTSAClient = tsaClient
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let prolongResult = CPDFPadesSigner().prolongLTV(fromPath: inputPath,
+                                                             ltvPath: outputPath,
+                                                             ltaPath: appendDocumentTimestamp ? ltaOutputPath : nil,
+                                                             options: prolongOptions)
+            let success = prolongResult.success
+            // A failed run can still echo the requested paths, so only report
+            // paths for a successful run.
+            let value: [String: Any] = [
+                "success": success,
+                "ltv_path": success ? prolongResult.ltvPath : "",
+                "lta_path": success ? prolongResult.ltaPath : "",
+                "errors": prolongResult.errors.map { self.signatureIssueMap($0) },
+                "warnings": prolongResult.warnings.map { self.signatureIssueMap($0) }
+            ]
+            DispatchQueue.main.async {
+                result(value)
+            }
+        }
+    }
+
+    private func validationReport(for signature: CPDFSignature,
+                                  document: CPDFDocument) -> CPDFSignatureValidationReport? {
+        let options = CPDFSignatureWorkflowValidationOptions()
+        options.fieldName = signature.fieldName
+        let validation = CPDFSignatureWorkflow(document: document).validateDocument(with: options)
+        return validation.reports.first { $0.fieldName == signature.fieldName }
+    }
+
+    /// Mirrors Android `CPDFSignatureValidationReport.hasEmbeddedTimestamp()`.
+    private func hasValidEmbeddedTimestamp(_ report: CPDFSignatureValidationReport) -> Bool {
+        return report.items.contains {
+            $0.code.hasPrefix("timestamp.embedded.") && $0.status == .valid
+        }
+    }
+
+    /// Matches the document-level LTV check used by the Android ComPDFKit_Tools demo.
+    private func documentLtvReady(_ document: CPDFDocument) -> Bool {
+        let readiness = CPDFLtvService().assessReadiness(of: document)
+        return readiness.success && readiness.readinessInfo.ltvReady
+    }
+
+    private func ltvReadinessMap(_ readiness: CPDFLtvReadinessResult) -> [String: Any] {
+        let info = readiness.readinessInfo
+        let dssInfo = info.dssInfo
+        return [
+            "success": readiness.success,
+            "has_dss": info.hasDSS,
+            "has_vri": info.hasVRI,
+            "has_certificates": info.hasCertificates,
+            "has_revocation": info.hasRevocation,
+            "ltv_ready": info.ltvReady,
+            "profile_hint": info.profileHint,
+            "missing_materials": info.missingMaterials.filter { !$0.isEmpty },
+            "dss": [
+                "certificates_count": dssInfo.certificatesCount,
+                "ocsp_responses_count": dssInfo.ocspResponsesCount,
+                "crls_count": dssInfo.crlsCount,
+                "vri_entries_count": dssInfo.vriEntriesCount
+            ],
+            "errors": readiness.errors.map { self.signatureIssueMap($0) },
+            "warnings": readiness.warnings.map { self.signatureIssueMap($0) }
+        ]
+    }
+
+    private func signatureIssueMap(_ item: CPDFValidationReportItem) -> [String: Any] {
+        return [
+            "code": item.code,
+            "message": item.message
+        ]
+    }
+
+    private func timestampServerURL(_ value: String) -> URL? {
+        guard let url = URL(string: value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              url.host?.isEmpty == false else {
+            return nil
+        }
+        return url
+    }
+
+    private func isValidOutput(_ outputPath: String, inputPath: String) -> Bool {
+        guard !outputPath.isEmpty else {
+            return false
+        }
+        var isDirectory: ObjCBool = false
+        let parent = (outputPath as NSString).deletingLastPathComponent
+        return FileManager.default.fileExists(atPath: parent, isDirectory: &isDirectory)
+            && isDirectory.boolValue
+            && !self.isSamePath(outputPath, inputPath)
+    }
+
+    private func isSamePath(_ first: String, _ second: String) -> Bool {
+        return URL(fileURLWithPath: first).standardizedFileURL.resolvingSymlinksInPath()
+            == URL(fileURLWithPath: second).standardizedFileURL.resolvingSymlinksInPath()
+    }
+
+    private func writeSignature(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let info = call.arguments as? [String: Any]
+        let pageIndex = self.getValue(from: info, key: "page_index", defaultValue: -1)
+        let uuid = self.getValue(from: info, key: "uuid", defaultValue: "")
+        let outputPath = self.getValue(from: info, key: "output_path", defaultValue: "")
+        let config = self.getValue(from: info, key: "config", defaultValue: [String: Any]())
+        let certificatePath = self.getValue(from: config, key: "certificate_path", defaultValue: "")
+        let password = self.getValue(from: config, key: "password", defaultValue: "")
+
+        guard pageIndex >= 0, !uuid.isEmpty else {
+            result(FlutterError(code: "signature_widget_not_found",
+                                message: "The signature form field could not be found.",
+                                details: nil))
+            return
+        }
+        guard !outputPath.isEmpty, !certificatePath.isEmpty,
+              FileManager.default.fileExists(atPath: certificatePath) else {
+            result(FlutterError(code: "certificate_not_found",
+                                message: "The signing certificate could not be found.",
+                                details: nil))
+            return
+        }
+        guard !password.isEmpty, let document = self.document,
+              let sourceURL = document.documentURL else {
+            result(FlutterError(code: "invalid_certificate_password",
+                                message: "The certificate password is invalid.",
+                                details: nil))
+            return
+        }
+        let outputURL = URL(fileURLWithPath: outputPath)
+        if outputURL.standardizedFileURL == sourceURL.standardizedFileURL {
+            result(FlutterError(code: "invalid_document",
+                                message: "The signed PDF must be written to a new file.",
+                                details: nil))
+            return
+        }
+        guard let page = document.page(at: UInt(pageIndex)),
+              let widget = page.annotations.compactMap({ $0 as? CPDFSignatureWidgetAnnotation })
+                .first(where: { CPDFUtil.getMemoryAddress($0) == uuid }) else {
+            result(FlutterError(code: "signature_widget_not_found",
+                                message: "The signature form field could not be found.",
+                                details: nil))
+            return
+        }
+        let appearance = self.getValue(from: config, key: "appearance", defaultValue: [String: Any]())
+        let signatureConfig = CPDFSignatureConfig()
+        signatureConfig.isDrawKey = true
+        let appearanceText = self.getValue(from: appearance, key: "text", defaultValue: "")
+        signatureConfig.text = appearanceText.isEmpty
+            ? self.getValue(from: config, key: "name", defaultValue: "")
+            : appearanceText
+        signatureConfig.isDrawLogo = self.getValue(from: appearance, key: "draw_logo", defaultValue: true)
+        signatureConfig.isDrawOnlyContent = self.getValue(from: appearance, key: "draw_only_content", defaultValue: false)
+        signatureConfig.isContentAlginLeft = self.getValue(from: appearance, key: "content_align_left", defaultValue: true)
+        let textColor = self.getValue(from: appearance, key: "text_color", defaultValue: "#FF000000")
+        let contentColor = self.getValue(from: appearance, key: "content_color", defaultValue: "#FF000000")
+        signatureConfig.textColor = ColorHelper.colorWithHexString(hex: textColor)
+        signatureConfig.contentsColor = ColorHelper.colorWithHexString(hex: contentColor)
+        let appearanceContent = self.getValue(from: appearance, key: "content", defaultValue: "")
+        if !appearanceContent.isEmpty {
+            var contentItems: [CPDFSignatureConfigItem] = []
+            for line in appearanceContent.components(separatedBy: .newlines) where !line.isEmpty {
+                let parts = line.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+                let item = CPDFSignatureConfigItem()
+                item.key = ""
+                item.value = ""
+                if parts.count == 2 {
+                    item.key = String(parts[0]).trimmingCharacters(in: .whitespaces)
+                    item.value = String(parts[1]).trimmingCharacters(in: .whitespaces)
+                } else {
+                    item.value = line
+                }
+                contentItems.append(item)
+            }
+            signatureConfig.contents = contentItems
+        }
+        if let imagePath = appearance["image_path"] as? String, !imagePath.isEmpty {
+            guard let image = UIImage(contentsOfFile: imagePath) else {
+                result(FlutterError(code: "invalid_document",
+                                    message: "The signature appearance image is invalid.",
+                                    details: nil))
+                return
+            }
+            signatureConfig.image = image
+        }
+        if let logoPath = appearance["logo_path"] as? String, !logoPath.isEmpty {
+            guard let logo = UIImage(contentsOfFile: logoPath) else {
+                result(FlutterError(code: "invalid_document",
+                                    message: "The signature logo image is invalid.",
+                                    details: nil))
+                return
+            }
+            signatureConfig.logo = logo
+        }
+        widget.signAppearanceConfig(signatureConfig)
+        let rawPermission = self.getValue(from: config, key: "permissions", defaultValue: 2)
+        let permission = CPDFSignaturePermissions(rawValue: max(1, min(3, rawPermission))) ?? .fillSign
+        let location = self.getValue(from: config, key: "location", defaultValue: "")
+        let reason = self.getValue(from: config, key: "reason", defaultValue: "")
+        let timestampServerUrl = config["timestamp_server_url"] as? String
+        var tsaClient: CPDFURLSessionTSAClient?
+        if let timestampServerUrl = timestampServerUrl {
+            guard let tsaURL = self.timestampServerURL(timestampServerUrl) else {
+                result(FlutterError(code: "signature_timestamp_failed",
+                                    message: "The timestamp server URL is invalid.",
+                                    details: nil))
+                return
+            }
+            tsaClient = CPDFURLSessionTSAClient(url: tsaURL)
+        }
+
+        // PDF signing can be expensive, and the TSA client is called back
+        // synchronously on the framework queue. Keep it off the Flutter/UI
+        // thread and deliver the MethodChannel result on the main thread.
+        DispatchQueue.global(qos: .userInitiated).async {
+            let success = document.writeSignature(to: outputURL,
+                                                   withWidget: widget,
+                                                   pkcs12Cert: certificatePath,
+                                                   password: password,
+                                                   location: location,
+                                                   reason: reason,
+                                                   isSetSignAp: false,
+                                                   permissions: permission,
+                                                   tsaClient: tsaClient)
+            DispatchQueue.main.async {
+                if !success && tsaClient != nil {
+                    // The native call only reports a boolean. With a TSA the most
+                    // likely cause is an unreachable or rejecting timestamp server.
+                    result(FlutterError(code: "signature_timestamp_failed",
+                                        message: "The digital signature could not be written with the requested timestamp. The TSA may be unreachable or rejected the request.",
+                                        details: nil))
+                } else {
+                    result(success)
+                }
+            }
+        }
+    }
+
+    private func iso8601String(_ date: Date?) -> String? {
+        guard let date = date else { return nil }
+        return ISO8601DateFormatter().string(from: date)
     }
     
     private func getWatermark(call: FlutterMethodCall, result: FlutterResult) {
@@ -1638,6 +2244,497 @@ public class CPDFDocumentPlugin {
         }
 
         return pageIndex
+    }
+
+    private func headerFooterMap() -> [String: Any]? {
+        guard let headerFooter = self.document?.headerFooter() else {
+            return nil
+        }
+        let hasContent = (0..<6).contains { index in
+            !(headerFooter.text(at: UInt(index)) ?? "").isEmpty
+        }
+        guard hasContent else {
+            return nil
+        }
+        let margin = headerFooter.margin
+        var slots: [[String: Any]] = []
+        for index in 0..<6 {
+            slots.append([
+                "position": self.headerFooterPosition(index),
+                "text": headerFooter.text(at: UInt(index)) ?? "",
+                "font_name": headerFooter.fontName(at: UInt(index)) ?? "Helvetica",
+                "font_size": Double(headerFooter.fontSize(at: UInt(index))),
+                "text_color": headerFooter.textColor(at: UInt(index))?.toHexString() ?? "#000000"
+            ])
+        }
+        return [
+            "pages": headerFooter.pageString ?? "",
+            "margin": [
+                "left": Double(margin.left),
+                "top": Double(margin.top),
+                "right": Double(margin.right),
+                "bottom": Double(margin.bottom)
+            ],
+            "slots": slots
+        ]
+    }
+
+    private func updateHeaderFooter(call: FlutterMethodCall, result: FlutterResult) {
+        guard let headerFooter = self.document?.headerFooter(),
+              let info = call.arguments as? [String: Any],
+              let pages = info["pages"] as? String,
+              !pages.isEmpty,
+              let margin = info["margin"] as? [String: Any],
+              let slots = info["slots"] as? [[String: Any]],
+              !slots.isEmpty,
+              let left = self.headerFooterNumber(margin["left"]),
+              let top = self.headerFooterNumber(margin["top"]),
+              let right = self.headerFooterNumber(margin["right"]),
+              let bottom = self.headerFooterNumber(margin["bottom"]) else {
+            result(FlutterError(
+                code: "HEADER_FOOTER_FAIL",
+                message: "Header/footer payload is invalid.",
+                details: nil))
+            return
+        }
+
+        var positions = Set<Int>()
+        for slot in slots {
+            guard let position = slot["position"] as? String,
+                  let index = self.headerFooterIndex(position),
+                  positions.insert(index).inserted,
+                  let fontSize = self.headerFooterNumber(slot["font_size"]),
+                  fontSize > 0 else {
+                result(FlutterError(
+                    code: "HEADER_FOOTER_FAIL",
+                    message: "Header/footer slot is invalid.",
+                    details: nil))
+                return
+            }
+        }
+
+        headerFooter.pageString = pages
+        headerFooter.margin = UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+        for index in 0..<6 {
+            headerFooter.setText("", at: UInt(index))
+        }
+        for slot in slots {
+            guard let position = slot["position"] as? String,
+                  let index = self.headerFooterIndex(position),
+                  let fontSize = self.headerFooterNumber(slot["font_size"]) else {
+                continue
+            }
+            headerFooter.setText(slot["text"] as? String ?? "", at: UInt(index))
+            headerFooter.setFontName(slot["font_name"] as? String ?? "Helvetica", at: UInt(index))
+            headerFooter.setFontSize(fontSize, at: UInt(index))
+            headerFooter.setTextColor(
+                ColorHelper.colorWithHexString(hex: slot["text_color"] as? String ?? "#FF000000"),
+                at: UInt(index))
+        }
+        headerFooter.update()
+        self.pdfViewController?.pdfListView?.layoutDocumentView()
+        result(true)
+    }
+
+    /// Writes the document converted to a PDF standard into a new file.
+    ///
+    /// Unlike Android, the iOS SDK converts a copy of the in-memory document and leaves the opened
+    /// document untouched, so no reload is needed afterwards. The SDK deletes an existing file at
+    /// the output path before writing it, which is why the output path is checked against the
+    /// current document before anything runs.
+    private func convertToPdfStandard(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let document = self.document else {
+            result(FlutterError(code: "DOCUMENT_INVALID", message: "The document is released or invalid.", details: nil))
+            return
+        }
+        let info = call.arguments as? [String: Any]
+        let outputPath = self.getValue(from: info, key: "output_path", defaultValue: "")
+        let type = self.getValue(from: info, key: "type", defaultValue: "")
+        let fontSubset = self.getValue(from: info, key: "font_subset", defaultValue: true)
+
+        if CPDFPdfStandardUtil.unsupportedTargets.contains(type) {
+            result(FlutterError(
+                code: "UNSUPPORTED_PDF_STANDARD",
+                message: "\(type) is not supported on iOS.",
+                details: nil))
+            return
+        }
+        guard let mode = CPDFPdfStandardUtil.mode(from: type) else {
+            result(FlutterError(
+                code: "PDF_STANDARD_CONVERT_FAILED",
+                message: "Unknown PDF standard type: \(type)",
+                details: nil))
+            return
+        }
+
+        let savePath: String
+        switch self.validatePdfStandardOutputPath(outputPath, document: document) {
+        case .success(let path):
+            savePath = path
+        case .failure(let error):
+            result(FlutterError(code: "INVALID_OUTPUT_PATH", message: error.message, details: nil))
+            return
+        }
+
+        // The iOS core would strip the security and convert anyway; Android refuses a document
+        // opened with a password, so do the same here to keep one behavior across platforms.
+        if document.isEncrypted && !(document.password ?? "").isEmpty {
+            result(FlutterError(
+                code: "ENCRYPTED_DOCUMENT_NOT_CONVERTIBLE",
+                message: "An encrypted document cannot be converted. Remove the password with saveAs first.",
+                details: nil))
+            return
+        }
+
+        // The conversion starts from the in-memory document, so pending ink and content edits
+        // have to be committed on the main thread first or they are missing from the output.
+        if let pdfListView = self.pdfViewController?.pdfListView {
+            pdfListView.exitDrawing()
+            if pdfListView.isEditing() && pdfListView.isEdited() {
+                pdfListView.commitEditing()
+            }
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            var flutterError: FlutterError?
+            do {
+                // The SDK also ships a Bool-returning overload with the same selector prefix, so
+                // Swift imports this NSError variant with a placeholder `error: ()` argument.
+                try document.writeStandardPDF(
+                    toFilePath: savePath,
+                    withType: mode,
+                    iccFilePath: nil,
+                    with: nil,
+                    isSaveFontSubset: fontSubset,
+                    error: ())
+                if !FileManager.default.fileExists(atPath: savePath) {
+                    flutterError = FlutterError(
+                        code: "PDF_STANDARD_SAVE_FAILED",
+                        message: "The conversion succeeded but writing \(savePath) failed.",
+                        details: nil)
+                }
+            } catch let error as NSError {
+                flutterError = self.pdfStandardError(error, type: type)
+            }
+            DispatchQueue.main.async {
+                result(flutterError ?? true)
+            }
+        }
+    }
+
+    struct PdfStandardPathError: Error {
+        let message: String
+    }
+
+    /// Mirrors Android `DocumentStandardOps.validateOutputPath`. Returns the plain file path to
+    /// write to; a `file://` URL is accepted as well. Also used by `CPDFDocumentOptimizeOps`.
+    func validatePdfStandardOutputPath(
+        _ outputPath: String,
+        document: CPDFDocument
+    ) -> Result<String, PdfStandardPathError> {
+        let trimmed = outputPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return .failure(PdfStandardPathError(message: "output_path must not be empty."))
+        }
+        let path: String
+        if let url = URL(string: trimmed), url.isFileURL {
+            path = url.path
+        } else {
+            path = trimmed
+        }
+        let outputURL = URL(fileURLWithPath: path)
+        let parent = outputURL.deletingLastPathComponent().path
+        var isDirectory: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: parent, isDirectory: &isDirectory) || !isDirectory.boolValue {
+            return .failure(PdfStandardPathError(message: "The parent directory of \(path) does not exist."))
+        }
+        if !FileManager.default.isWritableFile(atPath: parent) {
+            return .failure(PdfStandardPathError(message: "The directory \(parent) is not writable."))
+        }
+        // The sandbox exposes the same location as /var and /private/var, so compare the
+        // resolved paths rather than the raw strings.
+        if let documentURL = document.documentURL,
+           documentURL.standardizedFileURL.resolvingSymlinksInPath().path
+            == outputURL.standardizedFileURL.resolvingSymlinksInPath().path {
+            return .failure(PdfStandardPathError(message: "output_path must differ from the path of the current document."))
+        }
+        return .success(path)
+    }
+
+    private func pdfStandardError(_ error: NSError, type: String) -> FlutterError {
+        let details: [String: Any] = ["native_domain": error.domain, "native_code": error.code]
+        let reason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String ?? ""
+        if error.domain == CPDFStandardConversionErrorDomain
+            && error.code == CPDFStandardConversionError.Code.unsupportedFormat.rawValue {
+            return FlutterError(
+                code: "UNSUPPORTED_PDF_STANDARD",
+                message: "\(type) is not supported on iOS.",
+                details: details)
+        }
+        var message = "The conversion to \(type) failed (native code \(error.code))."
+        if !reason.isEmpty {
+            message += " \(reason)"
+        }
+        return FlutterError(code: "PDF_STANDARD_CONVERT_FAILED", message: message, details: details)
+    }
+
+    private func batesMap() -> [String: Any]? {
+        guard let bates = self.document?.bates() else { return nil }
+        let hasContent = (0..<6).contains { index in
+            !(bates.text(at: UInt(index)) ?? "").isEmpty
+        }
+        guard hasContent else { return nil }
+        let margin = bates.margin
+        let slots: [[String: Any]] = (0..<6).map { index in
+            [
+                "position": self.headerFooterPosition(index),
+                "text": bates.text(at: UInt(index)) ?? "",
+                "font_name": bates.fontName(at: UInt(index)) ?? "Helvetica",
+                "font_size": Double(bates.fontSize(at: UInt(index))),
+                "text_color": bates.textColor(at: UInt(index))?.toHexString() ?? "#000000"
+            ]
+        }
+        return [
+            "pages": bates.pageString ?? "",
+            "margin": [
+                "left": Double(margin.left), "top": Double(margin.top),
+                "right": Double(margin.right), "bottom": Double(margin.bottom)
+            ],
+            "page_offset": 0,
+            "rule": 2,
+            "slots": slots
+        ]
+    }
+
+    private func updateBates(call: FlutterMethodCall, result: FlutterResult) {
+        guard let bates = self.document?.bates(),
+              let info = call.arguments as? [String: Any],
+              let pages = info["pages"] as? String, !pages.isEmpty,
+              let margin = info["margin"] as? [String: Any],
+              let slots = info["slots"] as? [[String: Any]], !slots.isEmpty,
+              let left = self.headerFooterNumber(margin["left"]),
+              let top = self.headerFooterNumber(margin["top"]),
+              let right = self.headerFooterNumber(margin["right"]),
+              let bottom = self.headerFooterNumber(margin["bottom"]) else {
+            result(FlutterError(code: "BATES_FAIL", message: "Bates payload is invalid.", details: nil))
+            return
+        }
+        var positions = Set<Int>()
+        for slot in slots {
+            guard let position = slot["position"] as? String,
+                  let index = self.headerFooterIndex(position),
+                  positions.insert(index).inserted,
+                  let fontSize = self.headerFooterNumber(slot["font_size"]), fontSize > 0 else {
+                result(FlutterError(code: "BATES_FAIL", message: "Bates slot is invalid.", details: nil))
+                return
+            }
+        }
+        bates.pageString = pages
+        bates.margin = UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+        for index in 0..<6 { bates.setText("", at: UInt(index)) }
+        for slot in slots {
+            guard let position = slot["position"] as? String,
+                  let index = self.headerFooterIndex(position),
+                  let fontSize = self.headerFooterNumber(slot["font_size"]) else { continue }
+            bates.setText(slot["text"] as? String ?? "", at: UInt(index))
+            bates.setFontName(slot["font_name"] as? String ?? "Helvetica", at: UInt(index))
+            bates.setFontSize(fontSize, at: UInt(index))
+            bates.setTextColor(
+                ColorHelper.colorWithHexString(hex: slot["text_color"] as? String ?? "#FF000000"),
+                at: UInt(index))
+        }
+        bates.update()
+        self.pdfViewController?.pdfListView?.layoutDocumentView()
+        result(true)
+    }
+
+    private func backgroundMap() -> [String: Any]? {
+        guard let background = self.document?.background(),
+              background.hasBackground else {
+            return nil
+        }
+        let pages = background.pageString
+        print("ComPDFKit-Flutter: getBackground background.pages: \(pages ?? "<nil>")")
+        var value: [String: Any] = [
+            "pages": pages ?? "",
+            "type": background.type == .image ? "image" : "color",
+            "opacity": Double(background.opacity),
+            "scale": Double(background.scale),
+            "rotation": Double(background.rotation),
+            "horizontal_alignment": self.backgroundHorizontalAlignment(
+                Int(background.horizontalAlignment)),
+            "vertical_alignment": self.backgroundVerticalAlignment(
+                Int(background.verticalAlignment)),
+            "horizontal_offset": Double(background.xOffset),
+            "vertical_offset": Double(background.yOffset),
+            "allow_view": background.isAllowsView,
+            "allow_print": background.isAllowsPrint
+        ]
+        if background.type == .color {
+            value["color"] = self.backgroundColorHex(background.color)
+        }
+        return value
+    }
+
+    private func updateBackground(call: FlutterMethodCall, result: FlutterResult) {
+        guard let background = self.document?.background(),
+              let info = call.arguments as? [String: Any],
+              let pages = info["pages"] as? String,
+              !pages.isEmpty,
+              let type = info["type"] as? String,
+              let opacity = self.backgroundNumber(info["opacity"]),
+              let scale = self.backgroundNumber(info["scale"]),
+              let rotation = self.backgroundNumber(info["rotation"]),
+              let horizontalAlignment = self.backgroundHorizontalAlignment(
+                info["horizontal_alignment"] as? String),
+              let verticalAlignment = self.backgroundVerticalAlignment(
+                info["vertical_alignment"] as? String),
+              let horizontalOffset = self.backgroundNumber(info["horizontal_offset"]),
+              let verticalOffset = self.backgroundNumber(info["vertical_offset"]),
+              let allowView = info["allow_view"] as? Bool,
+              let allowPrint = info["allow_print"] as? Bool else {
+            result(FlutterError(
+                code: "BACKGROUND_FAIL",
+                message: "Background payload is invalid.",
+                details: nil))
+            return
+        }
+
+        switch type {
+        case "color":
+            guard let color = info["color"] as? String, !color.isEmpty else {
+                result(FlutterError(
+                    code: "BACKGROUND_FAIL",
+                    message: "A color background requires color.",
+                    details: nil))
+                return
+            }
+            background.type = .color
+            background.color = ColorHelper.colorWithHexString(hex: color)
+        case "image":
+            guard let imagePath = info["image_path"] as? String,
+                  !imagePath.isEmpty,
+                  let image = UIImage(contentsOfFile: imagePath) else {
+                result(FlutterError(
+                    code: "BACKGROUND_FAIL",
+                    message: "Background image_path does not exist.",
+                    details: nil))
+                return
+            }
+            background.type = .image
+            background.setImage(image)
+        default:
+            result(FlutterError(
+                code: "BACKGROUND_FAIL",
+                message: "Background type is invalid.",
+                details: nil))
+            return
+        }
+
+        background.pageString = pages
+        background.opacity = opacity
+        background.scale = scale
+        background.rotation = rotation
+        background.horizontalAlignment = UInt(horizontalAlignment)
+        background.verticalAlignment = UInt(verticalAlignment)
+        background.xOffset = horizontalOffset
+        background.yOffset = verticalOffset
+        background.isAllowsView = allowView
+        background.isAllowsPrint = allowPrint
+        background.update()
+        self.pdfViewController?.pdfListView?.layoutDocumentView()
+        result(true)
+    }
+
+    private func backgroundNumber(_ value: Any?) -> CGFloat? {
+        guard let number = value as? NSNumber else {
+            return nil
+        }
+        return CGFloat(number.doubleValue)
+    }
+
+    private func backgroundHorizontalAlignment(_ value: String?) -> Int? {
+        switch value {
+        case "left": return 0
+        case "center": return 1
+        case "right": return 2
+        default: return nil
+        }
+    }
+
+    private func backgroundVerticalAlignment(_ value: String?) -> Int? {
+        switch value {
+        case "top": return 0
+        case "center": return 1
+        case "bottom": return 2
+        default: return nil
+        }
+    }
+
+    private func backgroundHorizontalAlignment(_ value: Int) -> String {
+        switch value {
+        case 0: return "left"
+        case 2: return "right"
+        default: return "center"
+        }
+    }
+
+    private func backgroundVerticalAlignment(_ value: Int) -> String {
+        switch value {
+        case 0: return "top"
+        case 2: return "bottom"
+        default: return "center"
+        }
+    }
+
+    private func backgroundColorHex(_ color: UIColor?) -> String {
+        guard let color = color else {
+            return "#00000000"
+        }
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard color.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return "#00000000"
+        }
+        return String(
+            format: "#%02X%02X%02X%02X",
+            Int((alpha * 255).rounded()),
+            Int((red * 255).rounded()),
+            Int((green * 255).rounded()),
+            Int((blue * 255).rounded()))
+    }
+
+    private func headerFooterNumber(_ value: Any?) -> CGFloat? {
+        if let number = value as? NSNumber {
+            return CGFloat(number.doubleValue)
+        }
+        return nil
+    }
+
+    private func headerFooterIndex(_ position: String) -> Int? {
+        switch position {
+        case "header_left": return 0
+        case "header_center": return 1
+        case "header_right": return 2
+        case "footer_left": return 3
+        case "footer_center": return 4
+        case "footer_right": return 5
+        default: return nil
+        }
+    }
+
+    private func headerFooterPosition(_ index: Int) -> String {
+        switch index {
+        case 0: return "header_left"
+        case 1: return "header_center"
+        case 2: return "header_right"
+        case 3: return "footer_left"
+        case 4: return "footer_center"
+        case 5: return "footer_right"
+        default: return "header_left"
+        }
     }
 
     private func renderAnnotationAppearance(call: FlutterMethodCall, result: @escaping FlutterResult) {

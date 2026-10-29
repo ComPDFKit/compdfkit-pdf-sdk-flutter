@@ -249,11 +249,20 @@ public class CPDFViewCtrlPlugin extends BaseMethodChannelPlugin implements CPDFC
                                 ? "formFieldsDeselected" : "annotationsDeselected";
                             // Only parse and send data when event is subscribed
                             if (viewContext.getSubscribedEvents().contains(eventName)) {
+                                CPDFAnnotation annotation = cpdfBaseAnnot.onGetAnnotation();
+                                // Annotation deletion invalidates the native object before the
+                                // deselection callback is dispatched. In that case, notify Dart
+                                // without attempting to serialize the stale annotation.
+                                if (annotation == null || !annotation.isValid()) {
+                                    ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
+                                        eventName, null);
+                                    return;
+                                }
                                 HashMap<String, Object> annotData = ViewerAnnotationCodec.encode(
                                     viewContext.getDocumentPlugin(),
                                     documentFragment.pdfView.getCPdfReaderView()
                                         .getPDFDocument(),
-                                    cpdfBaseAnnot.onGetAnnotation());
+                                    annotation);
                                 ViewerEventDispatcher.dispatchIfSubscribed(methodChannel, viewContext,
                                     eventName, annotData);
                             }

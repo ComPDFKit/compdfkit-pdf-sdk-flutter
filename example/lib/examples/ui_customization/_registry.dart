@@ -11,6 +11,7 @@ import '../shared/category_info.dart';
 import '../shared/example_item.dart';
 import '../shared/example_route_type.dart';
 import 'context_menu_customization_example.dart';
+import 'creation_policy_example.dart';
 import 'editor_selection_events_example.dart';
 import 'event_listeners_example.dart';
 import 'reader_ui_callbacks_example.dart';
@@ -24,7 +25,8 @@ final CategoryInfo uiCustomizationCategory = CategoryInfo(
   id: 'ui_customization',
   name: 'UI Customization',
   icon: Icons.palette,
-  description: 'Toolbar, menu, style, and reader callback customization',
+  description:
+      'Reader toolbar, creation, menu, style, and callback customization',
   examples: [
     ExampleItem(
       title: 'Toolbar Customization',
@@ -35,6 +37,17 @@ final CategoryInfo uiCustomizationCategory = CategoryInfo(
         icon: Icons.build,
         backgroundColor: Color(0xFFE0F2F1),
         iconColor: Color(0xFF00796B),
+      ),
+    ),
+    ExampleItem(
+      title: 'Creation Policy',
+      description: 'Configure annotation and form creation behavior',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const CreationPolicyExample(),
+      visual: const ExampleVisual(
+        icon: Icons.tune,
+        backgroundColor: Color(0xFFE8EAF6),
+        iconColor: Color(0xFF3949AB),
       ),
     ),
     ExampleItem(

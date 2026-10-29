@@ -1,0 +1,21 @@
+// Copyright © 2014-2026 PDF Technologies, Inc. All Rights Reserved.
+//
+// THIS SOURCE CODE AND ANY ACCOMPANYING DOCUMENTATION ARE PROTECTED BY INTERNATIONAL COPYRIGHT LAW
+// AND MAY NOT BE RESOLD OR REDISTRIBUTED. USAGE IS BOUND TO THE ComPDFKit LICENSE AGREEMENT.
+// UNAUTHORIZED REPRODUCTION OR DISTRIBUTION IS SUBJECT TO CIVIL AND CRIMINAL PENALTIES.
+// This notice may not be removed from this file.
+
+import 'package:compdfkit_flutter_example/examples/ui_customization/_registry.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('Creation Policy example is registered', () {
+    expect(
+      uiCustomizationCategory.examples.any(
+        (example) =>
+            example.title == 'Creation Policy' && example.pageBuilder != null,
+      ),
+      isTrue,
+    );
+  });
+}

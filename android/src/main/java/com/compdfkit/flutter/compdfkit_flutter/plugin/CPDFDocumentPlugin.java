@@ -10,12 +10,21 @@
 
 package com.compdfkit.flutter.compdfkit_flutter.plugin;
 
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLEAR_BATES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLEAR_BACKGROUND;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_BATES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_BACKGROUND;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_BATES;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_BACKGROUND;
+
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_ANNOTATIONS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_ANNOTATION_REPLY;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_OUTLINE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_WIDGET_IMAGE_SIGNATURE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_WIDGETS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.APPLY_REDACTION;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.APPLY_REDACTIONS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_OWNER_PASSWORD;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CHECK_OWNER_UNLOCKED;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLOSE;
@@ -34,9 +43,16 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.RENDER_ANNOTATION_APPEARANCE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_BOOKMARKS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_INFO;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DIGITAL_SIGNATURES;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_DOCUMENT_PATH;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_ENCRYPT_ALGORITHM;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_FILE_NAME;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CONVERT_TO_PDF_STANDARD;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_OPTIMIZE_OPTIONS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.OPTIMIZE_DOCUMENT_TO_FILE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CANCEL_OPTIMIZE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_HEADER_FOOTER;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_PDF_STANDARD_TYPE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARKS;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_WATERMARK_COUNT;
@@ -96,7 +112,13 @@ import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.Ch
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_BOOKMARK;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_OUTLINE;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_WATERMARK;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_HEADER_FOOTER;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.CLEAR_HEADER_FOOTER;
 import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.UPDATE_WIDGET;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.VERIFY_DIGITAL_SIGNATURE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.WRITE_SIGNATURE;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.GET_LTV_READINESS;
+import static com.compdfkit.flutter.compdfkit_flutter.constants.CPDFConstants.ChannelMethod.ADD_SIGNATURE_LTV;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -136,12 +158,18 @@ import com.compdfkit.flutter.compdfkit_flutter.document.codec.CPDFPageCodec;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentAnnotationOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentEditAreaOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentInfoOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentHeaderFooterOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentBatesOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentBackgroundOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentDigitalSignatureOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentOpenOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentOutlineOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentPageOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentRenderOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSaveOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSearchOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentOptimizeOps;
+import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentStandardOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentSecurityOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTransferOps;
 import com.compdfkit.flutter.compdfkit_flutter.document.ops.DocumentTaskOps;
@@ -326,6 +354,61 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                 break;
             case GET_ENCRYPT_ALGORITHM:
                 result.success(DocumentSecurityOps.getEncryptAlgorithm(documentContext));
+                break;
+            case GET_HEADER_FOOTER:
+                DocumentHeaderFooterOps.getHeaderFooter(documentContext, result);
+                break;
+            case UPDATE_HEADER_FOOTER:
+                DocumentHeaderFooterOps.updateHeaderFooter(documentContext, call, result);
+                break;
+            case CLEAR_HEADER_FOOTER:
+                DocumentHeaderFooterOps.clearHeaderFooter(documentContext, result);
+                break;
+            case GET_PDF_STANDARD_TYPE:
+                DocumentStandardOps.getStandardType(documentContext, result);
+                break;
+            case CONVERT_TO_PDF_STANDARD:
+                DocumentStandardOps.convertToStandardAsync(documentContext, call, result);
+                break;
+            case GET_OPTIMIZE_OPTIONS:
+                DocumentOptimizeOps.getOptimizeOptions(documentContext, result);
+                break;
+            case OPTIMIZE_DOCUMENT_TO_FILE:
+                DocumentOptimizeOps.optimizeToFileAsync(documentContext, methodChannel, call,
+                        result);
+                break;
+            case CANCEL_OPTIMIZE:
+                DocumentOptimizeOps.cancelOptimize(documentContext, result);
+                break;
+            case GET_BATES:
+                DocumentBatesOps.getBates(documentContext, result);
+                break;
+            case UPDATE_BATES:
+                DocumentBatesOps.updateBates(documentContext, call, result);
+                break;
+            case CLEAR_BATES:
+                DocumentBatesOps.clearBates(documentContext, result);
+                break;
+            case GET_BACKGROUND:
+                DocumentBackgroundOps.getBackground(documentContext, result);
+                break;
+            case GET_DIGITAL_SIGNATURES:
+                DocumentDigitalSignatureOps.getDigitalSignatures(documentContext, result);
+                break;
+            case VERIFY_DIGITAL_SIGNATURE:
+                DocumentDigitalSignatureOps.verifyDigitalSignature(documentContext, call, result);
+                break;
+            case GET_LTV_READINESS:
+                DocumentDigitalSignatureOps.getLtvReadiness(documentContext, result);
+                break;
+            case ADD_SIGNATURE_LTV:
+                DocumentDigitalSignatureOps.addSignatureLtv(documentContext, call, result);
+                break;
+            case UPDATE_BACKGROUND:
+                DocumentBackgroundOps.updateBackground(documentContext, call, result);
+                break;
+            case CLEAR_BACKGROUND:
+                DocumentBackgroundOps.clearBackground(documentContext, result);
                 break;
             case CREATE_WATERMARK:
                 Object watermarkObj = call.arguments;
@@ -753,6 +836,16 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                         properties, result);
                 break;
             }
+            case APPLY_REDACTION: {
+                int pageIndex1 = call.argument("page_index");
+                String annotPtr = call.argument("uuid");
+                DocumentAnnotationOps.applyRedaction(documentContext, pageIndex1, annotPtr, result);
+                break;
+            }
+            case APPLY_REDACTIONS: {
+                DocumentAnnotationOps.applyRedactions(documentContext, result);
+                break;
+            }
             case UPDATE_WIDGET: {
                 int pageIndex1 = call.argument("page_index");
                 String annotPtr = call.argument("uuid");
@@ -769,6 +862,9 @@ public class CPDFDocumentPlugin extends BaseMethodChannelPlugin {
                         annotPtr, imagePath, result);
                 break;
             }
+            case WRITE_SIGNATURE:
+                DocumentDigitalSignatureOps.writeSignature(documentContext, call, result);
+                break;
             case REMOVE_EDIT_AREA: {
                 int pageIndex1 = call.argument("page_index");
                 String uuid1 = call.argument("uuid");

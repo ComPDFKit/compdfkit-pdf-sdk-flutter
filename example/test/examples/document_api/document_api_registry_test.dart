@@ -23,5 +23,18 @@ void main() {
       expect(example.routeType, ExampleRouteType.pageBuilder);
       expect(example.pageBuilder, isNotNull);
     });
+
+    test('registers PDF Standard example', () {
+      final example = documentApiCategory.examples.firstWhere(
+        (item) => item.title == 'PDF Standard',
+        orElse: () => throw TestFailure(
+          'PDF Standard example not found in registry',
+        ),
+      );
+
+      expect(example.description, contains('Android only'));
+      expect(example.routeType, ExampleRouteType.pageBuilder);
+      expect(example.pageBuilder, isNotNull);
+    });
   });
 }

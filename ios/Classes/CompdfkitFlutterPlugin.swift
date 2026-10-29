@@ -82,7 +82,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             let homeDiectory = NSHomeDirectory()
             let bundlePath = Bundle.main.bundlePath
                 
-            if (path.hasPrefix(homeDiectory) || path.hasPrefix(bundlePath)) {
+            if path.hasPrefix(bundlePath) {
                 let fileManager = FileManager.default
                 let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
                 let fileName = document.lastPathComponent ?? ""
@@ -97,7 +97,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 }
                 
                 documentPath = docsFilePath
-            } else {
+            } else if !path.hasPrefix(homeDiectory) {
                 success = document.startAccessingSecurityScopedResource()
             }
             
@@ -217,6 +217,60 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 fontDicts.append(fontDict)
             }
             result(fontDicts)
+        case CPDFConstants.generatePkcs12Certificate:
+            guard let args = call.arguments as? [String: Any],
+                  let subject = args["subject"] as? [String: Any],
+                  let password = args["password"] as? String,
+                  let outputPath = args["output_path"] as? String else {
+                result(FlutterError(code: "INVALID_CERTIFICATE_REQUEST", message: "Certificate request is incomplete", details: nil))
+                return
+            }
+            var info: [String: String] = [:]
+            let fields = [("country", "C"), ("state", "ST"), ("locality", "L"), ("organization", "O"), ("organizational_unit", "OU"), ("common_name", "CN"), ("email", "emailAddress")]
+            for (key, nativeKey) in fields {
+                if let value = subject[key] as? String, !value.isEmpty { info[nativeKey] = value }
+            }
+            let usage = (args["usage"] as? NSNumber)?.intValue ?? 1
+            DispatchQueue.global(qos: .userInitiated).async {
+                let success = CPDFSignature.generatePKCS12Cert(withInfo: info, password: password, toPath: outputPath, certUsage: CPDFCertUsage(rawValue: usage) ?? .digSig)
+                DispatchQueue.main.async { result(success) }
+            }
+        case CPDFConstants.checkPkcs12CertificatePassword:
+            let args = call.arguments as? [String: Any]
+            let path = args?["path"] as? String ?? ""
+            let password = args?["password"] as? String ?? ""
+            DispatchQueue.global(qos: .userInitiated).async {
+                let certificate = CPDFSignatureCertificate(pkcs12Path: path, password: password)
+                DispatchQueue.main.async { result(certificate != nil) }
+            }
+        case CPDFConstants.loadPkcs12Certificate:
+            let args = call.arguments as? [String: Any]
+            let path = args?["path"] as? String ?? ""
+            let password = args?["password"] as? String ?? ""
+            DispatchQueue.global(qos: .userInitiated).async {
+                let certificate = CPDFSignatureCertificate(pkcs12Path: path, password: password)
+                var value: [String: Any]? = nil
+                if let certificate = certificate {
+                    certificate.checkIsTrusted()
+                    value = ["version": certificate.version, "serial_number": certificate.serialNumber, "key_type": "", "signature_algorithm": certificate.signatureAlgorithmOID, "issuer": certificate.issuer, "subject": certificate.subject, "valid_from": ISO8601DateFormatter().string(from: certificate.validityStarts), "valid_to": ISO8601DateFormatter().string(from: certificate.validityEnds), "sha1_digest": certificate.sha1Digest, "md5_digest": certificate.md5Digest, "is_trusted": certificate.isTrusted]
+                }
+                DispatchQueue.main.async { result(value) }
+            }
+        case CPDFConstants.configureTrustedCertificateDirectories:
+            result(FlutterError(
+                code: "UNSUPPORTED_CERTIFICATE_DIRECTORY_CONFIGURATION",
+                message: "iOS manages certificate directories inside the application sandbox",
+                details: nil
+            ))
+        case CPDFConstants.addTrustedCertificate:
+            let args = call.arguments as? [String: Any]
+            let path = args?["path"] as? String ?? ""
+            let password = args?["password"] as? String ?? ""
+            DispatchQueue.global(qos: .userInitiated).async {
+                let certificate = CPDFSignatureCertificate(pkcs12Path: path, password: password)
+                let success = certificate?.addToTrustedCertificates() ?? false
+                DispatchQueue.main.async { result(success) }
+            }
             
         default:
             result(FlutterMethodNotImplemented)

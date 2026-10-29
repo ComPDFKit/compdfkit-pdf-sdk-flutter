@@ -16,6 +16,8 @@ import 'document_info_example.dart';
 import 'import_export_xfdf_example.dart';
 import 'open_document_example.dart';
 import 'page_thumbnail_provider_example.dart';
+import 'optimize_document_example.dart';
+import 'pdf_standard_example.dart';
 import 'render_page_example.dart';
 import 'search_text_example.dart';
 
@@ -101,6 +103,28 @@ final CategoryInfo documentApiCategory = CategoryInfo(
         icon: Icons.photo_size_select_actual,
         backgroundColor: Color(0xFFEDE7F6),
         iconColor: Color(0xFF5E35B1),
+      ),
+    ),
+    ExampleItem(
+      title: 'Optimize Document',
+      description: 'Compress and optimize a document (Android only)',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const OptimizeDocumentExample(),
+      visual: const ExampleVisual(
+        icon: Icons.compress,
+        backgroundColor: Color(0xFFE8F5E9),
+        iconColor: Color(0xFF2E7D32),
+      ),
+    ),
+    ExampleItem(
+      title: 'PDF Standard',
+      description: 'Detect and convert the PDF standard (Android only)',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const PdfStandardExample(),
+      visual: const ExampleVisual(
+        icon: Icons.verified,
+        backgroundColor: Color(0xFFE1F5FE),
+        iconColor: Color(0xFF0277BD),
       ),
     ),
     ExampleItem(

@@ -70,7 +70,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
         let homeDiectory = NSHomeDirectory()
         let bundlePath = Bundle.main.bundlePath
         
-        if (path.hasPrefix(homeDiectory) || path.hasPrefix(bundlePath)) {
+        if path.hasPrefix(bundlePath) {
             let fileManager = FileManager.default
             let samplesFilePath = NSHomeDirectory().appending("/Documents/Files")
             let fileName = document.lastPathComponent ?? ""
@@ -85,7 +85,7 @@ class CPDFViewCtrlFlutter: NSObject, FlutterPlatformView, CPDFViewBaseController
             }
             
             documentPath = docsFilePath
-        } else {
+        } else if !path.hasPrefix(homeDiectory) {
             success = document.startAccessingSecurityScopedResource()
         }
         

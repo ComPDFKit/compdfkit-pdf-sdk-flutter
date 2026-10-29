@@ -36,10 +36,10 @@ class CPDFRectF {
 
   factory CPDFRectF.fromJson(Map<String, dynamic> json) {
     return CPDFRectF(
-        left: json['left'] ?? 0,
-        top: json['top'] ?? 0,
-        right: json['right'] ?? 0,
-        bottom: json['bottom'] ?? 0);
+        left: (json['left'] as num?)?.toDouble() ?? 0,
+        top: (json['top'] as num?)?.toDouble() ?? 0,
+        right: (json['right'] as num?)?.toDouble() ?? 0,
+        bottom: (json['bottom'] as num?)?.toDouble() ?? 0);
   }
 
   Size get size => Size(right - left, bottom - top);

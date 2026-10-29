@@ -38,6 +38,10 @@ if (flutterSdk == null) {
 }
 def flutterJar = flutterSdk == null ? null : file("${flutterSdk}/bin/cache/artifacts/engine/android-arm/flutter.jar")
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:-options']
+}
+
 android {
     compileSdk 35
     namespace "com.compdfkit.flutter.compdfkit_flutter"
@@ -58,7 +62,7 @@ android {
         compileOnly fileTree(include: ['*.jar','*.aar'], dir: 'libs')
 
         // dependencies compdfkit pdf sdk
-        api 'com.compdf:compdfkit-tools:3.0.2'
+        api 'com.compdf:compdfkit-tools:3.2.0'
 
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'

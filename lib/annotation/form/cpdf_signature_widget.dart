@@ -30,7 +30,18 @@ class CPDFSignatureWidget extends CPDFWidget {
     super.uuid,
     super.createDate,
     super.borderWidth = 2,
+    this.isSigned = false,
   }) : super(type: CPDFFormType.signaturesFields);
+
+  /// Whether the native signature field already contains a digital signature.
+  ///
+  /// example:
+  /// ```dart
+  /// if (signatureWidget.isSigned) {
+  ///   print('The field already contains a digital signature.');
+  /// }
+  /// ```
+  final bool isSigned;
 
   factory CPDFSignatureWidget.fromJson(Map<String, dynamic> json) {
     CPDFWidget common = CPDFWidget.fromJson(json);
@@ -43,6 +54,13 @@ class CPDFSignatureWidget extends CPDFWidget {
       borderColor: common.borderColor,
       borderWidth: common.borderWidth,
       fillColor: common.fillColor,
+      isSigned: json['isSigned'] == true || json['is_signed'] == true,
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'isSigned': isSigned,
+      };
 }

@@ -27,6 +27,7 @@ public class FlutterCPDFSignatureFieldsWidget extends FlutterCPDFBaseWidget {
   @Override
   public void covert(CPDFWidget widget, HashMap<String, Object> map) {
     map.put("type", "signaturesFields");
+    map.put("isSigned", ((CPDFSignatureWidget) widget).isSigned());
   }
 
   public boolean addImageSignatures(Context context, CPDFAnnotation widget, String imagePath){

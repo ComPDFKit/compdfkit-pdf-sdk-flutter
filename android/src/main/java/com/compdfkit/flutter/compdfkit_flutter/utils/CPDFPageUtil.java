@@ -16,6 +16,7 @@ import android.graphics.RectF;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.CPDFRedactAnnotation;
 import com.compdfkit.core.annotation.CPDFReplyAnnotation;
 import com.compdfkit.core.annotation.CPDFAnnotation.Type;
 import com.compdfkit.core.common.CPDFDate;
@@ -41,6 +42,7 @@ import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFLineA
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFLinkAnnotation;
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFMarkupAnnotation;
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFNoteAnnotation;
+import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFRedactAnnotation;
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFSoundAnnotation;
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFSquareAnnotation;
 import com.compdfkit.flutter.compdfkit_flutter.utils.annotation.FlutterCPDFStampAnnotation;
@@ -98,6 +100,7 @@ public class CPDFPageUtil {
         map.put(Type.FREETEXT, new FlutterCPDFFreeTextAnnotation());
         map.put(Type.SOUND, new FlutterCPDFSoundAnnotation());
         map.put(Type.LINK, new FlutterCPDFLinkAnnotation());
+        map.put(Type.REDACT, new FlutterCPDFRedactAnnotation());
         return map;
     }
 
@@ -158,8 +161,11 @@ public class CPDFPageUtil {
             return null;
         }
         CPDFPage page = document.pageAtIndex(pageIndex);
+        if (page == null || !page.isValid()) {
+            return null;
+        }
         List<CPDFAnnotation> annotations = page.getAnnotations();
-        if (annotations == null || !page.isValid()) {
+        if (annotations == null) {
             return null;
         }
         ArrayList<HashMap<String, Object>> array = new ArrayList<>();
@@ -393,8 +399,11 @@ public class CPDFPageUtil {
             return null;
         }
         CPDFPage page = document.pageAtIndex(pageIndex);
+        if (page == null || !page.isValid()) {
+            return null;
+        }
         List<CPDFAnnotation> annotations = page.getAnnotations();
-        if (annotations == null || !page.isValid()) {
+        if (annotations == null) {
             return null;
         }
         for (CPDFAnnotation annotation : annotations) {

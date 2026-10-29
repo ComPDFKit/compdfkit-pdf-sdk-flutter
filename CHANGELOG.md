@@ -1,3 +1,31 @@
+## 3.2.0
+1. Added support for ComPDFKit PDF SDK for iOS V3.2.0.
+2. Added support for ComPDFKit PDF SDK for Android V3.2.0.
+3. Added APIs for reading, setting, updating, and clearing headers and footers.
+4. Added Bates numbering APIs for reading, setting, updating, and clearing document numbering.
+5. Added APIs for reading, setting, updating, and clearing document backgrounds.
+6. Added PDF standard detection and conversion APIs for PDF/A, PDF/X, PDF/E, PDF/UA, and PDF/VT, with conversion targets depending on platform support.
+7. Added document compression APIs with image compression settings, progress callbacks, cancellation, and saving as a copy, plus font subsetting on Android.
+8. Added PKCS#12 certificate management APIs for generating certificates, validating passwords, reading certificate information, and adding trusted certificates.
+9. Added digital signature APIs for listing signatures, reading signature and certificate information, verifying signatures, and signing signature fields with a certificate to create a signed copy.
+10. Added signature field signing status and digital signature permission information, along with signature appearance configuration.
+11. Added RFC 3161 signature timestamp support and document-level APIs for checking long-term validation (LTV) readiness, adding validation evidence, and applying long-term archival (LTA) timestamps.
+12. Added annotation and form creation settings to control continuous creation and automatic selection of newly created objects.
+13. Added redaction annotation APIs for creating, reading, updating, and deleting redaction annotations, with support for permanently removing content in the covered areas.
+14. Added and improved examples for headers and footers, Bates numbering, document backgrounds, PDF standard conversion, document compression, certificate management, digital signatures, and redaction annotations.
+15. Improved text editing on Android to preserve text box dimensions when changing the font size.
+16. Fixed an issue where opening PDF files within the app sandbox on iOS copied them to another directory, preserving the original file paths so subsequent saves and edits apply to the original files.
+17. Fixed incorrect search highlight positions after switching documents on Android.
+18. Fixed an issue where creating an empty FreeText annotation marked the document as modified on Android.
+19. Fixed issues where annotations could disappear or undo/redo could stop working after deleting annotations or replies, or changing annotation order on Android.
+20. Fixed incorrect paste type detection after copying images in content editing mode on Android.
+21. Fixed incorrect appearances of underline and strikeout annotations on rotated pages on Android.
+22. Fixed Arabic text rendering issues in content editing and FreeText annotations on Android.
+23. Fixed an issue where replacing all matching text in content editing mode did not complete in a single operation on Android.
+24. Fixed a potential crash when undoing content edits on Android.
+25. Improved lifecycle management of document background objects on Android for better stability.
+26. Fixed an issue where the Android platform failed to initialize offline licenses from XML files through `ComPDFKit.initWithPath`.
+
 ## 3.0.2
 1. Added support for ComPDF PDF SDK for iOS V3.0.2.
 2. Added support for ComPDF PDF SDK for Android V3.0.2.

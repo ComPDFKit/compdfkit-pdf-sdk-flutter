@@ -21,6 +21,7 @@ import 'flatten_annotations_example.dart';
 import 'intercept_annotation_action_example.dart';
 import 'list_annotations_example.dart';
 import 'render_annotation_appearance_example.dart';
+import 'redaction_annotation_example.dart';
 import 'xfdf_operations_example.dart';
 
 /// Annotations category registry file
@@ -32,6 +33,17 @@ final CategoryInfo annotationsCategory = CategoryInfo(
   icon: Icons.edit_note,
   description: 'Annotation creation, editing, import and export',
   examples: [
+    ExampleItem(
+      title: 'Redaction Annotation',
+      description: 'Create, inspect, update, and apply redactions',
+      routeType: ExampleRouteType.pageBuilder,
+      pageBuilder: (context) => const RedactionAnnotationExample(),
+      visual: const ExampleVisual(
+        icon: Icons.visibility_off,
+        backgroundColor: Color(0xFFFFEBEE),
+        iconColor: Color(0xFFB71C1C),
+      ),
+    ),
     ExampleItem(
       title: 'Add Annotation',
       description: 'Add common annotation types',

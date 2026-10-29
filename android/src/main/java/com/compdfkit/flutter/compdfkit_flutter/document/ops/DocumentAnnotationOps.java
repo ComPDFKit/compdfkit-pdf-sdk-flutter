@@ -14,6 +14,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.compdfkit.core.annotation.CPDFAnnotation;
+import com.compdfkit.core.annotation.CPDFRedactAnnotation;
 import com.compdfkit.core.annotation.form.CPDFWidget;
 import com.compdfkit.flutter.compdfkit_flutter.document.CPDFDocumentContext;
 import com.compdfkit.flutter.compdfkit_flutter.document.codec.CPDFPageCodec;
@@ -30,6 +31,7 @@ public final class DocumentAnnotationOps {
 
     private static final String REMOVE_FAIL = "REMOVE_FAIL";
     private static final String UPDATE_ANNOTATION_FAIL = "UPDATE_ANNOTATION_FAIL";
+    private static final String APPLY_REDACTION_FAIL = "APPLY_REDACTION_FAIL";
 
     private DocumentAnnotationOps() {
     }
@@ -208,6 +210,33 @@ public final class DocumentAnnotationOps {
         result.success(true);
     }
 
+    public static void applyRedaction(@NonNull CPDFDocumentContext context, int pageIndex,
+            @NonNull String annotPtr, @NonNull MethodChannel.Result result) {
+        CPDFAnnotation annotation = context.getPageCodec().getAnnotation(pageIndex, annotPtr);
+        if (!(annotation instanceof CPDFRedactAnnotation) || !annotation.isValid()) {
+            result.error(APPLY_REDACTION_FAIL, "Redaction annotation not found", null);
+            return;
+        }
+        boolean applied = ((CPDFRedactAnnotation) annotation).applyRedaction();
+        if (!applied) {
+            result.error(APPLY_REDACTION_FAIL, "Failed to apply redaction", null);
+            return;
+        }
+        reloadReaderView(context);
+        result.success(null);
+    }
+
+    public static void applyRedactions(@NonNull CPDFDocumentContext context,
+            @NonNull MethodChannel.Result result) {
+        boolean applied = context.requireDocument().applyRedactions();
+        if (!applied) {
+            result.error(APPLY_REDACTION_FAIL, "Failed to apply document redactions", null);
+            return;
+        }
+        reloadReaderView(context);
+        result.success(null);
+    }
+
     public static void updateWidget(@NonNull CPDFDocumentContext context, int pageIndex,
             @NonNull String annotPtr, @Nullable HashMap<String, Object> properties,
             @NonNull MethodChannel.Result result) {
@@ -275,6 +304,13 @@ public final class DocumentAnnotationOps {
             pageView.invalidate();
         } else {
             readerView.invalidateAllChildren();
+        }
+    }
+
+    private static void reloadReaderView(@NonNull CPDFDocumentContext context) {
+        CPDFReaderView readerView = context.getReaderView();
+        if (readerView != null) {
+            readerView.reloadPages();
         }
     }
 

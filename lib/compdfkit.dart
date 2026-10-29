@@ -9,8 +9,21 @@ import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_configuration.dart';
 import 'package:compdfkit_flutter/document/cpdf_font_name.dart';
+import 'package:compdfkit_flutter/signature/cpdf_certificate.dart';
+export 'package:compdfkit_flutter/signature/cpdf_certificate.dart';
+export 'package:compdfkit_flutter/signature/cpdf_digital_signature.dart';
+export 'package:compdfkit_flutter/signature/cpdf_signature_ltv.dart';
 export 'package:compdfkit_flutter/annotation/cpdf_annotation_state.dart';
 export 'package:compdfkit_flutter/thumbnail/cpdf_page_thumbnail.dart';
+export 'package:compdfkit_flutter/document/cpdf_pdf_standard.dart';
+export 'package:compdfkit_flutter/document/cpdf_extract_image_result.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_color_space_convert_options.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_compress_algorithm.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_optimize_exception.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_optimize_flag.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_optimize_image_options.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_optimize_options.dart';
+export 'package:compdfkit_flutter/document/optimize/cpdf_optimize_result.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -224,6 +237,135 @@ class ComPDFKit {
 
   static Future<bool> createDocument(String id) async {
     return await _methodChannel.invokeMethod('create_document', id);
+  }
+
+  /// Generates a PKCS#12 certificate at [request.outputPath].
+  ///
+  /// Returns `true` when the certificate file was created successfully.
+  ///
+  /// example:
+  /// ```dart
+  /// final directory = await ComPDFKit.getTemporaryDirectory();
+  /// final created = await ComPDFKit.generatePkcs12Certificate(
+  ///   CPDFCertificateRequest(
+  ///     subject: const CPDFCertificateSubject(
+  ///       commonName: 'ComPDF Flutter QA',
+  ///       organization: 'PDF Technologies',
+  ///     ),
+  ///     password: 'certificate-password',
+  ///     outputPath: '${directory.path}/qa-certificate.p12',
+  ///   ),
+  /// );
+  /// ```
+  static Future<bool> generatePkcs12Certificate(
+      CPDFCertificateRequest request) async {
+    return await _methodChannel.invokeMethod(
+      'generate_pkcs12_certificate',
+      request.toJson(),
+    );
+  }
+
+  /// Checks whether [password] opens the PKCS#12 certificate at [path].
+  ///
+  /// Call this before [loadPkcs12Certificate] to keep an invalid password in
+  /// the current input flow instead of attempting to load certificate metadata.
+  ///
+  /// example:
+  /// ```dart
+  /// final isValid = await ComPDFKit.checkPkcs12CertificatePassword(
+  ///   '/path/to/certificate.p12',
+  ///   'certificate-password',
+  /// );
+  /// if (isValid) {
+  ///   // The certificate can be loaded safely.
+  /// }
+  /// ```
+  static Future<bool> checkPkcs12CertificatePassword(
+      String path, String password) async {
+    return await _methodChannel.invokeMethod(
+      'check_pkcs12_certificate_password',
+      <String, String>{'path': path, 'password': password},
+    );
+  }
+
+  /// Loads certificate metadata from a PKCS#12 file.
+  ///
+  /// Returns `null` when the file cannot be loaded or its certificate is not
+  /// valid. The returned [CPDFCertificateInfo.isTrusted] value reflects the
+  /// application trust store.
+  ///
+  /// example:
+  /// ```dart
+  /// final certificate = await ComPDFKit.loadPkcs12Certificate(
+  ///   '/path/to/certificate.p12',
+  ///   'certificate-password',
+  /// );
+  /// if (certificate != null) {
+  ///   print('Subject: ${certificate.subject}');
+  ///   print('Trusted: ${certificate.isTrusted}');
+  /// }
+  /// ```
+  static Future<CPDFCertificateInfo?> loadPkcs12Certificate(
+      String path, String password) async {
+    final result = await _methodChannel.invokeMethod(
+      'load_pkcs12_certificate',
+      <String, String>{'path': path, 'password': password},
+    );
+    if (result is! Map) return null;
+    return CPDFCertificateInfo.fromJson(Map<String, dynamic>.from(result));
+  }
+
+  /// Configures the application certificate trust directories.
+  ///
+  /// Custom certificate directories are currently unsupported. The SDK manages
+  /// certificate storage inside the application sandbox and returns an
+  /// unsupported-operation error on Android and iOS.
+  ///
+  /// example:
+  /// ```dart
+  /// final configured = await ComPDFKit.configureTrustedCertificateDirectories(
+  ///   trustedDirectory: '/path/to/trusted-certificates',
+  ///   exportDirectory: '/path/to/exported-certificates',
+  /// );
+  /// ```
+  static Future<bool> configureTrustedCertificateDirectories({
+    required String trustedDirectory,
+    required String exportDirectory,
+  }) async {
+    return await _methodChannel.invokeMethod(
+      'configure_trusted_certificate_directories',
+      <String, String>{
+        'trusted_directory': trustedDirectory,
+        'export_directory': exportDirectory,
+      },
+    );
+  }
+
+  /// Adds a PKCS#12 certificate to the application trust store.
+  ///
+  /// Reload the certificate with [loadPkcs12Certificate] after this call to
+  /// obtain the updated [CPDFCertificateInfo.isTrusted] state.
+  ///
+  /// example:
+  /// ```dart
+  /// final trusted = await ComPDFKit.addTrustedCertificate(
+  ///   '/path/to/certificate.p12',
+  ///   'certificate-password',
+  /// );
+  /// if (trusted) {
+  ///   final certificate = await ComPDFKit.loadPkcs12Certificate(
+  ///     '/path/to/certificate.p12',
+  ///     'certificate-password',
+  ///   );
+  ///   print(certificate?.isTrusted);
+  /// }
+  /// ```
+  static Future<bool> addTrustedCertificate(
+      String path, String password) async {
+    return await _methodChannel.invokeMethod(
+      'add_trusted_certificate',
+      <String, String>{'path': path, 'password': password},
+    );
   }
 
   /// Retrieve the list of available fonts in the ComPDFKit SDK.

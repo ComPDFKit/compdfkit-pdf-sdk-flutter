@@ -10,8 +10,11 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:compdfkit_flutter/configuration/cpdf_options.dart';
+import 'package:compdfkit_flutter/document/cpdf_background.dart';
 import 'package:compdfkit_flutter/document/cpdf_bookmark.dart';
+import 'package:compdfkit_flutter/document/cpdf_bates.dart';
 import 'package:compdfkit_flutter/document/cpdf_document_permission_info.dart';
+import 'package:compdfkit_flutter/document/cpdf_header_footer.dart';
 import 'package:compdfkit_flutter/document/cpdf_outline.dart';
 import 'package:compdfkit_flutter/document/cpdf_watermark.dart';
 import 'package:compdfkit_flutter/edit/cpdf_edit_area.dart';
@@ -25,6 +28,7 @@ import 'package:flutter/services.dart';
 import '../annotation/cpdf_annotation.dart';
 import '../annotation/cpdf_annotation_reply.dart';
 import '../annotation/cpdf_image_annotation.dart';
+import '../annotation/cpdf_redact_annotation.dart';
 import '../annotation/form/cpdf_signature_widget.dart';
 import '../annotation/form/cpdf_widget.dart';
 import '../compdfkit.dart';
@@ -106,11 +110,15 @@ class CPDFDocument {
       : _channel = MethodChannel('com.compdfkit.flutter.document_$viewId'),
         _isValid = true;
 
-  Future<CPDFDocumentError> open(String filePath,
-      {String password = ''}) async {
+  Future<CPDFDocumentError> open(
+    String filePath, {
+    String password = '',
+  }) async {
     try {
-      var error = await _channel.invokeMethod(
-          'open_document', {'filePath': filePath, 'password': password});
+      var error = await _channel.invokeMethod('open_document', {
+        'filePath': filePath,
+        'password': password,
+      });
       var type = CPDFDocumentError.values.where((e) => e.name == error).first;
       if (type == CPDFDocumentError.success) {
         _isValid = true;
@@ -185,8 +193,9 @@ class CPDFDocument {
   /// var isCorrect = await document.checkOwnerPassword('password');
   /// ```
   Future<bool> checkOwnerPassword(String password) async {
-    return await _channel
-        .invokeMethod('check_owner_password', {'password': password});
+    return await _channel.invokeMethod('check_owner_password', {
+      'password': password,
+    });
   }
 
   /// Check the document for modifications
@@ -259,10 +268,14 @@ class CPDFDocument {
   /// ```
   /// Return value: **true** if the save is successful,
   /// **false** if the save fails.
-  Future<bool> save(
-      {bool saveIncremental = true, bool fontSubSet = true}) async {
-    return await _channel.invokeMethod('save',
-        {'save_incremental': saveIncremental, 'font_sub_set': fontSubSet});
+  Future<bool> save({
+    bool saveIncremental = true,
+    bool fontSubSet = true,
+  }) async {
+    return await _channel.invokeMethod('save', {
+      'save_incremental': saveIncremental,
+      'font_sub_set': fontSubSet,
+    });
   }
 
   /// Saves the document to the specified directory.
@@ -278,13 +291,16 @@ class CPDFDocument {
   /// - [removeSecurity] Whether to remove the document's password.
   /// - [fontSubSet] Whether to embed the font subset when saving the PDF.
   /// This will affect how text appears in other PDF software. This is a time-consuming operation.
-  Future<bool> saveAs(String savePath,
-      {bool removeSecurity = false, bool fontSubSet = true}) async {
+  Future<bool> saveAs(
+    String savePath, {
+    bool removeSecurity = false,
+    bool fontSubSet = true,
+  }) async {
     try {
       return await _channel.invokeMethod('save_as', {
         'save_path': savePath,
         'remove_security': removeSecurity,
-        'font_sub_set': fontSubSet
+        'font_sub_set': fontSubSet,
       });
     } on PlatformException catch (e) {
       debugPrint(e.details);
@@ -336,20 +352,20 @@ class CPDFDocument {
   ///   encryptAlgo = CPDFDocumentEncryptAlgo.rc4
   /// );
   /// ```
-  Future<bool> setPassword(
-      {String? userPassword,
-      String? ownerPassword,
-      bool allowsPrinting = true,
-      bool allowsCopying = true,
-      CPDFDocumentEncryptAlgo encryptAlgo =
-          CPDFDocumentEncryptAlgo.rc4}) async {
+  Future<bool> setPassword({
+    String? userPassword,
+    String? ownerPassword,
+    bool allowsPrinting = true,
+    bool allowsCopying = true,
+    CPDFDocumentEncryptAlgo encryptAlgo = CPDFDocumentEncryptAlgo.rc4,
+  }) async {
     try {
       return await _channel.invokeMethod('set_password', {
         'user_password': userPassword,
         'owner_password': ownerPassword,
         'allows_printing': allowsPrinting,
         'allows_copying': allowsCopying,
-        'encrypt_algo': encryptAlgo.name
+        'encrypt_algo': encryptAlgo.name,
       });
     } on PlatformException catch (e) {
       debugPrint(e.message);
@@ -364,11 +380,462 @@ class CPDFDocument {
   /// CPDFDocumentEncryptAlgo encryptAlgo = await controller.document.getEncryptAlgo();
   /// ```
   Future<CPDFDocumentEncryptAlgo> getEncryptAlgo() async {
-    String encryptAlgoStr =
-        await _channel.invokeMethod('get_encrypt_algorithm');
+    String encryptAlgoStr = await _channel.invokeMethod(
+      'get_encrypt_algorithm',
+    );
     return CPDFDocumentEncryptAlgo.values
         .where((e) => e.name == encryptAlgoStr)
         .first;
+  }
+
+  /// Gets the current document header and footer configuration.
+  ///
+  /// Returns `null` when no header or footer is applied.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final headerFooter = await controller.document.getHeaderFooter();
+  /// if (headerFooter != null) {
+  ///   debugPrint('Header/footer pages: ${headerFooter.pages}');
+  /// }
+  /// ```
+  Future<CPDFHeaderFooter?> getHeaderFooter() async {
+    final result = await _channel.invokeMethod('get_header_footer');
+    if (result is! Map) {
+      return null;
+    }
+    return CPDFHeaderFooter.fromJson(Map<String, dynamic>.from(result));
+  }
+
+  /// Replaces the document header and footer configuration.
+  ///
+  /// The change is kept in the document memory. Call [save] or [saveAs] to
+  /// persist it to the file.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final pageCount = await controller.document.getPageCount();
+  /// final success = await controller.document.updateHeaderFooter(
+  ///   CPDFHeaderFooter(
+  ///     pages: List<int>.generate(pageCount, (index) => index),
+  ///     margin: const EdgeInsets.all(36),
+  ///     slots: const <CPDFHeaderFooterSlot>[
+  ///       CPDFHeaderFooterSlot(
+  ///         position: CPDFHeaderFooterPosition.headerLeft,
+  ///         text: 'ComPDFKit',
+  ///       ),
+  ///       CPDFHeaderFooterSlot(
+  ///         position: CPDFHeaderFooterPosition.footerCenter,
+  ///         text: 'Page <<1>>',
+  ///       ),
+  ///     ],
+  ///   ),
+  /// );
+  /// ```
+  Future<bool> updateHeaderFooter(CPDFHeaderFooter headerFooter) async {
+    final validationError = headerFooter.validate();
+    if (validationError != null) {
+      debugPrint('updateHeaderFooter error: $validationError');
+      return false;
+    }
+    return await _channel.invokeMethod(
+      'update_header_footer',
+      headerFooter.toJson(),
+    );
+  }
+
+  /// Clears all document header and footer content.
+  ///
+  /// The change is kept in the document memory. Call [save] or [saveAs] to
+  /// persist it to the file.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final success = await controller.document.clearHeaderFooter();
+  /// ```
+  Future<bool> clearHeaderFooter() async {
+    return await _channel.invokeMethod('clear_header_footer');
+  }
+
+  /// Reads the PDF standard conformance level declared by the document.
+  ///
+  /// A plain PDF returns [CPDFPdfStandardType.pdf].
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final type = await controller.document.getPdfStandardType();
+  /// debugPrint('current standard: ${type.value}');
+  /// ```
+  Future<CPDFPdfStandardType> getPdfStandardType() async {
+    try {
+      final result = await _channel.invokeMethod('get_pdf_standard_type');
+      return CPDFPdfStandardType.fromValue(result as String?);
+    } on PlatformException catch (e) {
+      throw CPDFPdfStandardException(e.code, e.message ?? '');
+    }
+  }
+
+  /// Converts the document to [type] and writes the result to [outputPath].
+  ///
+  /// The result is written to [outputPath] as a new file; the source file and
+  /// the opened document end up unchanged. Unsaved changes held by the opened
+  /// document, such as annotations or pending content edits in an attached
+  /// reader, are included in the output.
+  ///
+  /// On Android the conversion runs on the opened document, which is then
+  /// reloaded from its original source. On iOS a copy is converted and the
+  /// opened document is never touched.
+  ///
+  /// * [outputPath] may be a file path or, on Android only, a content Uri from
+  ///   [ComPDFKit.createUri]. A file path must be writable, its parent
+  ///   directory must already exist, and it must differ from the current
+  ///   document path. An existing file at [outputPath] is overwritten.
+  /// * An encrypted document must be saved without its password first, via
+  ///   [saveAs], otherwise a [CPDFPdfStandardException] with code
+  ///   `ENCRYPTED_DOCUMENT_NOT_CONVERTIBLE` is thrown.
+  /// * [fontSubset] controls whether font subsets are written into the output
+  ///   file. It is the only setting the native entry point accepts: the ICC
+  ///   output intent is supplied by the SDK itself, and no PDF/UA language or
+  ///   title can be passed in.
+  /// * iOS cannot convert to [CPDFPdfStandardType.pdfE2] or
+  ///   [CPDFPdfStandardType.pdf] and throws a [CPDFPdfStandardException] with
+  ///   code `UNSUPPORTED_PDF_STANDARD`.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// await controller.document.convertToPdfStandard(
+  ///   '/path/to/contract-pdfa2b.pdf',
+  ///   CPDFPdfStandardType.pdfA2b,
+  /// );
+  /// ```
+  Future<bool> convertToPdfStandard(
+    String outputPath,
+    CPDFPdfStandardType type, {
+    bool fontSubset = true,
+  }) async {
+    if (outputPath.trim().isEmpty) {
+      throw const CPDFPdfStandardException(
+        'INVALID_OUTPUT_PATH',
+        'outputPath must not be empty.',
+      );
+    }
+    try {
+      final result = await _channel.invokeMethod('convert_to_pdf_standard', {
+        'output_path': outputPath,
+        'type': type.value,
+        'font_subset': fontSubset,
+      });
+      return result == true;
+    } on PlatformException catch (e) {
+      throw CPDFPdfStandardException(e.code, e.message ?? '');
+    }
+  }
+
+  /// The listener currently receiving `on_optimize_progress` callbacks.
+  void Function(int pageIndex)? _optimizeProgressListener;
+
+  bool _optimizeCallHandlerInstalled = false;
+
+  /// Installs the native to Dart call handler the first time it is needed.
+  ///
+  /// The handler stays installed for the lifetime of the document, which is
+  /// harmless because it ignores every method it does not know.
+  void _ensureNativeCallHandler() {
+    if (_optimizeCallHandlerInstalled) {
+      return;
+    }
+    _optimizeCallHandlerInstalled = true;
+    _channel.setMethodCallHandler(_handleNativeCall);
+  }
+
+  Future<dynamic> _handleNativeCall(MethodCall call) async {
+    switch (call.method) {
+      case 'on_optimize_progress':
+        final listener = _optimizeProgressListener;
+        if (listener == null) {
+          break;
+        }
+        final arguments = call.arguments;
+        final pageIndex = arguments is Map
+            ? (arguments['page_index'] as num?)?.toInt()
+            : null;
+        if (pageIndex != null) {
+          listener(pageIndex);
+        }
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  /// Reads the optimization options currently held by the native document.
+  ///
+  /// The returned instance is a copy: mutating it does not change the native
+  /// state. Pass the options you want to run with to [optimizeToFile]
+  /// instead.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final options = await document.getOptimizeOptions();
+  /// debugPrint('image quality: ${options.imageQuality}');
+  /// ```
+  Future<CPDFOptimizeOptions> getOptimizeOptions() async {
+    try {
+      final result = await _channel.invokeMethod('get_optimize_options');
+      if (result is Map) {
+        return CPDFOptimizeOptions.fromJson(result);
+      }
+      return const CPDFOptimizeOptions();
+    } on PlatformException catch (e) {
+      throw CPDFOptimizeException(e.code, e.message ?? '');
+    }
+  }
+
+  /// Optimizes the document and writes the result to [outputPath], leaving the
+  /// file the document was opened from untouched.
+  ///
+  /// * [outputPath] must be writable, its parent directory must exist, and it
+  ///   must differ from the path of the current document.
+  /// * When [options] is null the options currently held by the native
+  ///   document are used.
+  /// * [fontSubset] embeds only the glyphs the document actually uses.
+  /// * The native SDK leaves the opened document unusable once the copy is
+  ///   written. This method reopens it from its original source before
+  ///   returning, so a mounted reader keeps working. Unsaved changes are lost
+  ///   in the process: call [save] first if they must be kept. If the reopen
+  ///   fails the call throws with code `OPTIMIZE_RESTORE_FAILED`; the output
+  ///   file is still valid, but the in memory document must be closed and
+  ///   reopened rather than saved.
+  /// * Call [cancelOptimize] to stop a run early. A cancelled run resolves
+  ///   normally with [CPDFOptimizeResult.cancelled] set to `true`.
+  /// * Only one optimization run per document may be in flight. A second call
+  ///   throws with code `OPTIMIZE_ALREADY_RUNNING`.
+  /// * The default flag set is lossy: it removes every bookmark and every
+  ///   JavaScript action. See [CPDFOptimizeFlag.defaults].
+  ///
+  /// Since v3.2.0
+  ///
+  /// Platform differences:
+  /// * iOS ignores [fontSubset]; the native SDK always writes without font
+  ///   subsetting.
+  /// * iOS allows one optimization run at a time across all documents, Android
+  ///   one run per document. A second run fails with
+  ///   `OPTIMIZE_ALREADY_RUNNING`.
+  ///
+  /// example:
+  /// ```dart
+  /// final result = await document.optimizeToFile(
+  ///   '/path/to/optimized.pdf',
+  ///   onProgress: (pageIndex) => debugPrint('page $pageIndex'),
+  /// );
+  /// ```
+  Future<CPDFOptimizeResult> optimizeToFile(
+    String outputPath, {
+    CPDFOptimizeOptions? options,
+    bool fontSubset = false,
+    void Function(int pageIndex)? onProgress,
+  }) async {
+    // The trimmed value is both validated and forwarded, so the path the native
+    // side resolves is exactly the one that passed this check.
+    final trimmedOutputPath = outputPath.trim();
+    if (trimmedOutputPath.isEmpty) {
+      throw const CPDFOptimizeException(
+        'INVALID_OUTPUT_PATH',
+        'outputPath must not be empty.',
+      );
+    }
+    // Only the call that actually installed the listener may replace or clear
+    // it. The native side allows a single run per document, so a second,
+    // overlapping call is rejected anyway; letting it touch the listener would
+    // silently stop the progress of the run that is still in flight. The
+    // listener is always torn down afterwards, so a failed run cannot leave a
+    // stale listener behind.
+    final ownsListener =
+        onProgress != null && _optimizeProgressListener == null;
+    if (ownsListener) {
+      _ensureNativeCallHandler();
+      _optimizeProgressListener = onProgress;
+    }
+    try {
+      final result = await _channel.invokeMethod('optimize_document_to_file', {
+        'output_path': trimmedOutputPath,
+        'font_subset': fontSubset,
+        if (options != null) 'options': options.toJson(),
+      });
+      if (result is Map) {
+        return CPDFOptimizeResult.fromJson(result);
+      }
+      throw const CPDFOptimizeException(
+        'OPTIMIZE_FAILED',
+        'The native side returned no optimize result.',
+      );
+    } on PlatformException catch (e) {
+      throw CPDFOptimizeException(e.code, e.message ?? '');
+    } finally {
+      if (ownsListener) {
+        _optimizeProgressListener = null;
+      }
+    }
+  }
+
+  /// Requests cancellation of the optimization run currently in flight.
+  ///
+  /// Cancellation is cooperative: the native run stops at the next page
+  /// boundary and the pending [optimizeToFile] future resolves
+  /// with [CPDFOptimizeResult.cancelled] set to `true`. Calling it while no
+  /// run is in flight does nothing.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// await document.cancelOptimize();
+  /// ```
+  Future<void> cancelOptimize() async {
+    try {
+      await _channel.invokeMethod('cancel_optimize');
+    } on PlatformException catch (e) {
+      throw CPDFOptimizeException(e.code, e.message ?? '');
+    }
+  }
+
+  /// Gets the current Bates numbering configuration.
+  ///
+  /// Returns `null` when no Bates numbering is applied.
+  ///
+  /// example:
+  /// ```dart
+  /// final bates = await controller.document.getBates();
+  /// if (bates != null) {
+  ///   debugPrint('Bates pages: ${bates.pages}');
+  /// }
+  /// ```
+  Future<CPDFBates?> getBates() async {
+    final result = await _channel.invokeMethod('get_bates');
+    if (result is! Map) return null;
+    return CPDFBates.fromJson(Map<String, dynamic>.from(result));
+  }
+
+  /// Replaces the document Bates numbering configuration.
+  ///
+  /// example:
+  /// ```dart
+  /// final pageCount = await controller.document.getPageCount();
+  /// final success = await controller.document.updateBates(
+  ///   CPDFBates(
+  ///     pages: List<int>.generate(pageCount, (index) => index),
+  ///     margin: const EdgeInsets.fromLTRB(36, 24, 36, 24),
+  ///     pageOffset: 0,
+  ///     slots: const <CPDFHeaderFooterSlot>[
+  ///       CPDFHeaderFooterSlot(
+  ///         position: CPDFHeaderFooterPosition.footerRight,
+  ///         text: 'CASE-<<#5#1#>>',
+  ///         fontSize: 12,
+  ///       ),
+  ///     ],
+  ///   ),
+  /// );
+  /// ```
+  Future<bool> updateBates(CPDFBates bates) async {
+    final validationError = bates.validate();
+    if (validationError != null) {
+      debugPrint('updateBates error: $validationError');
+      return false;
+    }
+    return await _channel.invokeMethod('update_bates', bates.toJson());
+  }
+
+  /// Clears all Bates numbering from the document.
+  ///
+  /// example:
+  /// ```dart
+  /// final success = await controller.document.clearBates();
+  /// ```
+  Future<bool> clearBates() async {
+    return await _channel.invokeMethod('clear_bates');
+  }
+
+  /// Gets the current document background configuration.
+  ///
+  /// Returns `null` when the document has no background. Native SDKs do not
+  /// expose the source image of an existing image background, so
+  /// [CPDFBackground.imagePath] is `null` for values returned by this method.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final background = await controller.document.getBackground();
+  /// if (background != null) {
+  ///   debugPrint('Background type: ${background.type}');
+  ///   debugPrint('Background pages: ${background.pages}');
+  /// }
+  /// ```
+  Future<CPDFBackground?> getBackground() async {
+    //TODO: Android, iOS pages 返回为空
+    final result = await _channel.invokeMethod('get_background');
+    if (result is! Map) {
+      return null;
+    }
+    return CPDFBackground.fromJson(Map<String, dynamic>.from(result));
+  }
+
+  /// Replaces the document background configuration.
+  ///
+  /// An image background requires a local [CPDFBackground.imagePath] because
+  /// native SDKs cannot read the source image back from an existing document.
+  /// Call [save] or [saveAs] to persist the change.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final pageCount = await controller.document.getPageCount();
+  /// final success = await controller.document.updateBackground(
+  ///   CPDFBackground.color(
+  ///     pages: List<int>.generate(pageCount, (index) => index),
+  ///     color: Colors.amber,
+  ///     opacity: 0.35,
+  ///   ),
+  /// );
+  /// ```
+  Future<bool> updateBackground(CPDFBackground background) async {
+    final validationError = background.validateForUpdate();
+    if (validationError != null) {
+      debugPrint('updateBackground error: $validationError');
+      return false;
+    }
+    return await _channel.invokeMethod(
+      'update_background',
+      background.toJson(),
+    );
+  }
+
+  /// Clears the document background.
+  ///
+  /// Call [save] or [saveAs] to persist the change.
+  ///
+  /// Since v3.2.0
+  ///
+  /// example:
+  /// ```dart
+  /// final success = await controller.document.clearBackground();
+  /// ```
+  Future<bool> clearBackground() async {
+    return await _channel.invokeMethod('clear_background');
   }
 
   /// Create document watermarks, including text watermarks and image watermarks
@@ -473,9 +940,7 @@ class CPDFDocument {
   ///   print('#${watermark.index}: ${watermark.type.name}');
   /// }
   /// ```
-  Future<List<CPDFWatermark>> getWatermarks({
-    bool exportImages = false,
-  }) async {
+  Future<List<CPDFWatermark>> getWatermarks({bool exportImages = false}) async {
     final result = await _channel.invokeMethod('get_watermarks', {
       'export_images': exportImages,
     });
@@ -574,6 +1039,11 @@ class CPDFDocument {
     } finally {
       _isValid = false;
       _isClosed = true;
+      _optimizeProgressListener = null;
+      if (_optimizeCallHandlerInstalled) {
+        _channel.setMethodCallHandler(null);
+        _optimizeCallHandlerInstalled = false;
+      }
     }
   }
 
@@ -619,8 +1089,10 @@ class CPDFDocument {
   ///
   /// Returns `true` if the flattened document is saved successfully, otherwise `false`.
   Future<bool> flattenAllPages(String savePath, bool fontSubset) async {
-    return await _channel.invokeMethod('flatten_all_pages',
-        {'save_path': savePath, 'font_subset': fontSubset});
+    return await _channel.invokeMethod('flatten_all_pages', {
+      'save_path': savePath,
+      'font_subset': fontSubset,
+    });
   }
 
   /// Imports another PDF document and inserts it at a specified position in the current document.
@@ -654,16 +1126,17 @@ class CPDFDocument {
   /// Returns `true` if the document was successfully imported, `false` otherwise.
   ///
   /// Throws an error if the native method call fails.
-  Future<bool> importDocument(
-      {required String filePath,
-      List<int> pages = const [],
-      int insertPosition = -1,
-      String? password}) async {
+  Future<bool> importDocument({
+    required String filePath,
+    List<int> pages = const [],
+    int insertPosition = -1,
+    String? password,
+  }) async {
     return await _channel.invokeMethod('import_document', {
       'file_path': filePath,
       'pages': pages,
       'insert_position': insertPosition,
-      'password': password
+      'password': password,
     });
   }
 
@@ -688,12 +1161,14 @@ class CPDFDocument {
   /// // CPDFPageSize.custom(500, 800);
   /// bool insertResult = await controller.document.insertBlankPage(pageIndex: 0, pageSize = pageSize);
   /// ```
-  Future<bool> insertBlankPage(
-      {required int pageIndex, CPDFPageSize pageSize = CPDFPageSize.a4}) async {
+  Future<bool> insertBlankPage({
+    required int pageIndex,
+    CPDFPageSize pageSize = CPDFPageSize.a4,
+  }) async {
     return await _channel.invokeMethod('insert_blank_page', {
       'page_index': pageIndex,
       'page_width': pageSize.width,
-      'page_height': pageSize.height
+      'page_height': pageSize.height,
     });
   }
 
@@ -723,7 +1198,7 @@ class CPDFDocument {
       'page_index': pageIndex,
       'image_path': imagePath,
       'page_width': pageSize.width,
-      'page_height': pageSize.height
+      'page_height': pageSize.height,
     });
   }
 
@@ -771,8 +1246,10 @@ class CPDFDocument {
   /// bool splitResult = await controller.document.splitDocumentPages(savePath, [0, 1, 2]);
   /// ```
   Future<bool> splitDocumentPages(String savePath, List<int> pages) async {
-    return await _channel.invokeMethod(
-        'split_document_pages', {'save_path': savePath, 'pages': pages});
+    return await _channel.invokeMethod('split_document_pages', {
+      'save_path': savePath,
+      'pages': pages,
+    });
   }
 
   /// Extracts images from the current PDF document into a directory.
@@ -821,9 +1298,7 @@ class CPDFDocument {
       if (pages != null) 'pages': pages,
     });
     if (result is Map) {
-      return CPDFExtractImageResult.fromJson(
-        Map<String, dynamic>.from(result),
-      );
+      return CPDFExtractImageResult.fromJson(Map<String, dynamic>.from(result));
     }
     throw Exception(
       'extractImages failed: unexpected result type ${result.runtimeType}',
@@ -1208,16 +1683,17 @@ class CPDFDocument {
   ///   pageIndex: 0
   /// );
   /// ```
-  Future<bool> addOutline(
-      {required String parentUuid,
-      int insertIndex = -1,
-      required String title,
-      required int pageIndex}) async {
+  Future<bool> addOutline({
+    required String parentUuid,
+    int insertIndex = -1,
+    required String title,
+    required int pageIndex,
+  }) async {
     return await _channel.invokeMethod('add_outline', {
       'parent_uuid': parentUuid,
       'insert_index': insertIndex,
       'title': title,
-      'page_index': pageIndex
+      'page_index': pageIndex,
     });
   }
 
@@ -1396,10 +1872,7 @@ class CPDFDocument {
   /// ```dart
   /// bool result = await document.movePage(fromIndex: 0, toIndex: 1);
   /// ```
-  Future<bool> movePage({
-    required int fromIndex,
-    required int toIndex,
-  }) async {
+  Future<bool> movePage({required int fromIndex, required int toIndex}) async {
     return await _channel.invokeMethod('move_page', {
       'from_index': fromIndex,
       'to_index': toIndex,
@@ -1488,14 +1961,15 @@ class CPDFDocument {
   /// Size size = await document.getPageSize(pageIndex);
   /// Uint8List imageData = await document.renderPage(pageIndex: pageIndex, width: size.width, height: size.height);
   /// ```
-  Future<Uint8List> renderPage(
-      {required int pageIndex,
-      required int width,
-      required int height,
-      Color backgroundColor = Colors.white,
-      bool drawAnnot = true,
-      bool drawForm = true,
-      CPDFPageCompression compression = CPDFPageCompression.png}) async {
+  Future<Uint8List> renderPage({
+    required int pageIndex,
+    required int width,
+    required int height,
+    Color backgroundColor = Colors.white,
+    bool drawAnnot = true,
+    bool drawForm = true,
+    CPDFPageCompression compression = CPDFPageCompression.png,
+  }) async {
     final result = await _channel.invokeMethod('render_page', {
       'page_index': pageIndex,
       'width': width,
@@ -1511,7 +1985,8 @@ class CPDFDocument {
       throw Exception('renderPage failed: ${result['error']}');
     } else {
       throw Exception(
-          'renderPage failed: unexpected result type ${result.runtimeType}');
+        'renderPage failed: unexpected result type ${result.runtimeType}',
+      );
     }
   }
 
@@ -1533,9 +2008,10 @@ class CPDFDocument {
   ///   options: const CPDFAnnotationRenderOptions(scale: 4.0),
   /// );
   /// ```
-  Future<Uint8List> renderAnnotationAppearance(CPDFAnnotation annotation,
-      {CPDFAnnotationRenderOptions options =
-          const CPDFAnnotationRenderOptions()}) async {
+  Future<Uint8List> renderAnnotationAppearance(
+    CPDFAnnotation annotation, {
+    CPDFAnnotationRenderOptions options = const CPDFAnnotationRenderOptions(),
+  }) async {
     options.validate();
     final result = await _channel.invokeMethod('render_annotation_appearance', {
       'page_index': annotation.page,
@@ -1548,7 +2024,8 @@ class CPDFDocument {
       throw Exception('renderAnnotationAppearance failed: ${result['error']}');
     } else {
       throw Exception(
-          'renderAnnotationAppearance failed: unexpected result type ${result.runtimeType}');
+        'renderAnnotationAppearance failed: unexpected result type ${result.runtimeType}',
+      );
     }
   }
 
@@ -1589,6 +2066,289 @@ class CPDFDocument {
       'uuid': annotation.uuid,
       'data': annotation.toJson(),
     });
+  }
+
+  /// Permanently applies a single redaction annotation.
+  ///
+  /// The annotation must have been read from [CPDFPage.getAnnotations] so its
+  /// native [CPDFAnnotation.uuid] can be resolved. A successfully applied
+  /// annotation is removed and the supplied object must not be reused.
+  ///
+  /// Throws [ArgumentError] when the annotation does not identify a native
+  /// redaction. Native application failures are reported as [PlatformException].
+  Future<void> applyRedaction(CPDFRedactAnnotation annotation) async {
+    //TODO: iOS 端应用密文存在问题 redmine(https://pms.kdan.cc/issues/31668)
+    if (annotation.uuid.isEmpty) {
+      throw ArgumentError.value(
+        annotation.uuid,
+        'annotation.uuid',
+        'A native redaction UUID is required.',
+      );
+    }
+    if (annotation.page < 0) {
+      throw ArgumentError.value(
+        annotation.page,
+        'annotation.page',
+        'The page index must not be negative.',
+      );
+    }
+    await _channel.invokeMethod<void>('apply_redaction', {
+      'page_index': annotation.page,
+      'uuid': annotation.uuid,
+    });
+  }
+
+  /// Permanently applies every redaction annotation in the document.
+  Future<void> applyRedactions() async {
+    await _channel.invokeMethod<void>('apply_redactions');
+  }
+
+  /// Returns the digital signatures currently embedded in the document.
+  ///
+  /// This method reads signature metadata without changing the document.
+  ///
+  /// example:
+  /// ```dart
+  /// final document = await CPDFDocument.createInstance();
+  /// await document.open('/path/to/signed.pdf');
+  /// final signatures = await document.getDigitalSignatures();
+  /// for (final signature in signatures) {
+  ///   print(signature.fieldName);
+  /// }
+  /// ```
+  Future<List<CPDFDigitalSignatureInfo>> getDigitalSignatures() async {
+    final rawList = await _channel.invokeMethod('get_digital_signatures');
+    if (rawList is! List) return <CPDFDigitalSignatureInfo>[];
+    return rawList
+        .whereType<Map>()
+        .map(
+          (item) => CPDFDigitalSignatureInfo.fromJson(
+            Map<String, dynamic>.from(item),
+          ),
+        )
+        .toList();
+  }
+
+  /// Verifies one digital signature by its native document index.
+  ///
+  /// Pass [CPDFDigitalSignatureInfo.signatureIndex] returned by
+  /// [getDigitalSignatures], rather than the item's position in that list.
+  ///
+  /// example:
+  /// ```dart
+  /// final signatures = await document.getDigitalSignatures();
+  /// if (signatures.isEmpty) return;
+  /// final result = await document.verifyDigitalSignature(
+  ///   signatures.first.signatureIndex,
+  /// );
+  /// print(result.signatureValid);
+  /// ```
+  Future<CPDFDigitalSignatureVerificationResult> verifyDigitalSignature(
+    int signatureIndex,
+  ) async {
+    if (signatureIndex < 0) {
+      throw RangeError.value(signatureIndex, 'signatureIndex');
+    }
+    final rawResult = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'verify_digital_signature',
+      <String, dynamic>{'signature_index': signatureIndex},
+    );
+    if (rawResult == null) {
+      throw StateError('Digital signature verification returned no result.');
+    }
+    return CPDFDigitalSignatureVerificationResult.fromJson(
+      Map<String, dynamic>.from(rawResult),
+    );
+  }
+
+  /// Writes a digital signature to [outputPath] using [widget] and [config].
+  ///
+  /// The source document is not overwritten. The widget must come from this
+  /// document's [CPDFPage.getWidgets] result so its native UUID can be resolved.
+  ///
+  /// example:
+  /// ```dart
+  /// // signatureWidget came from the current document or the reader callback.
+  /// final success = await document.writeSignature(
+  ///   signatureWidget,
+  ///   '/path/to/signed.pdf',
+  ///   CPDFDigitalSignatureConfig(
+  ///     certificatePath: certificatePath,
+  ///     password: password,
+  ///     reason: 'Approved',
+  ///   ),
+  /// );
+  /// ```
+  Future<bool> writeSignature(
+    CPDFSignatureWidget widget,
+    String outputPath,
+    CPDFDigitalSignatureConfig config,
+  ) async {
+    if (widget.uuid.isEmpty) {
+      throw ArgumentError.value(
+        widget.uuid,
+        'widget.uuid',
+        'A native signature widget UUID is required.',
+      );
+    }
+    if (widget.page < 0) {
+      throw ArgumentError.value(
+        widget.page,
+        'widget.page',
+        'The page index must not be negative.',
+      );
+    }
+    if (outputPath.isEmpty) {
+      throw ArgumentError.value(
+        outputPath,
+        'outputPath',
+        'An output path is required.',
+      );
+    }
+    if (config.certificatePath.isEmpty) {
+      throw ArgumentError.value(
+        config.certificatePath,
+        'config.certificatePath',
+        'A certificate path is required.',
+      );
+    }
+    if (config.password.isEmpty) {
+      throw ArgumentError.value(
+        config.password,
+        'config.password',
+        'A certificate password is required.',
+      );
+    }
+    final timestampServerUrl = config.timestampServerUrl;
+    if (timestampServerUrl != null &&
+        !_isTimestampServerUrl(timestampServerUrl)) {
+      throw ArgumentError.value(
+        timestampServerUrl,
+        'config.timestampServerUrl',
+        'The timestamp server URL must be an http or https URL.',
+      );
+    }
+    final result = await _channel.invokeMethod<bool>('write_signature', {
+      'page_index': widget.page,
+      'uuid': widget.uuid,
+      'output_path': outputPath,
+      'config': config.toJson(),
+    });
+    return result ?? false;
+  }
+
+  /// Returns the long-term validation (LTV) material in this document.
+  ///
+  /// The result describes the DSS / VRI dictionaries and is a document-level
+  /// check: it does not establish certificate trust or prove that every
+  /// signature meets PAdES-LT. No network access is required.
+  ///
+  /// example:
+  /// ```dart
+  /// final readiness = await document.getLtvReadiness();
+  /// print('LTV ready: ${readiness.ltvReady}');
+  /// print('Missing: ${readiness.missingMaterials}');
+  /// ```
+  ///
+  /// Since 3.2.0.
+  Future<CPDFLtvReadiness> getLtvReadiness() async {
+    final rawResult = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'get_ltv_readiness',
+    );
+    if (rawResult == null) {
+      throw StateError('LTV readiness assessment returned no result.');
+    }
+    return CPDFLtvReadiness.fromJson(Map<String, dynamic>.from(rawResult));
+  }
+
+  /// Adds LTV material to the signed document and writes it to [outputPath].
+  ///
+  /// The native SDK reads the document's saved file, collects the signer
+  /// certificate chain and OCSP / CRL evidence over the network, and appends
+  /// them as an incremental update. The current document is not modified or
+  /// reloaded. When [CPDFSignatureLtvOptions.appendDocumentTimestamp] is true,
+  /// a document timestamp is appended to a second copy at
+  /// [CPDFSignatureLtvOptions.timestampOutputPath].
+  ///
+  /// A native run that cannot complete, for example because the certificate
+  /// chain is untrusted or a responder is unreachable, returns a result whose
+  /// [CPDFSignatureLtvResult.success] is false and whose
+  /// [CPDFSignatureLtvResult.errors] explain why. Invalid arguments throw
+  /// [ArgumentError]; an unusable document throws [PlatformException].
+  ///
+  /// example:
+  /// ```dart
+  /// final result = await document.addSignatureLtv(
+  ///   '/path/to/signed_ltv.pdf',
+  ///   const CPDFSignatureLtvOptions(
+  ///     trustedCertificatePath: '/path/to/root.pem',
+  ///   ),
+  /// );
+  /// if (result.success) {
+  ///   await document.open(result.finalPath);
+  /// }
+  /// ```
+  ///
+  /// Since 3.2.0.
+  Future<CPDFSignatureLtvResult> addSignatureLtv(
+    String outputPath,
+    CPDFSignatureLtvOptions options,
+  ) async {
+    if (outputPath.isEmpty) {
+      throw ArgumentError.value(
+        outputPath,
+        'outputPath',
+        'An output path is required.',
+      );
+    }
+    if (options.trustedCertificatePath.isEmpty) {
+      throw ArgumentError.value(
+        options.trustedCertificatePath,
+        'options.trustedCertificatePath',
+        'A trusted certificate path is required.',
+      );
+    }
+    if (options.appendDocumentTimestamp) {
+      final timestampServerUrl = options.timestampServerUrl;
+      if (timestampServerUrl == null ||
+          !_isTimestampServerUrl(timestampServerUrl)) {
+        throw ArgumentError.value(
+          timestampServerUrl,
+          'options.timestampServerUrl',
+          'An http or https timestamp server URL is required.',
+        );
+      }
+      final timestampOutputPath = options.timestampOutputPath;
+      if (timestampOutputPath == null ||
+          timestampOutputPath.isEmpty ||
+          timestampOutputPath == outputPath) {
+        throw ArgumentError.value(
+          timestampOutputPath,
+          'options.timestampOutputPath',
+          'A timestamp output path different from outputPath is required.',
+        );
+      }
+    }
+    final rawResult = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'add_signature_ltv',
+      <String, dynamic>{
+        'output_path': outputPath,
+        'options': options.toJson(),
+      },
+    );
+    if (rawResult == null) {
+      throw StateError('Adding LTV material returned no result.');
+    }
+    return CPDFSignatureLtvResult.fromJson(
+      Map<String, dynamic>.from(rawResult),
+    );
+  }
+
+  bool _isTimestampServerUrl(String value) {
+    final uri = Uri.tryParse(value);
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
   }
 
   /// Updates a widget on the document.
@@ -1679,10 +2439,12 @@ class CPDFDocument {
   /// await document.addAnnotations(annotations);
   /// ```
   Future<bool> addAnnotations(List<CPDFAnnotation> annotations) async {
-    List<Map<String, dynamic>> annotationsData =
-        await Future.wait(annotations.map(_serializeAnnotation));
-    return await _channel
-        .invokeMethod('add_annotations', {'annotations': annotationsData});
+    List<Map<String, dynamic>> annotationsData = await Future.wait(
+      annotations.map(_serializeAnnotation),
+    );
+    return await _channel.invokeMethod('add_annotations', {
+      'annotations': annotationsData,
+    });
   }
 
   Future<Map<String, dynamic>> _serializeAnnotation(
@@ -1720,14 +2482,12 @@ class CPDFDocument {
   }
 
   Future<Map<String, dynamic>> _normalizeImageData(
-      CPDFImageData imageData) async {
+    CPDFImageData imageData,
+  ) async {
     switch (imageData.type) {
       case CPDFImageType.filePath:
         final bytes = await File(imageData.data).readAsBytes();
-        return {
-          'type': CPDFImageType.base64.name,
-          'data': base64Encode(bytes),
-        };
+        return {'type': CPDFImageType.base64.name, 'data': base64Encode(bytes)};
       case CPDFImageType.base64:
         return {
           'type': CPDFImageType.base64.name,
@@ -1853,19 +2613,17 @@ class CPDFDocument {
   }) async {
     if (defaultTargetPlatform != TargetPlatform.android) {
       throw UnsupportedError(
-          'createNewTextArea() is only supported on Android platform.');
+        'createNewTextArea() is only supported on Android platform.',
+      );
     }
-    return await _channel.invokeMethod(
-      'create_new_text_area',
-      {
-        'page_index': pageIndex,
-        'content': content,
-        'x': offset.dx,
-        'y': offset.dy,
-        'max_width': maxWidth,
-        'attr': attr.toJson(),
-      },
-    );
+    return await _channel.invokeMethod('create_new_text_area', {
+      'page_index': pageIndex,
+      'content': content,
+      'x': offset.dx,
+      'y': offset.dy,
+      'max_width': maxWidth,
+      'attr': attr.toJson(),
+    });
   }
 
   /// Inserts a new image area on the specified page.
@@ -1928,7 +2686,8 @@ class CPDFDocument {
   }) async {
     if (defaultTargetPlatform != TargetPlatform.android) {
       throw UnsupportedError(
-          'createNewTextArea() is only supported on Android platform.');
+        'createNewTextArea() is only supported on Android platform.',
+      );
     }
     try {
       return await _channel.invokeMethod('create_new_image_area', {
@@ -1946,49 +2705,11 @@ class CPDFDocument {
 }
 
 class _CPDFReplyIdentity {
-  const _CPDFReplyIdentity({
-    this.nativeId,
-    this.replyKey,
-    this.parentUuid,
-  });
+  const _CPDFReplyIdentity({this.nativeId, this.replyKey, this.parentUuid});
 
   final String? nativeId;
 
   final String? replyKey;
 
   final String? parentUuid;
-}
-
-/// Result of extracting images from a PDF document.
-class CPDFExtractImageResult {
-  /// Whether the native extraction call completed successfully.
-  final bool success;
-
-  /// Number of image files found in [directoryPath] after extraction.
-  final int count;
-
-  /// Directory where images were written.
-  final String directoryPath;
-
-  /// Full paths of image files found in [directoryPath] after extraction.
-  final List<String> imagePaths;
-
-  /// Creates an image extraction result.
-  const CPDFExtractImageResult({
-    required this.success,
-    required this.count,
-    required this.directoryPath,
-    required this.imagePaths,
-  });
-
-  /// Creates an image extraction result from native JSON data.
-  factory CPDFExtractImageResult.fromJson(Map<String, dynamic> json) {
-    final rawPaths = json['image_paths'];
-    return CPDFExtractImageResult(
-      success: json['success'] == true,
-      count: (json['count'] as num?)?.toInt() ?? 0,
-      directoryPath: json['directory_path'] as String? ?? '',
-      imagePaths: rawPaths is List ? rawPaths.whereType<String>().toList() : [],
-    );
-  }
 }

@@ -18,8 +18,8 @@ void main() {
       ),
     );
 
-    expect(find.text('ComPDFKit'), findsOneWidget);
-    expect(find.text('ComPDFKit Flutter Demo'), findsOneWidget);
+    expect(find.text('ComPDF'), findsOneWidget);
+    expect(find.text('Flutter PDF SDK · Examples'), findsOneWidget);
     expect(find.text('PDF Viewer'), findsOneWidget);
     expect(find.text('Viewer'), findsOneWidget);
   });
