@@ -21,6 +21,9 @@ import java.util.Map;
 
 public abstract class FlutterCPDFBaseWidget implements FlutterCPDFWidget {
 
+  /** PDF field flag bit 2 (Ff), "Required". See ISO 32000-1 Table 221. */
+  private static final int FIELD_FLAG_REQUIRED = 1 << 1;
+
   @Override
   public HashMap<String, Object> getWidget(CPDFAnnotation annotation) {
     HashMap<String, Object> map = new HashMap<>();
@@ -28,6 +31,7 @@ public abstract class FlutterCPDFBaseWidget implements FlutterCPDFWidget {
     map.put("page", widget.pdfPage.getPageNum());
     map.put("title", widget.getFieldName());
     map.put("uuid", widget.getAnnotPtr() + "");
+    map.put("isRequired", (widget.getFieldFlag() & FIELD_FLAG_REQUIRED) != 0);
 
     RectF rect = annotation.getRect();
     Map<String, Float> rectMap = new HashMap<>();

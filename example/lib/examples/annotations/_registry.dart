@@ -167,7 +167,8 @@ final CategoryInfo annotationsCategory = CategoryInfo(
     ),
     ExampleItem(
       title: 'Intercept Action',
-      description: 'Intercept link and note annotation actions',
+      description:
+          'Intercept all annotation actions with type-specific prompts',
       routeType: ExampleRouteType.pageBuilder,
       pageBuilder: (context) => const InterceptAnnotationActionExample(),
       visual: const ExampleVisual(

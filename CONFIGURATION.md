@@ -224,6 +224,9 @@ Configure annotation-related settings, such as enabling types displayed in the a
 | availableTools   | Array  | Annotation tools, including `Setting`, `Undo`, and `Redo`.         |
 | initAttribute    | Array  | Set default attributes for annotations.                                  |
 | annotationAuthor | String | Set the author name when adding annotations and replying to annotations. |
+| inkUndoRedoMode | String | Controls Ink annotation undo/redo history. Supports `inkOnly`, `documentOnly`, and `hybrid`; default: `hybrid`. |
+| interceptAllAnnotationActions | boolean | Intercepts default actions for Note and Link annotations. Other annotation taps remain SDK selection or editing gestures. In viewer mode, Note annotations are not intercepted because they have no default edit action. |
+| interceptAnnotationActions | Array | Annotation types whose default actions should be intercepted. Currently supported values are `note` and `link`; other annotation types remain SDK selection or editing gestures. |
 | autoShowSignPicker | boolean | Whether to automatically show the default signature picker. Default: `true`. |
 | autoShowStampPicker | boolean | Whether to automatically show the default stamp picker. Default: `true`. |
 | autoShowPicPicker | boolean | Whether to automatically show the default picture picker. Default: `true`. |
@@ -539,6 +542,30 @@ Switch to content editing mode to edit text and images. This configuration optio
   }
 }
 ```
+
+#### creationConfig
+
+This section controls interactive annotation and form field creation from the reader tools. It does not affect programmatic document APIs such as `addAnnotations()` and `addWidgets()`.
+
+##### Parameters
+
+| Name                        | Type    | Default | Description |
+| --------------------------- | ------- | ------- | ----------- |
+| continuousCreation          | boolean | true    | Keeps the current annotation or form creation tool active after creating an object. |
+| autoSelectCreatedAnnotation | boolean | true    | Selects the newly created annotation or form field. |
+
+Example:
+
+```json
+{
+  "creationConfig": {
+    "continuousCreation": false,
+    "autoSelectCreatedAnnotation": false
+  }
+}
+```
+
+When `continuousCreation` is false, the reader exits the current creation tool but remains in the annotation or form mode. When `autoSelectCreatedAnnotation` is false, the newly created object is not selected.
 
 #### formsConfig
 

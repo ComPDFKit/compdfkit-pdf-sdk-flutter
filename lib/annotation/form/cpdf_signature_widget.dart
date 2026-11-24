@@ -29,6 +29,7 @@ class CPDFSignatureWidget extends CPDFWidget {
     required super.fillColor,
     super.uuid,
     super.createDate,
+    super.isRequired,
     super.borderWidth = 2,
     this.isSigned = false,
   }) : super(type: CPDFFormType.signaturesFields);
@@ -50,6 +51,7 @@ class CPDFSignatureWidget extends CPDFWidget {
       page: common.page,
       uuid: common.uuid,
       createDate: common.createDate,
+      isRequired: common.isRequired,
       rect: common.rect,
       borderColor: common.borderColor,
       borderWidth: common.borderWidth,

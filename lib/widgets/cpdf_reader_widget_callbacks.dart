@@ -207,18 +207,23 @@ typedef CPDFOnCustomContextMenuItemTappedCallback = void Function(
   dynamic event,
 );
 
-/// Callback for intercepting annotation actions (note and hyperlink annotations).
+/// Callback for intercepting default actions of note and hyperlink annotations.
 ///
-/// Used to configure interception of note and hyperlink annotation tap actions
-/// in CPDFConfiguration, and dispatch the events to the Flutter side for handling.
+/// Other annotation taps remain SDK selection or editing gestures. In viewer
+/// mode, note annotations have no default edit action and are not intercepted.
+/// Use [CPDFAnnotationsConfig.interceptAnnotationActions] or
+/// [CPDFAnnotationsConfig.interceptAllAnnotationActions] to configure this
+/// callback.
 ///
 /// **Configuration Example:**
 /// ```dart
 /// CPDFConfiguration config = CPDFConfiguration(
 ///   annotationsConfig: CPDFAnnotationsConfig(
 ///     annotationAuthor: PreferencesService.documentAuthor,
-///     interceptLinkAction: true,
-///     interceptNoteAction: true
+///     interceptAnnotationActions: [
+///       CPDFAnnotationType.note,
+///       CPDFAnnotationType.link,
+///     ]
 ///   ),
 /// );
 ///

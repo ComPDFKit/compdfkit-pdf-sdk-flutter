@@ -91,7 +91,7 @@ lib/
 ### iOS
 
 - Xcode 12+ & CocoaPods
-- iOS 12.0+
+- iOS 15.0+
 
 ---
 

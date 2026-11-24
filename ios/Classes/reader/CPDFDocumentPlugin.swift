@@ -69,13 +69,10 @@ public class CPDFDocumentPlugin {
             
             switch call.method {
             case CPDFConstants.save:
-                if #available(iOS 13.0, *) {
-                    guard let window = UIApplication.shared.windows.first else { return }
-                    window.overrideUserInterfaceStyle = .unspecified
-                }
+                let window = self.pdfViewController?.viewIfLoaded?.window ?? CompdfkitFlutterPlugin.activeWindow()
+                window?.overrideUserInterfaceStyle = .unspecified
                 let initInfo = call.arguments as? [String: Any]
                 
-                let isSaveIncremental = initInfo?["save_incremental"] as? Bool ?? true
                 let fontSubset = initInfo?["font_sub_set"] as? Bool ?? true
                 
                 if(self.pdfViewController != nil){
@@ -498,7 +495,7 @@ public class CPDFDocumentPlugin {
                 
                 let pages : [Int] = self.getValue(from: info, key: "pages", defaultValue: [])
                 
-                var insertPosition = self.getValue(from: info, key: "insert_position", defaultValue: -1)
+                let insertPosition = self.getValue(from: info, key: "insert_position", defaultValue: -1)
                 
                 let password = self.getValue(from: info, key: "password", defaultValue: "")
                 
@@ -1321,9 +1318,9 @@ public class CPDFDocumentPlugin {
     private func digitalModificationMap(_ modification: CPDFModifyInfo) -> [String: Any] {
         return [
             "type": String(modification.type.rawValue),
-            "page_index": modification.pageIndex ?? -1,
-            "annotation_type": modification.annotationType ?? -1,
-            "form_type": modification.formType ?? -1,
+            "page_index": modification.pageIndex,
+            "annotation_type": modification.annotationType,
+            "form_type": modification.formType,
             "info": modification.info ?? ""
         ]
     }
@@ -2885,7 +2882,7 @@ public class CPDFDocumentPlugin {
             ]
         }
         var actionDict: [String: Any] = [:]
-        if let action = outline.action as? CPDFGoToAction {
+        if outline.action is CPDFGoToAction {
             actionDict["actionType"] = "goTo"
             dict["action"] = actionDict
         } else if let action = outline.action as? CPDFURLAction {

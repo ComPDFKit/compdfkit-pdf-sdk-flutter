@@ -398,6 +398,13 @@ class CPDFAnnotationsConfig {
   /// and the name of the comment author can be set here.
   final String annotationAuthor;
 
+  /// Controls the history source used by Ink annotation undo and redo.
+  ///
+  /// Android supports all values. The Flutter iOS configuration field is
+  /// forwarded for compatibility and takes effect after the iOS SDK exposes
+  /// the corresponding native configuration entry.
+  final CPDFInkUndoRedoMode inkUndoRedoMode;
+
   /// [CPDFViewMode.annotations] mode,
   /// list of annotation functions shown at the bottom of the view.
   final List<CPDFAnnotationType> availableTypes;
@@ -465,44 +472,89 @@ class CPDFAnnotationsConfig {
   /// cancel the created note.
   final bool autoShowNoteEditDialog;
 
-  /// Intercept click actions on existing note annotations.
-  /// Default is false (not intercepted). Clicking a note annotation will directly pop up the note content editing dialog.
-  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptAnnotationActionCallback].
-  /// Developers can handle custom note content editing dialogs through the callback.
+  /// Legacy note-action switch.
+  ///
+  /// Prefer [interceptAnnotationActions] with [CPDFAnnotationType.note].
+  /// This value is converted to the new annotation-action configuration when
+  /// no explicit new interception fields are provided. Native SDKs also keep
+  /// the legacy field for compatibility.
   final bool interceptNoteAction;
 
-  /// Intercept click actions on existing link annotations.
-  /// Default is false (not intercepted). Clicking a link annotation will directly execute the link jump action.
-  /// When set to true, the click event is intercepted via [CPDFReaderWidget.onInterceptAnnotationActionCallback].
-  /// Developers can handle custom link jump actions through the callback.
+  /// Legacy link-action switch.
+  ///
+  /// Prefer [interceptAnnotationActions] with [CPDFAnnotationType.link].
+  /// This value is converted to the new annotation-action configuration when
+  /// no explicit new interception fields are provided. Native SDKs also keep
+  /// the legacy field for compatibility.
   final bool interceptLinkAction;
+
+  /// Intercept default actions for Note and Link annotations.
+  ///
+  /// Other annotation taps remain SDK selection or editing gestures. In
+  /// viewer mode, Note annotations have no default edit action and are not
+  /// intercepted.
+  ///
+  /// Prefer the new fields for new integrations. The legacy note/link fields
+  /// remain supported for compatibility.
+  final bool? interceptAllAnnotationActions;
+
+  /// Annotation types whose default actions should be intercepted.
+  ///
+  /// Currently supported action types are [CPDFAnnotationType.note] and
+  /// [CPDFAnnotationType.link]. Other annotation types remain SDK selection
+  /// or editing gestures.
+  ///
+  /// Prefer this field for new integrations. The legacy note/link fields
+  /// remain supported for compatibility.
+  final List<CPDFAnnotationType>? interceptAnnotationActions;
 
   const CPDFAnnotationsConfig(
       {this.availableTypes = CPDFAnnotationType.values,
       this.availableTools = CPDFConfigTool.values,
       this.initAttribute = const CPDFAnnotAttribute(),
       this.annotationAuthor = "",
+      this.inkUndoRedoMode = CPDFInkUndoRedoMode.hybrid,
       this.autoShowSignPicker = true,
       this.autoShowPicPicker = true,
       this.autoShowStampPicker = true,
       this.autoShowLinkDialog = true,
       this.autoShowNoteEditDialog = true,
       this.interceptNoteAction = false,
-      this.interceptLinkAction = false});
+      this.interceptLinkAction = false,
+      this.interceptAllAnnotationActions,
+      this.interceptAnnotationActions});
 
-  Map<String, dynamic> toJson() => {
-        'availableTypes': availableTypes.map((e) => e.name).toList(),
-        'availableTools': availableTools.map((e) => e.name).toList(),
-        'initAttribute': initAttribute.toJson(),
-        'annotationAuthor': annotationAuthor,
-        'autoShowSignPicker': autoShowSignPicker,
-        'autoShowPicPicker': autoShowPicPicker,
-        'autoShowStampPicker': autoShowStampPicker,
-        'autoShowLinkDialog': autoShowLinkDialog,
-        'autoShowNoteEditDialog': autoShowNoteEditDialog,
-        'interceptNoteAction': interceptNoteAction,
-        'interceptLinkAction': interceptLinkAction
-      };
+  Map<String, dynamic> toJson() {
+    final hasNewInterceptionConfig = interceptAllAnnotationActions != null ||
+        interceptAnnotationActions != null;
+    final effectiveInterceptAllAnnotationActions =
+        interceptAllAnnotationActions ?? false;
+    final effectiveInterceptAnnotationActions = interceptAnnotationActions ??
+        [
+          if (interceptNoteAction) CPDFAnnotationType.note,
+          if (interceptLinkAction) CPDFAnnotationType.link,
+        ];
+
+    return {
+      'availableTypes': availableTypes.map((e) => e.name).toList(),
+      'availableTools': availableTools.map((e) => e.name).toList(),
+      'initAttribute': initAttribute.toJson(),
+      'annotationAuthor': annotationAuthor,
+      'inkUndoRedoMode': inkUndoRedoMode.name,
+      'autoShowSignPicker': autoShowSignPicker,
+      'autoShowPicPicker': autoShowPicPicker,
+      'autoShowStampPicker': autoShowStampPicker,
+      'autoShowLinkDialog': autoShowLinkDialog,
+      'autoShowNoteEditDialog': autoShowNoteEditDialog,
+      'interceptNoteAction': interceptNoteAction,
+      'interceptLinkAction': interceptLinkAction,
+      if (hasNewInterceptionConfig) ...{
+        'interceptAllAnnotationActions': effectiveInterceptAllAnnotationActions,
+        'interceptAnnotationActions':
+            effectiveInterceptAnnotationActions.map((e) => e.name).toList(),
+      },
+    };
+  }
 }
 
 class CPDFAnnotAttribute {

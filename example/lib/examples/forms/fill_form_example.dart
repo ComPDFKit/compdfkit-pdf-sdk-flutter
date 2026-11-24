@@ -39,6 +39,7 @@ import '../shared/example_document_loader.dart';
 /// - Configuring listbox and combobox options with selection
 /// - Styling signature fields with custom colors
 /// - Setting push button actions and appearance
+/// - Checking required fields ([CPDFWidget.isRequired]) before submitting
 ///
 /// Each form field type supports different properties:
 /// - [CPDFTextWidget]: text content, font settings, multiline, alignment
@@ -53,6 +54,7 @@ import '../shared/example_document_loader.dart';
 /// 1. Open a PDF with form fields
 /// 2. Tap menu and select "Fill Form Fields"
 /// 3. All form fields will be updated with predefined values
+/// 4. Select "Check Required Fields" to list required fields that are empty
 class FillFormExample extends StatelessWidget {
   /// Constructor
   const FillFormExample({super.key});
@@ -77,7 +79,10 @@ class _FillFormPage extends ExampleBase {
 }
 
 class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
-  static const List<String> _menuActions = ['Fill Form Fields'];
+  static const List<String> _menuActions = [
+    'Fill Form Fields',
+    'Check Required Fields',
+  ];
 
   @override
   String get pageTitle => 'Fill Form';
@@ -101,18 +106,65 @@ class _FillFormPageState extends ExampleBaseState<_FillFormPage> {
   void handleMenuAction(String action, CPDFReaderWidgetController controller) {
     if (action == 'Fill Form Fields') {
       _handleFillForm(controller);
+    } else if (action == 'Check Required Fields') {
+      _handleCheckRequiredFields(controller);
     }
   }
 
-  Future<void> _handleFillForm(CPDFReaderWidgetController controller) async {
+  Future<List<CPDFWidget>> _getAllWidgets(
+      CPDFReaderWidgetController controller) async {
     final pageCount = await controller.document.getPageCount();
     final widgets = <CPDFWidget>[];
-
     for (int i = 0; i < pageCount; i++) {
-      final page = controller.document.pageAtIndex(i);
-      final pageWidgets = await page.getWidgets();
-      widgets.addAll(pageWidgets);
+      widgets.addAll(await controller.document.pageAtIndex(i).getWidgets());
     }
+    return widgets;
+  }
+
+  /// Lists required fields that have no value, e.g. before submitting a form.
+  ///
+  /// PDF viewers do not enforce the required flag, so the app checks it.
+  /// Radio buttons that share a field name form one group: the group counts
+  /// as filled when any of its buttons is checked.
+  Future<void> _handleCheckRequiredFields(
+      CPDFReaderWidgetController controller) async {
+    final widgets = await _getAllWidgets(controller);
+    final checkedRadioGroups = widgets
+        .whereType<CPDFRadioButtonWidget>()
+        .where((widget) => widget.isChecked)
+        .map((widget) => widget.title)
+        .toSet();
+
+    final emptyFields = <String>{};
+    for (final widget in widgets.where((widget) => widget.isRequired)) {
+      final isEmpty = switch (widget) {
+        CPDFTextWidget() => widget.text.trim().isEmpty,
+        CPDFCheckBoxWidget() => !widget.isChecked,
+        CPDFRadioButtonWidget() => !checkedRadioGroups.contains(widget.title),
+        CPDFListBoxWidget() => widget.selectItemAtIndex < 0,
+        CPDFComboBoxWidget() => widget.selectItemAtIndex < 0,
+        CPDFSignatureWidget() => !widget.isSigned,
+        _ => false,
+      };
+      if (isEmpty) {
+        emptyFields.add('${widget.title} (page ${widget.page + 1})');
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+    final requiredCount = widgets.where((widget) => widget.isRequired).length;
+    final message = emptyFields.isEmpty
+        ? 'All $requiredCount required fields are filled.'
+        : 'Required fields still empty:\n${emptyFields.join('\n')}';
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _handleFillForm(CPDFReaderWidgetController controller) async {
+    final widgets = await _getAllWidgets(controller);
 
     for (final widget in widgets) {
       if (widget is CPDFTextWidget) {

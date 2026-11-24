@@ -152,6 +152,18 @@ enum CPDFAnnotationType {
   }
 }
 
+/// Controls the history source used by Ink annotation undo and redo.
+enum CPDFInkUndoRedoMode {
+  /// Uses Ink stroke history only.
+  inkOnly,
+
+  /// Uses document annotation history only.
+  documentOnly,
+
+  /// Uses the actual undo source order for Ink and document annotations.
+  hybrid,
+}
+
 enum CPDFConfigTool { setting, undo, redo }
 
 enum CPDFAnnotBorderStyle { solid, dashed }

@@ -109,6 +109,16 @@ void main() {
         .path;
   });
 
+  testWidgets('loads PKCS#12 certificate metadata through the bridge',
+      timeout: const Timeout(Duration(seconds: 30)), (tester) async {
+    final certificate = await ComPDFKit.loadPkcs12Certificate(
+        certificatePath, certificatePassword);
+    expect(certificate, isNotNull);
+    expect(certificate!.subject, contains('ComPDF Flutter Timestamp IT'));
+    expect(certificate.serialNumber ?? '', isNotEmpty);
+    expect(certificate.sha1Digest ?? '', isNotEmpty);
+  });
+
   testWidgets('signs with an embedded RFC 3161 timestamp',
       timeout: const Timeout(Duration(seconds: 90)), (tester) async {
     final document = await _openDocument(sourcePath);

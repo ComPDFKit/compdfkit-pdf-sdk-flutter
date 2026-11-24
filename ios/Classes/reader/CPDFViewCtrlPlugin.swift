@@ -43,7 +43,7 @@ class CPDFViewCtrlPlugin {
         _methodChannel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.ui.pdfviewer.\(viewId)", binaryMessenger: messenger)
         registeryMethodChannel()
         
-        var documentPlugin = CPDFDocumentPlugin(pdfViewController: pdfViewController, uid: String(describing: viewId), binaryMessager: messenger)
+        _ = CPDFDocumentPlugin(pdfViewController: pdfViewController, uid: String(describing: viewId), binaryMessager: messenger)
     }
     
     

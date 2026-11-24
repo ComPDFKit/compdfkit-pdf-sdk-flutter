@@ -26,6 +26,7 @@ import '../../util/extension/cpdf_color_extension.dart';
 /// - [createDate]: The creation time, if available.
 /// - [rect]: The widget bounds in page coordinates.
 /// - [borderColor]/[fillColor]/[borderWidth]: Appearance settings.
+/// - [isRequired]: Whether the field is marked as required (read-only).
 ///
 /// Serialization:
 /// - Use [CPDFWidget.fromJson] to create an instance from a JSON map.
@@ -43,6 +44,18 @@ class CPDFWidget {
   Color fillColor;
   double borderWidth;
 
+  /// Whether the form field is marked as required (PDF field flag `Ff` bit 2).
+  ///
+  /// The value is read from the native document and is read-only: changing it
+  /// is not supported, and it is ignored when the widget is written back.
+  /// Viewers do not enforce it, so apps should check required fields
+  /// themselves before submitting a form. It defaults to `false` when the
+  /// flag is absent or cannot be read. Push buttons may carry the flag, but
+  /// it has no practical meaning for them.
+  ///
+  /// Since: 3.2.1
+  final bool isRequired;
+
   CPDFWidget({
     required this.type,
     required this.title,
@@ -53,6 +66,7 @@ class CPDFWidget {
     required this.borderColor,
     required this.fillColor,
     this.borderWidth = 0,
+    this.isRequired = false,
   });
 
   factory CPDFWidget.fromJson(Map<String, dynamic> json) {
@@ -68,6 +82,7 @@ class CPDFWidget {
       borderColor: HexColor.fromHex(json['borderColor'] ?? '#000000'),
       fillColor: HexColor.fromHex(json['fillColor'] ?? '#000000'),
       borderWidth: (json['borderWidth'] as num?)?.toDouble() ?? 0.0,
+      isRequired: json['isRequired'] == true,
     );
   }
 
@@ -81,6 +96,7 @@ class CPDFWidget {
         'borderColor': borderColor.toHex(),
         'fillColor': fillColor.toHex(),
         'borderWidth': borderWidth,
+        'isRequired': isRequired,
       };
 
   @override

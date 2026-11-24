@@ -114,6 +114,14 @@ class AppAssets {
   /// Annotation and form test PDF
   static const String annotTestPdf = 'pdfs/annot_test.pdf';
 
+  /// PDF fixture containing all supported form widget types.
+  static const String formInterceptionTestPdf =
+      'pdfs/form_interception_test.pdf';
+
+  /// PDF fixture containing one target for each Android-interceptable annotation type.
+  static const String annotationInterceptionTestPdf =
+      'pdfs/annotation_interception_test.pdf';
+
   /// One-page PDF with an unsigned Approval signature field.
   static const String unsignedSignaturePdf = 'assets/unsigned_signature.pdf';
 

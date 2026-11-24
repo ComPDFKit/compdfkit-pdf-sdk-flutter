@@ -24,7 +24,7 @@ class CPDFSearchUtil {
         if(document == nil){
             return searchResults;
         }
-        if let resultArray = document?.find(keywords, with: options) as? [[CPDFSelection]] {
+        if let resultArray = document?.find(keywords, with: options, completionHandler: nil) {
             
             for array in resultArray {
                 for selection in array {

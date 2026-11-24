@@ -14,6 +14,6 @@ class CpdfUuidUtil {
   static String generateShortUniqueId() {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final random = Random().nextInt(1000);
-    return '$now$random';
+    return '$now${random.toString().padLeft(3, '0')}';
   }
 }

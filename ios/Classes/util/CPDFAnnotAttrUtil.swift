@@ -565,249 +565,234 @@ class CPDFAnnotAttrUtil {
     public static func setWidgetDefaultAttr(type : String, attrDict : Dictionary<String, Any>){
         let userDefaults = UserDefaults.standard
         if type == "textField" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CTextFieldInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CTextFieldColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CTextFieldLineWidthKey)
-                    } else if innerKey == "fontColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CTextFieldFontColorKey)
-                    } else if innerKey == "fontSize" {
-                        let fontSize = innerValue as? CGFloat ?? 10
-                        userDefaults.set(fontSize, forKey: CTextFieldFontSizeKey)
-                    } else if innerKey == "familyName" {
-                        let familyName = innerValue as? String ?? "Helvetica"
-                        userDefaults.set(familyName, forKey: CTextFieldFontFamilyNameKey)
-                    } else if innerKey == "styleName" {
-                        let styleName = innerValue as? String ?? ""
-                        userDefaults.set(styleName, forKey: CTextFieldFontStyleNameKey)
-                    } else if innerKey == "alignment" {
-                        let string = innerValue as? String ?? ""
-                        if string == "left" {
-                            userDefaults.set(0, forKey: CTextFieldAlignmentKey)
-                        } else if string == "center" {
-                            userDefaults.set(1, forKey: CTextFieldAlignmentKey)
-                        } else if string == "right" {
-                            userDefaults.set(2, forKey: CTextFieldAlignmentKey)
-                        }
-                    } else if innerKey == "multiline" {
-                        let multiline = innerValue as? Bool ?? false
-                        userDefaults.set(multiline, forKey: CTextFieldIsMultilineKey)
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CTextFieldInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CTextFieldColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CTextFieldLineWidthKey)
+                } else if innerKey == "fontColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CTextFieldFontColorKey)
+                } else if innerKey == "fontSize" {
+                    let fontSize = innerValue as? CGFloat ?? 10
+                    userDefaults.set(fontSize, forKey: CTextFieldFontSizeKey)
+                } else if innerKey == "familyName" {
+                    let familyName = innerValue as? String ?? "Helvetica"
+                    userDefaults.set(familyName, forKey: CTextFieldFontFamilyNameKey)
+                } else if innerKey == "styleName" {
+                    let styleName = innerValue as? String ?? ""
+                    userDefaults.set(styleName, forKey: CTextFieldFontStyleNameKey)
+                } else if innerKey == "alignment" {
+                    let string = innerValue as? String ?? ""
+                    if string == "left" {
+                        userDefaults.set(0, forKey: CTextFieldAlignmentKey)
+                    } else if string == "center" {
+                        userDefaults.set(1, forKey: CTextFieldAlignmentKey)
+                    } else if string == "right" {
+                        userDefaults.set(2, forKey: CTextFieldAlignmentKey)
                     }
+                } else if innerKey == "multiline" {
+                    let multiline = innerValue as? Bool ?? false
+                    userDefaults.set(multiline, forKey: CTextFieldIsMultilineKey)
                 }
             }
         } else if type == "checkBox" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CCheckBoxInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CCheckBoxColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CCheckBoxLineWidthKey)
-                    } else if innerKey == "checkedColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CCheckBoxCheckedColorKey)
-                    } else if innerKey == "isChecked" {
-                        let isChecked = innerValue as? Bool ?? false
-                        userDefaults.set(isChecked, forKey: CCheckBoxIsCheckedKey)
-                    } else if innerKey == "checkedStyle" {
-                        let string = innerValue as? String ?? ""
-                        if string == "check" {
-                            userDefaults.set(0, forKey: CCheckBoxCheckedStyleKey)
-                        } else if string == "circle" {
-                            userDefaults.set(1, forKey: CCheckBoxCheckedStyleKey)
-                        } else if string == "cross" {
-                            userDefaults.set(2, forKey: CCheckBoxCheckedStyleKey)
-                        } else if string == "diamond" {
-                            userDefaults.set(3, forKey: CCheckBoxCheckedStyleKey)
-                        } else if string == "square" {
-                            userDefaults.set(4, forKey: CCheckBoxCheckedStyleKey)
-                        } else if string == "star" {
-                            userDefaults.set(5, forKey: CCheckBoxCheckedStyleKey)
-                        }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CCheckBoxInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CCheckBoxColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CCheckBoxLineWidthKey)
+                } else if innerKey == "checkedColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CCheckBoxCheckedColorKey)
+                } else if innerKey == "isChecked" {
+                    let isChecked = innerValue as? Bool ?? false
+                    userDefaults.set(isChecked, forKey: CCheckBoxIsCheckedKey)
+                } else if innerKey == "checkedStyle" {
+                    let string = innerValue as? String ?? ""
+                    if string == "check" {
+                        userDefaults.set(0, forKey: CCheckBoxCheckedStyleKey)
+                    } else if string == "circle" {
+                        userDefaults.set(1, forKey: CCheckBoxCheckedStyleKey)
+                    } else if string == "cross" {
+                        userDefaults.set(2, forKey: CCheckBoxCheckedStyleKey)
+                    } else if string == "diamond" {
+                        userDefaults.set(3, forKey: CCheckBoxCheckedStyleKey)
+                    } else if string == "square" {
+                        userDefaults.set(4, forKey: CCheckBoxCheckedStyleKey)
+                    } else if string == "star" {
+                        userDefaults.set(5, forKey: CCheckBoxCheckedStyleKey)
                     }
                 }
             }
         } else if type == "radioButton" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CRadioButtonInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CRadioButtonColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CRadioButtonLineWidthKey)
-                    } else if innerKey == "checkedColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CRadioButtonCheckedColorKey)
-                    } else if innerKey == "isChecked" {
-                        let isChecked = innerValue as? Bool ?? false
-                        userDefaults.set(isChecked, forKey: CRadioButtonIsCheckedKey)
-                    } else if innerKey == "checkedStyle" {
-                        let string = innerValue as? String ?? ""
-                        if string == "check" {
-                            userDefaults.set(0, forKey: CRadioButtonCheckedStyleKey)
-                        } else if string == "circle" {
-                            userDefaults.set(1, forKey: CRadioButtonCheckedStyleKey)
-                        } else if string == "cross" {
-                            userDefaults.set(2, forKey: CRadioButtonCheckedStyleKey)
-                        } else if string == "diamond" {
-                            userDefaults.set(3, forKey: CRadioButtonCheckedStyleKey)
-                        } else if string == "square" {
-                            userDefaults.set(4, forKey: CRadioButtonCheckedStyleKey)
-                        } else if string == "star" {
-                            userDefaults.set(5, forKey: CRadioButtonCheckedStyleKey)
-                        }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CRadioButtonInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CRadioButtonColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CRadioButtonLineWidthKey)
+                } else if innerKey == "checkedColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CRadioButtonCheckedColorKey)
+                } else if innerKey == "isChecked" {
+                    let isChecked = innerValue as? Bool ?? false
+                    userDefaults.set(isChecked, forKey: CRadioButtonIsCheckedKey)
+                } else if innerKey == "checkedStyle" {
+                    let string = innerValue as? String ?? ""
+                    if string == "check" {
+                        userDefaults.set(0, forKey: CRadioButtonCheckedStyleKey)
+                    } else if string == "circle" {
+                        userDefaults.set(1, forKey: CRadioButtonCheckedStyleKey)
+                    } else if string == "cross" {
+                        userDefaults.set(2, forKey: CRadioButtonCheckedStyleKey)
+                    } else if string == "diamond" {
+                        userDefaults.set(3, forKey: CRadioButtonCheckedStyleKey)
+                    } else if string == "square" {
+                        userDefaults.set(4, forKey: CRadioButtonCheckedStyleKey)
+                    } else if string == "star" {
+                        userDefaults.set(5, forKey: CRadioButtonCheckedStyleKey)
                     }
                 }
             }
         } else if type == "listBox" {
-            if let innerDict = attrDict as? [String: Any] {
-                
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CListBoxInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CListBoxColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CListBoxLineWidthKey)
-                    } else if innerKey == "fontColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CListBoxFontColorKey)
-                    } else if innerKey == "fontSize" {
-                        let fontSize = innerValue as? CGFloat ?? 10
-                        userDefaults.set(fontSize, forKey: CListBoxFontSizeKey)
-                    }  else if innerKey == "familyName" {
-                        let familyName = innerValue as? String ?? "Helvetica"
-                        userDefaults.set(familyName, forKey: CListBoxFontFamilyNameKey)
-                    } else if innerKey == "styleName" {
-                        let styleName = innerValue as? String ?? ""
-                        userDefaults.set(styleName, forKey: CListBoxFontStyleNameKey)
-                    }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CListBoxInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CListBoxColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CListBoxLineWidthKey)
+                } else if innerKey == "fontColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CListBoxFontColorKey)
+                } else if innerKey == "fontSize" {
+                    let fontSize = innerValue as? CGFloat ?? 10
+                    userDefaults.set(fontSize, forKey: CListBoxFontSizeKey)
+                }  else if innerKey == "familyName" {
+                    let familyName = innerValue as? String ?? "Helvetica"
+                    userDefaults.set(familyName, forKey: CListBoxFontFamilyNameKey)
+                } else if innerKey == "styleName" {
+                    let styleName = innerValue as? String ?? ""
+                    userDefaults.set(styleName, forKey: CListBoxFontStyleNameKey)
                 }
             }
         } else if type == "comboBox" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CComboBoxInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CComboBoxColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CComboBoxLineWidthKey)
-                    } else if innerKey == "fontColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CComboBoxFontColorKey)
-                    } else if innerKey == "fontSize" {
-                        let fontSize = innerValue as? CGFloat ?? 10
-                        userDefaults.set(fontSize, forKey: CComboBoxFontSizeKey)
-                    }  else if innerKey == "familyName" {
-                        let familyName = innerValue as? String ?? "Helvetica"
-                        print("ComBoBox FamilyName:\(familyName)")
-                        userDefaults.set(familyName, forKey: CComboBoxFontFamilyNameKey)
-                    } else if innerKey == "styleName" {
-                        let styleName = innerValue as? String ?? ""
-                        print("ComBoBox StyleName:\(styleName)")
-                        userDefaults.set(styleName, forKey: CComboBoxFontStyleNameKey)
-                    }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CComboBoxInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CComboBoxColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CComboBoxLineWidthKey)
+                } else if innerKey == "fontColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CComboBoxFontColorKey)
+                } else if innerKey == "fontSize" {
+                    let fontSize = innerValue as? CGFloat ?? 10
+                    userDefaults.set(fontSize, forKey: CComboBoxFontSizeKey)
+                }  else if innerKey == "familyName" {
+                    let familyName = innerValue as? String ?? "Helvetica"
+                    print("ComBoBox FamilyName:\(familyName)")
+                    userDefaults.set(familyName, forKey: CComboBoxFontFamilyNameKey)
+                } else if innerKey == "styleName" {
+                    let styleName = innerValue as? String ?? ""
+                    print("ComBoBox StyleName:\(styleName)")
+                    userDefaults.set(styleName, forKey: CComboBoxFontStyleNameKey)
                 }
             }
         } else if type == "pushButton" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CPushButtonInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CPushButtonColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CPushButtonLineWidthKey)
-                    } else if innerKey == "fontColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CPushButtonFontColorKey)
-                    } else if innerKey == "fontSize" {
-                        let fontSize = innerValue as? CGFloat ?? 10
-                        userDefaults.set(fontSize, forKey: CPushButtonFontSizeKey)
-                    }   else if innerKey == "familyName" {
-                        let familyName = innerValue as? String ?? "Helvetica"
-                        userDefaults.set(familyName, forKey: CPushButtonFontFamilyNameKey)
-                    } else if innerKey == "styleName" {
-                        let styleName = innerValue as? String ?? ""
-                        userDefaults.set(styleName, forKey: CPushButtonFontStyleNameKey)
-                    } else if innerKey == "title" {
-                        let string = innerValue as? String ?? ""
-                        userDefaults.set(string, forKey: CPushButtonTitleKey)
-                    }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CPushButtonInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CPushButtonColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CPushButtonLineWidthKey)
+                } else if innerKey == "fontColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CPushButtonFontColorKey)
+                } else if innerKey == "fontSize" {
+                    let fontSize = innerValue as? CGFloat ?? 10
+                    userDefaults.set(fontSize, forKey: CPushButtonFontSizeKey)
+                }   else if innerKey == "familyName" {
+                    let familyName = innerValue as? String ?? "Helvetica"
+                    userDefaults.set(familyName, forKey: CPushButtonFontFamilyNameKey)
+                } else if innerKey == "styleName" {
+                    let styleName = innerValue as? String ?? ""
+                    userDefaults.set(styleName, forKey: CPushButtonFontStyleNameKey)
+                } else if innerKey == "title" {
+                    let string = innerValue as? String ?? ""
+                    userDefaults.set(string, forKey: CPushButtonTitleKey)
                 }
             }
         } else if type == "signaturesFields" {
-            if let innerDict = attrDict as? [String: Any] {
-                for (innerKey, innerValue) in innerDict {
-                    if innerKey == "fillColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CSignaturesFieldsInteriorColorKey)
-                    } else if innerKey == "borderColor" {
-                        let string = innerValue as? String ?? ""
-                        let color = ColorHelper.colorWithHexString(hex: string)
-                        userDefaults.setPDFListViewColor(color, forKey: CSignaturesFieldsColorKey)
-                    } else if innerKey == "borderWidth" {
-                        let borderWidth = innerValue as? CGFloat ?? 1
-                        userDefaults.set(borderWidth, forKey: CSignaturesFieldsLineWidthKey)
-                    } else if innerKey == "borderStyle" {
-                        let string = innerValue as? String ?? ""
-                        
-                        if string == "solid" {
-                            userDefaults.set(0, forKey: CSignaturesFieldsLineStyleKey)
-                        } else if string == "dashed" {
-                            userDefaults.set(1, forKey: CSignaturesFieldsLineStyleKey)
-                        } else if string == "beveled" {
-                            userDefaults.set(2, forKey: CSignaturesFieldsLineStyleKey)
-                        } else if string == "inset" {
-                            userDefaults.set(3, forKey: CSignaturesFieldsLineStyleKey)
-                        } else if string == "underline" {
-                            userDefaults.set(4, forKey: CSignaturesFieldsLineStyleKey)
-                        }
+            for (innerKey, innerValue) in attrDict {
+                if innerKey == "fillColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CSignaturesFieldsInteriorColorKey)
+                } else if innerKey == "borderColor" {
+                    let string = innerValue as? String ?? ""
+                    let color = ColorHelper.colorWithHexString(hex: string)
+                    userDefaults.setPDFListViewColor(color, forKey: CSignaturesFieldsColorKey)
+                } else if innerKey == "borderWidth" {
+                    let borderWidth = innerValue as? CGFloat ?? 1
+                    userDefaults.set(borderWidth, forKey: CSignaturesFieldsLineWidthKey)
+                } else if innerKey == "borderStyle" {
+                    let string = innerValue as? String ?? ""
+
+                    if string == "solid" {
+                        userDefaults.set(0, forKey: CSignaturesFieldsLineStyleKey)
+                    } else if string == "dashed" {
+                        userDefaults.set(1, forKey: CSignaturesFieldsLineStyleKey)
+                    } else if string == "beveled" {
+                        userDefaults.set(2, forKey: CSignaturesFieldsLineStyleKey)
+                    } else if string == "inset" {
+                        userDefaults.set(3, forKey: CSignaturesFieldsLineStyleKey)
+                    } else if string == "underline" {
+                        userDefaults.set(4, forKey: CSignaturesFieldsLineStyleKey)
                     }
                 }
             }

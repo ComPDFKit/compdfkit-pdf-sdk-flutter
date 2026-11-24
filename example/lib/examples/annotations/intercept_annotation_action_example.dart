@@ -25,11 +25,11 @@ import '../shared/example_document_loader.dart';
 
 /// Intercept Annotation Action Example
 ///
-/// Demonstrates how to intercept link and note annotation actions in Flutter.
+/// Demonstrates how to intercept selected annotation actions in Flutter.
 ///
 /// This example shows:
-/// - Configuring [CPDFAnnotationsConfig.interceptLinkAction] to intercept link taps
-/// - Configuring [CPDFAnnotationsConfig.interceptNoteAction] to intercept note taps
+/// - Configuring [CPDFAnnotationsConfig.interceptAllAnnotationActions] to
+///   intercept all annotation actions
 /// - Handling intercepted events via [CPDFReaderWidget.onInterceptAnnotationActionCallback]
 ///
 /// Key classes/APIs used:
@@ -38,14 +38,16 @@ import '../shared/example_document_loader.dart';
 /// - [CPDFLinkAnnotation]: Link annotation with URI or GoTo action
 /// - [CPDFNoteAnnotation]: Note annotation with content
 ///
-/// Usage:
-/// 1. Open the example
-/// 2. Tap on a link annotation to see the intercepted URI or page destination
-/// 3. Tap on a note annotation to see the intercepted content
+/// The bundled fixture contains link, note, markup, shape, line, ink, free-text,
+/// stamp, redact, and sound annotations. Android reports picture, signature,
+/// and arrow annotations using their native stamp or line type, so the example
+/// displays the native callback type for those cases.
+///
+/// The unified interception configuration is currently supported by Android.
 class InterceptAnnotationActionExample extends StatelessWidget {
   const InterceptAnnotationActionExample({super.key});
 
-  static const String _assetPath = AppAssets.annotTestPdf;
+  static const String _assetPath = AppAssets.annotationInterceptionTestPdf;
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +79,9 @@ class _InterceptAnnotationActionPageState
         ),
         annotationsConfig: CPDFAnnotationsConfig(
           annotationAuthor: PreferencesService.documentAuthor,
-          // Enable interception of link annotation tap actions
-          interceptLinkAction: true,
-          // Enable interception of note annotation tap actions
-          interceptNoteAction: true,
+          // The fixture contains every annotation type supported by Android's
+          // action interception layer.
+          interceptAllAnnotationActions: true,
         ),
         readerViewConfig: CPDFReaderViewConfig(
           linkHighlight: PreferencesService.highlightLink,
@@ -114,21 +115,14 @@ class _InterceptAnnotationActionPageState
             _controller = controller;
           },
           // ==================== Annotation Action Interception ====================
-          // This callback handles intercepted annotation actions (link and note)
-          // When interceptLinkAction or interceptNoteAction is true in config,
-          // tapping these annotations will trigger this callback instead of
-          // the default native behavior.
+          // Tapping an annotation triggers this callback instead of the
+          // default native action.
           onInterceptAnnotationActionCallback: _handleAnnotationAction,
         ),
       ),
     );
   }
 
-  /// Handle intercepted annotation actions.
-  ///
-  /// This method is called when:
-  /// - A link annotation is tapped (when interceptLinkAction is true)
-  /// - A note annotation is tapped (when interceptNoteAction is true)
   void _handleAnnotationAction(CPDFAnnotation annotation) {
     final type = annotation.type;
 
@@ -144,8 +138,67 @@ class _InterceptAnnotationActionPageState
         _showNoteDialog(content);
         break;
       default:
+        _showAnnotationDialog(annotation);
         break;
     }
+  }
+
+  void _showAnnotationDialog(CPDFAnnotation annotation) {
+    final type = annotation.type;
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${_annotationTypeName(type)} intercepted'),
+        content: Text(
+          '${_annotationActionMessage(type)}\n\n'
+          'Page ${annotation.page + 1}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _annotationTypeName(CPDFAnnotationType type) {
+    return switch (type) {
+      CPDFAnnotationType.freetext => 'Free text',
+      CPDFAnnotationType.strikeout => 'Strikeout',
+      CPDFAnnotationType.ink => 'Ink',
+      CPDFAnnotationType.sound => 'Sound',
+      CPDFAnnotationType.redact => 'Redact',
+      CPDFAnnotationType.squiggly => 'Squiggly',
+      CPDFAnnotationType.highlight => 'Highlight',
+      CPDFAnnotationType.underline => 'Underline',
+      CPDFAnnotationType.square => 'Square',
+      CPDFAnnotationType.circle => 'Circle',
+      CPDFAnnotationType.line => 'Line or arrow',
+      CPDFAnnotationType.stamp => 'Stamp, picture, or signature',
+      _ => type.name,
+    };
+  }
+
+  String _annotationActionMessage(CPDFAnnotationType type) {
+    return switch (type) {
+      CPDFAnnotationType.highlight => 'Highlight action intercepted.',
+      CPDFAnnotationType.underline => 'Underline action intercepted.',
+      CPDFAnnotationType.squiggly => 'Squiggly action intercepted.',
+      CPDFAnnotationType.strikeout => 'Strikeout action intercepted.',
+      CPDFAnnotationType.ink => 'Ink action intercepted.',
+      CPDFAnnotationType.circle => 'Circle action intercepted.',
+      CPDFAnnotationType.square => 'Square action intercepted.',
+      CPDFAnnotationType.line =>
+        'Line or arrow action intercepted without entering selection mode.',
+      CPDFAnnotationType.freetext => 'Free-text action intercepted.',
+      CPDFAnnotationType.stamp =>
+        'Stamp, picture, or signature action intercepted.',
+      CPDFAnnotationType.sound => 'Sound action intercepted.',
+      CPDFAnnotationType.redact => 'Redaction action intercepted.',
+      _ => 'Annotation action intercepted.',
+    };
   }
 
   /// Show a link action dialog with different content based on action type.

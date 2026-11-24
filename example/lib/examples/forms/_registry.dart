@@ -108,7 +108,7 @@ final CategoryInfo formsCategory = CategoryInfo(
     ),
     ExampleItem(
       title: 'Intercept Action',
-      description: 'Intercept form widget click actions',
+      description: 'Handle all form widget actions with Flutter interactions',
       routeType: ExampleRouteType.pageBuilder,
       pageBuilder: (context) => const InterceptWidgetActionExample(),
       visual: const ExampleVisual(

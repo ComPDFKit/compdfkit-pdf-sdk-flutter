@@ -28,60 +28,23 @@ class ColorHelper {
             cString = String(cString.dropFirst())
         }
         
-        if cString.count < 6 {
+        let length = cString.count
+        guard length == 6 || length == 8 else {
             return UIColor.clear
         }
-        
-        if cString.count == 6 {
-            let rRange = cString.startIndex ..< cString.index(cString.startIndex, offsetBy: 2)
-            let rString = cString.substring(with: rRange)
 
-            let gRange = cString.index(cString.startIndex, offsetBy: 2) ..< cString.index(cString.startIndex, offsetBy: 4)
-            let gString = cString.substring(with: gRange)
-
-            let bRange = cString.index(cString.startIndex, offsetBy: 4) ..< cString.index(cString.startIndex, offsetBy: 6)
-            let bString = cString.substring(with: bRange)
-
-            
-            var r:CUnsignedInt = 0, g:CUnsignedInt = 0, b:CUnsignedInt = 0
-
-            Scanner(string: rString).scanHexInt32(&r)
-
-            Scanner(string: gString).scanHexInt32(&g)
-
-            Scanner(string: bString).scanHexInt32(&b)
-            
-            var alpha: CUnsignedInt = 255
-            
-            return UIColor(red: CGFloat(r) / 255.0, green: CGFloat(g) / 255.0, blue: CGFloat(b) / 255.0, alpha: CGFloat(alpha) / 255.0)
-        } else if cString.count == 8 {
-            let aRange = cString.startIndex ..< cString.index(cString.startIndex, offsetBy: 2)
-            let aString = cString.substring(with: aRange)
-            
-            let rRange = cString.index(cString.startIndex, offsetBy: 2) ..< cString.index(cString.startIndex, offsetBy: 4)
-            let rString = cString.substring(with: rRange)
-
-            let gRange = cString.index(cString.startIndex, offsetBy: 4) ..< cString.index(cString.startIndex, offsetBy: 6)
-            let gString = cString.substring(with: gRange)
-
-            let bRange = cString.index(cString.startIndex, offsetBy: 6) ..< cString.index(cString.startIndex, offsetBy: 8)
-            let bString = cString.substring(with: bRange)
-
-            
-            var r:CUnsignedInt = 0, g:CUnsignedInt = 0, b:CUnsignedInt = 0, a:CUnsignedInt = 0
-
-            Scanner(string: rString).scanHexInt32(&r)
-
-            Scanner(string: gString).scanHexInt32(&g)
-
-            Scanner(string: bString).scanHexInt32(&b)
-            
-            Scanner(string: aString).scanHexInt32(&a)
-            
-            return UIColor(red: CGFloat(r) / 255.0, green: CGFloat(g) / 255.0, blue: CGFloat(b) / 255.0, alpha: CGFloat(a) / 255.0)
-        } else {
-            return UIColor.clear
+        func component(at offset: Int) -> CGFloat {
+            let start = cString.index(cString.startIndex, offsetBy: offset)
+            let end = cString.index(start, offsetBy: 2)
+            let value = Scanner(string: String(cString[start..<end])).scanUInt64(representation: .hexadecimal) ?? 0
+            return CGFloat(value) / 255.0
         }
+
+        let colorOffset = length == 8 ? 2 : 0
+        return UIColor(red: component(at: colorOffset),
+                       green: component(at: colorOffset + 2),
+                       blue: component(at: colorOffset + 4),
+                       alpha: length == 8 ? component(at: 0) : 1)
     }
     
     static func alphaFromHex(_ hex: String) -> CGFloat? {

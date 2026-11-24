@@ -172,7 +172,7 @@ Please install the following required packages:
 
 Operating Environment Requirements:
 
-* The iOS 12.0 or higher.
+* The iOS 15.0 or higher.
 * The Xcode 12.0 or newer for Objective-C or Swift.
 
 ## How to Build the Flutter PDF Editor
@@ -268,7 +268,7 @@ Alternatively you can update the `AndroidManifest.xml` file to use `FlutterFragm
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^3.2.0
++  compdfkit_flutter: ^3.2.1
 ```
 
 8. Add the PDF documents you want to display in the project
@@ -315,7 +315,7 @@ cd example
  dependencies:
    flutter:
      sdk: flutter
-+  compdfkit_flutter: ^3.2.0
++  compdfkit_flutter: ^3.2.1
 ```
 
 4. Open your project's Podfile in a text editor:
@@ -330,15 +330,15 @@ open ios/Podfile
 
 ```diff
 - platform :ios, '9.0'
-+ platform :ios, '12.0' 
++ platform :ios, '15.0' 
  ...
  target 'Runner' do
    use_frameworks!
    use_modular_headers!`
 
    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-+  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.2.0'
-+  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.2.0'
++  pod 'ComPDFKit', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.2.1'
++  pod 'ComPDFKit_Tools', :git => 'https://github.com/ComPDFKit/compdfkit-pdf-sdk-ios-swift.git', :tag => '3.2.1'
  end
 ```
 

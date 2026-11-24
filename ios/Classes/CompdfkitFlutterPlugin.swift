@@ -7,6 +7,7 @@
 
 import Flutter
 import UIKit
+import UniformTypeIdentifiers
 import ComPDFKit
 import ComPDFKit_Tools
 
@@ -17,12 +18,20 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
     private var _reuslt: FlutterResult?
     
     private var pdfViewController: CPDFViewController?
+    private weak var flutterViewController: UIViewController?
+
+    static func activeWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first { $0.activationState == .foregroundActive && $0.keyWindow != nil }?.keyWindow
+            ?? UIApplication.shared.delegate?.window ?? nil
+    }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel.init(name: "com.compdfkit.flutter.plugin", binaryMessenger: registrar.messenger())
 
         let instance = CompdfkitFlutterPlugin()
         instance.messager = registrar.messenger()
+        instance.flutterViewController = registrar.viewController
         registrar.addMethodCallDelegate(instance, channel: channel)
 
         let factory = CPDFViewCtrlFactory(messenger: registrar.messenger())
@@ -42,7 +51,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         case "init_sdk_keys":
             let initInfo = call.arguments as? [String: Any]
             let key = initInfo?["iosOnlineLicense"] ?? ""
-            CPDFKit.verify(withOnlineLicense: key as? String) { code, message in
+            CPDFVerifyLegacyOnlineLicense(key as? String) { code, message in
                 print("Code: \(code), Message:\(String(describing: message))")
                 result(code == CPDFKitOnlineLicenseCode.success)
             }
@@ -104,7 +113,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
         
             let jsonDataParse = CPDFJSONDataParse(String: jsonString as? String ?? "")
             guard let configuration = jsonDataParse.configuration else { return }
-            if let rootViewControl = UIApplication.shared.keyWindow?.rootViewController {
+            if let rootViewControl = (flutterViewController?.viewIfLoaded?.window ?? Self.activeWindow())?.rootViewController {
                 var tRootViewControl = rootViewControl
                 
                 if let presentedViewController = rootViewControl.presentedViewController {
@@ -126,8 +135,7 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
             result(self.getTemporaryDirectory())
             
         case "pick_file":
-            let documentTypes = ["com.adobe.pdf"]
-            let documentPickerViewController = UIDocumentPickerViewController(documentTypes: documentTypes, in: .open)
+            let documentPickerViewController = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf], asCopy: false)
             documentPickerViewController.delegate = self
             UIApplication.presentedViewController()?.present(documentPickerViewController, animated: true, completion: nil)
             _reuslt = result
@@ -252,7 +260,19 @@ public class CompdfkitFlutterPlugin: NSObject, FlutterPlugin, CPDFViewBaseContro
                 var value: [String: Any]? = nil
                 if let certificate = certificate {
                     certificate.checkIsTrusted()
-                    value = ["version": certificate.version, "serial_number": certificate.serialNumber, "key_type": "", "signature_algorithm": certificate.signatureAlgorithmOID, "issuer": certificate.issuer, "subject": certificate.subject, "valid_from": ISO8601DateFormatter().string(from: certificate.validityStarts), "valid_to": ISO8601DateFormatter().string(from: certificate.validityEnds), "sha1_digest": certificate.sha1Digest, "md5_digest": certificate.md5Digest, "is_trusted": certificate.isTrusted]
+                    value = [
+                        "version": certificate.version as Any? ?? NSNull(),
+                        "serial_number": certificate.serialNumber as Any? ?? NSNull(),
+                        "key_type": "",
+                        "signature_algorithm": certificate.signatureAlgorithmOID as Any? ?? NSNull(),
+                        "issuer": certificate.issuer as Any? ?? NSNull(),
+                        "subject": certificate.subject as Any? ?? NSNull(),
+                        "valid_from": ISO8601DateFormatter().string(from: certificate.validityStarts),
+                        "valid_to": ISO8601DateFormatter().string(from: certificate.validityEnds),
+                        "sha1_digest": certificate.sha1Digest as Any? ?? NSNull(),
+                        "md5_digest": certificate.md5Digest as Any? ?? NSNull(),
+                        "is_trusted": certificate.isTrusted
+                    ]
                 }
                 DispatchQueue.main.async { result(value) }
             }

@@ -39,7 +39,6 @@ public class FlutterCPDFSignatureFieldsWidget extends FlutterCPDFBaseWidget {
         return signatureWidget.updateApWithBitmap(bitmap, CPDFImageScaleType.SCALETYPE_fitCenter);
       }
     }catch (Exception e){
-      e.printStackTrace();
       return false;
     }
     return false;
